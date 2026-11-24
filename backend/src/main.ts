@@ -33,7 +33,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  logger.log(`EstateCore REST API Server running at http://localhost:${port}/api`);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`EstateCore REST API Server running at http://0.0.0.0:${port}/api`);
 }
 bootstrap();
