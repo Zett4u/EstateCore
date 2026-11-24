@@ -1,0 +1,319 @@
+[
+  {
+    "name": "Protected Route Rejection (No Token)",
+    "endpoint": "/api/auth/me",
+    "method": "GET",
+    "expectedStatus": 401,
+    "actualStatus": 401,
+    "pass": true,
+    "details": {
+      "statusCode": 401,
+      "timestamp": "2026-11-24T06:27:23.331Z",
+      "path": "/api/auth/me",
+      "method": "GET",
+      "error": "Unauthorized",
+      "message": "Authentication token is missing, invalid, or expired."
+    }
+  },
+  {
+    "name": "Register New Client",
+    "endpoint": "/api/auth/register",
+    "method": "POST",
+    "expectedStatus": 201,
+    "actualStatus": 201,
+    "pass": true,
+    "details": {
+      "userId": 6,
+      "role": "CLIENT"
+    }
+  },
+  {
+    "name": "Login as Administrator",
+    "endpoint": "/api/auth/login",
+    "method": "POST",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "email": "admin@estatecore.local",
+      "role": "ADMIN"
+    }
+  },
+  {
+    "name": "Login as Agent",
+    "endpoint": "/api/auth/login",
+    "method": "POST",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "email": "maria.santos@estatecore.local",
+      "role": "AGENT"
+    }
+  },
+  {
+    "name": "Login as Client",
+    "endpoint": "/api/auth/login",
+    "method": "POST",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "email": "juan.delacruz@client.local",
+      "role": "CLIENT"
+    }
+  },
+  {
+    "name": "Current User Profile (/me)",
+    "endpoint": "/api/auth/me",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "id": 1,
+      "fullName": "System Administrator",
+      "email": "admin@estatecore.local",
+      "role": "ADMIN",
+      "isActive": true,
+      "createdAt": "2026-11-23T22:25:50.000Z",
+      "updatedAt": "2026-11-23T22:25:50.000Z"
+    }
+  },
+  {
+    "name": "List Users (Admin)",
+    "endpoint": "/api/users",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "count": 6
+    }
+  },
+  {
+    "name": "RolesGuard Forbidden Check",
+    "endpoint": "/api/users",
+    "method": "GET",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {
+      "statusCode": 403,
+      "timestamp": "2026-11-24T06:27:24.249Z",
+      "path": "/api/users",
+      "method": "GET",
+      "error": "Forbidden",
+      "message": "Forbidden: Role 'CLIENT' is not authorized to access this resource."
+    }
+  },
+  {
+    "name": "Get User by ID",
+    "endpoint": "/api/users/1",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "fullName": "System Administrator",
+      "role": "ADMIN"
+    }
+  },
+  {
+    "name": "Update User Details",
+    "endpoint": "/api/users/6",
+    "method": "PATCH",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "fullName": "Updated Test Buyer Name"
+    }
+  },
+  {
+    "name": "Deactivate User",
+    "endpoint": "/api/users/6",
+    "method": "DELETE",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "message": "User ID 6 successfully deactivated.",
+      "id": 6,
+      "deactivated": true
+    }
+  },
+  {
+    "name": "List Filtered Properties",
+    "endpoint": "/api/properties?propertyType=CONDOMINIUM&listingType=SALE",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "count": 1
+    }
+  },
+  {
+    "name": "Get Property Details",
+    "endpoint": "/api/properties/1",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "title": "Modern High-Rise Condominium in BGC",
+      "price": "18500000.00"
+    }
+  },
+  {
+    "name": "Create Property Listing",
+    "endpoint": "/api/properties",
+    "method": "POST",
+    "expectedStatus": 201,
+    "actualStatus": 201,
+    "pass": true,
+    "details": {
+      "id": 7,
+      "title": "Modern Sunset Penthouse with Balcony"
+    }
+  },
+  {
+    "name": "Update Property Listing",
+    "endpoint": "/api/properties/7",
+    "method": "PATCH",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "price": 31500000,
+      "status": "RESERVED"
+    }
+  },
+  {
+    "name": "Submit Property Inquiry",
+    "endpoint": "/api/inquiries",
+    "method": "POST",
+    "expectedStatus": 201,
+    "actualStatus": 201,
+    "pass": true,
+    "details": {
+      "id": 4,
+      "status": "PENDING"
+    }
+  },
+  {
+    "name": "List Inquiries",
+    "endpoint": "/api/inquiries",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "count": 4
+    }
+  },
+  {
+    "name": "Get Inquiry Details",
+    "endpoint": "/api/inquiries/4",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "subject": "Inquiry on Downpayment Schemes"
+    }
+  },
+  {
+    "name": "Update Inquiry Status",
+    "endpoint": "/api/inquiries/4",
+    "method": "PATCH",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "status": "QUALIFIED"
+    }
+  },
+  {
+    "name": "Schedule Viewing Appointment",
+    "endpoint": "/api/appointments",
+    "method": "POST",
+    "expectedStatus": 201,
+    "actualStatus": 201,
+    "pass": true,
+    "details": {
+      "id": 3,
+      "date": "2026-12-15"
+    }
+  },
+  {
+    "name": "List Appointments",
+    "endpoint": "/api/appointments",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "count": 2
+    }
+  },
+  {
+    "name": "Get Appointment Details",
+    "endpoint": "/api/appointments/3",
+    "method": "GET",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "time": "15:00"
+    }
+  },
+  {
+    "name": "Update Appointment Status",
+    "endpoint": "/api/appointments/3",
+    "method": "PATCH",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "status": "CONFIRMED"
+    }
+  },
+  {
+    "name": "Cancel/Delete Appointment",
+    "endpoint": "/api/appointments/3",
+    "method": "DELETE",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "message": "Appointment ID 3 deleted successfully.",
+      "id": 3
+    }
+  },
+  {
+    "name": "Delete Inquiry",
+    "endpoint": "/api/inquiries/4",
+    "method": "DELETE",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "message": "Inquiry ID 4 deleted successfully.",
+      "id": 4
+    }
+  },
+  {
+    "name": "Delete Property Listing",
+    "endpoint": "/api/properties/7",
+    "method": "DELETE",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "message": "Property ID 7 ('Modern Sunset Penthouse with Balcony') deleted successfully.",
+      "id": 7
+    }
+  }
+]
