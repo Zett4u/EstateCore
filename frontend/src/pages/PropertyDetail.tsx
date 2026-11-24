@@ -144,9 +144,12 @@ export const PropertyDetail: React.FC = () => {
 
   const isOwner = user?.role === 'ADMIN' || (user?.role === 'AGENT' && property.agentId === user.id);
   const imageSrc = getPropertyImage(property.id, property.propertyType);
+  const containerClasses = user
+    ? 'space-y-8'
+    : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-8';
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className={containerClasses}>
       {/* Top Navigation & Controls */}
       <div className="flex items-center justify-between">
         <Link

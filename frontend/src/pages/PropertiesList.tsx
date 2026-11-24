@@ -163,9 +163,12 @@ export const PropertiesList: React.FC = () => {
 
   const canManage = user?.role === 'ADMIN' || user?.role === 'AGENT';
   const hasActiveFilters = Boolean(search || propertyType || listingType || status || maxPrice);
+  const containerClasses = user
+    ? 'space-y-8'
+    : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-8';
 
   return (
-    <div className="space-y-8">
+    <div className={containerClasses}>
       {/* 1. Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-stone-200">
         <div>

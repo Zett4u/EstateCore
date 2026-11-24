@@ -36,16 +36,30 @@ const DashboardRedirect: React.FC = () => {
   return <Navigate to="/client" replace />;
 };
 
+/**
+ * Adaptive layout for Property Catalog & Detail routes:
+ * - If user is authenticated: Renders inside DashboardLayout (preserving sidebar & workspace context)
+ * - If user is unauthenticated (guest): Renders inside PublicLayout (public website header & footer)
+ */
+const AdaptiveCatalogLayout: React.FC = () => {
+  const { user } = useAuth();
+  return user ? <DashboardLayout /> : <PublicLayout />;
+};
+
 export const App: React.FC = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Website Routes (Accessible without login) */}
+          {/* Public Institutional Pages (Always Public Layout) */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+          </Route>
+
+          {/* Adaptive Property Catalog (Public layout for visitors, Dashboard layout for logged-in users) */}
+          <Route element={<AdaptiveCatalogLayout />}>
             <Route path="/properties" element={<PropertiesList />} />
             <Route path="/properties/:id" element={<PropertyDetail />} />
           </Route>

@@ -105,6 +105,17 @@ async function runPlaywrightSuite() {
       await page.screenshot({ path: path.join(EVIDENCE_DIR, '05_client_portal.png') });
     });
 
+    await testStep('Client opening Property Catalog retains sidebar navigation and workspace layout', async () => {
+      await page.click('aside a[href="/properties"], aside >> text=Property Catalog');
+      await page.waitForURL('**/properties', { timeout: 5000 });
+      await page.waitForSelector('aside >> text=Navigation Menu');
+      await page.waitForSelector('h1:has-text("Curated Real Estate Portfolio")');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '05b_client_catalog_in_dashboard.png') });
+      // Navigate back to client portal
+      await page.click('aside >> text=Executive Overview');
+      await page.waitForURL('**/client', { timeout: 5000 });
+    });
+
     await testStep('NEGATIVE RBAC: Client navigating to /admin is redirected back to /client', async () => {
       await page.goto('http://localhost:5173/admin', { waitUntil: 'networkidle' });
       // ProtectedRoute checks allowedRoles=['ADMIN'] -> non-admin redirected to /client
