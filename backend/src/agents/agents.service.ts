@@ -1,12 +1,12 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
+import { Agent, AgentVerificationStatus } from './entities/agent.entity';
 import { UserRole } from '../common/enums/role.enum';
 import { CreateAgentDto, UpdateAgentDto } from './dto/agent.dto';
 
@@ -26,40 +26,44 @@ export interface AgentResponse {
 @Injectable()
 export class AgentsService {
   constructor(
+    @InjectRepository(Agent)
+    private readonly agentRepository: Repository<Agent>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
-  private mapUserToAgent(user: User): AgentResponse {
+  private mapAgentToResponse(agent: Agent): AgentResponse {
     return {
-      agentId: user.id,
-      userId: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      licenseNumber: null, // Strictly unverified pending actual PRC credentials
-      agencyName: 'EstateCore Realty Network',
-      verificationStatus: 'PENDING_VERIFICATION',
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      agentId: agent.id,
+      userId: agent.userId,
+      fullName: agent.user ? agent.user.fullName : '',
+      email: agent.user ? agent.user.email : '',
+      licenseNumber: agent.licenseNumber,
+      agencyName: agent.agencyName || 'Independent',
+      verificationStatus: agent.verificationStatus,
+      isActive: agent.user ? agent.user.isActive : true,
+      createdAt: agent.createdAt,
+      updatedAt: agent.updatedAt,
     };
   }
 
   async findAll(): Promise<AgentResponse[]> {
-    const agentUsers = await this.userRepository.find({
-      where: { role: UserRole.AGENT, isActive: true },
+    const agents = await this.agentRepository.find({
+      relations: ['user'],
+      order: { id: 'ASC' },
     });
-    return agentUsers.map((u) => this.mapUserToAgent(u));
+    return agents.map((a) => this.mapAgentToResponse(a));
   }
 
   async findOne(id: number): Promise<AgentResponse> {
-    const user = await this.userRepository.findOne({
-      where: { id, role: UserRole.AGENT },
+    const agent = await this.agentRepository.findOne({
+      where: { id },
+      relations: ['user'],
     });
-    if (!user) {
+    if (!agent) {
       throw new NotFoundException(`Agent with ID ${id} was not found.`);
     }
-    return this.mapUserToAgent(user);
+    return this.mapAgentToResponse(agent);
   }
 
   async create(createAgentDto: CreateAgentDto): Promise<AgentResponse> {
@@ -69,23 +73,45 @@ export class AgentsService {
     if (!targetUser) {
       throw new NotFoundException(`User with ID ${createAgentDto.userId} does not exist.`);
     }
-    if (targetUser.role === UserRole.AGENT) {
-      throw new ConflictException(`User ${targetUser.fullName} is already an authorized agent.`);
+
+    const existingAgent = await this.agentRepository.findOne({
+      where: { userId: createAgentDto.userId },
+    });
+    if (existingAgent) {
+      throw new ConflictException(`User ${targetUser.fullName} already has an Agent profile.`);
     }
 
     targetUser.role = UserRole.AGENT;
-    const saved = await this.userRepository.save(targetUser);
-    return this.mapUserToAgent(saved);
+    await this.userRepository.save(targetUser);
+
+    const newAgent = this.agentRepository.create({
+      userId: targetUser.id,
+      licenseNumber: createAgentDto.licenseNumber || null,
+      agencyName: createAgentDto.agencyName || 'EstateCore Realty',
+      verificationStatus: AgentVerificationStatus.PENDING_VERIFICATION,
+    });
+    const saved = await this.agentRepository.save(newAgent);
+    saved.user = targetUser;
+    return this.mapAgentToResponse(saved);
   }
 
   async update(id: number, updateAgentDto: UpdateAgentDto, currentUser: User): Promise<AgentResponse> {
-    const agent = await this.findOne(id);
-    // In Phase 1, metadata is returned cleanly matching PDF contract
-    return {
-      ...agent,
-      agencyName: updateAgentDto.agencyName || agent.agencyName,
-      licenseNumber: updateAgentDto.licenseNumber || agent.licenseNumber,
-      updatedAt: new Date(),
-    };
+    const agent = await this.agentRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!agent) {
+      throw new NotFoundException(`Agent with ID ${id} was not found.`);
+    }
+
+    if (updateAgentDto.agencyName !== undefined) {
+      agent.agencyName = updateAgentDto.agencyName;
+    }
+    if (updateAgentDto.licenseNumber !== undefined) {
+      agent.licenseNumber = updateAgentDto.licenseNumber;
+    }
+
+    const saved = await this.agentRepository.save(agent);
+    return this.mapAgentToResponse(saved);
   }
 }

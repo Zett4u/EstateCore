@@ -12,6 +12,13 @@ import { InquiryStatus } from '../../common/enums/inquiry.enum';
 import { User } from '../../users/entities/user.entity';
 import { Property } from '../../properties/entities/property.entity';
 
+export enum InquiryType {
+  GENERAL = 'GENERAL',
+  VIEWING = 'VIEWING',
+  FINANCING = 'FINANCING',
+  OFFER = 'OFFER',
+}
+
 @Entity('inquiries')
 export class Inquiry {
   @PrimaryGeneratedColumn()
@@ -31,6 +38,13 @@ export class Inquiry {
   @JoinColumn({ name: 'propertyId' })
   property: Property;
 
+  @Column({
+    type: 'enum',
+    enum: InquiryType,
+    default: InquiryType.GENERAL,
+  })
+  inquiryType: InquiryType;
+
   @Column({ type: 'int', nullable: true })
   assignedAgentId: number | null;
 
@@ -38,13 +52,16 @@ export class Inquiry {
   @JoinColumn({ name: 'assignedAgentId' })
   assignedAgent: User | null;
 
-  @Column({ type: 'varchar', length: 200 })
+  @Column({ type: 'varchar', length: 200, nullable: true })
   subject: string;
 
   @Column({ type: 'text' })
   message: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  offerAmount: number | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
   contactNumber: string;
 
   @Index()
@@ -54,6 +71,9 @@ export class Inquiry {
     default: InquiryStatus.PENDING,
   })
   status: InquiryStatus;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  legacyStatus: string | null;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

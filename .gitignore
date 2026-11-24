@@ -33,3 +33,7 @@ coverage/
 # Logs
 logs/
 *.log
+
+# Database dumps & exports (protect sensitive data)
+database/exports/*.sql
+database/backups/*.sql

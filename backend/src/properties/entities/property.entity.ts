@@ -11,13 +11,23 @@ import {
 } from 'typeorm';
 import { PropertyType, ListingType, PropertyStatus } from '../../common/enums/property.enum';
 import { User } from '../../users/entities/user.entity';
+import { Agent } from '../../agents/entities/agent.entity';
 import { Inquiry } from '../../inquiries/entities/inquiry.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
+import { PropertyPhoto } from './property-photo.entity';
+import { PropertyTransaction } from '../../transactions/entities/property-transaction.entity';
 
 @Entity('properties')
 export class Property {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'int', nullable: true })
+  ownerId: number | null;
+
+  @ManyToOne(() => User, (user) => user.ownedProperties, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'ownerId' })
+  owner: User | null;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
@@ -46,6 +56,9 @@ export class Property {
   @Column({ type: 'varchar', length: 150 })
   location: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  city: string | null;
+
   @Column({ type: 'varchar', length: 255 })
   address: string;
 
@@ -72,9 +85,13 @@ export class Property {
   @Column({ type: 'int', nullable: true })
   agentId: number | null;
 
-  @ManyToOne(() => User, (user) => user.properties, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => Agent, (agent) => agent.properties, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'agentId' })
-  agent: User | null;
+  agent: Agent | null;
+
+  get assignedAgent(): Agent | null {
+    return this.agent;
+  }
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
@@ -88,4 +105,10 @@ export class Property {
 
   @OneToMany(() => Appointment, (appointment) => appointment.property)
   appointments: Appointment[];
+
+  @OneToMany(() => PropertyPhoto, (photo) => photo.property)
+  photos: PropertyPhoto[];
+
+  @OneToMany(() => PropertyTransaction, (tx) => tx.property)
+  transactions: PropertyTransaction[];
 }

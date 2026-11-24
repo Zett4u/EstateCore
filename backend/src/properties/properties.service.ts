@@ -7,10 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, Like } from 'typeorm';
 import { Property } from './entities/property.entity';
+import { PropertyPhoto } from './entities/property-photo.entity';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { QueryPropertyDto } from './dto/query-property.dto';
 import { User } from '../users/entities/user.entity';
+import { Agent } from '../agents/entities/agent.entity';
 import { UserRole } from '../common/enums/role.enum';
 
 @Injectable()
@@ -18,8 +20,12 @@ export class PropertiesService {
   constructor(
     @InjectRepository(Property)
     private readonly propertyRepository: Repository<Property>,
+    @InjectRepository(PropertyPhoto)
+    private readonly photoRepository: Repository<PropertyPhoto>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Agent)
+    private readonly agentRepository: Repository<Agent>,
   ) {}
 
   private async validateAgent(agentId: number): Promise<User> {
@@ -172,15 +178,36 @@ export class PropertiesService {
 
   async addPhoto(id: number, photoDto: any, user: User) {
     const property = await this.findOne(id);
-    if (user.role === UserRole.AGENT && property.agentId !== user.id) {
-      throw new ForbiddenException('You are not authorized to upload photos to listings assigned to other agents.');
+    if (user.role === UserRole.AGENT) {
+      // Find the agent profile corresponding to current user
+      const agentProfile = await this.agentRepository.findOne({ where: { userId: user.id } });
+      const isOwner = property.agentId === user.id || (agentProfile && property.agentId === agentProfile.id);
+      if (!isOwner) {
+        throw new ForbiddenException('You are not authorized to upload photos to listings assigned to other agents.');
+      }
     }
-    return {
-      photoId: Date.now(),
+
+    const filePath = photoDto?.filePath || photoDto?.photoUrl || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80`;
+    const isPrimary = photoDto?.isPrimary !== undefined ? Boolean(photoDto.isPrimary) : false;
+    const caption = photoDto?.caption || null;
+
+    const photo = this.photoRepository.create({
       propertyId: id,
-      photoUrl: photoDto?.photoUrl || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80`,
-      isPrimary: photoDto?.isPrimary !== undefined ? photoDto.isPrimary : true,
-      uploadDate: new Date(),
+      filePath,
+      isPrimary,
+      caption,
+    });
+    const saved = await this.photoRepository.save(photo);
+
+    return {
+      photoId: saved.id,
+      propertyId: saved.propertyId,
+      filePath: saved.filePath,
+      photoUrl: saved.filePath, // Backward compatibility for frontend
+      isPrimary: saved.isPrimary,
+      caption: saved.caption,
+      createdAt: saved.createdAt,
+      uploadDate: saved.createdAt,
     };
   }
 }

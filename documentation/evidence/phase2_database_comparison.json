@@ -1,0 +1,171 @@
+{
+  "timestamp": "2026-11-24T11:07:03.548Z",
+  "liveDatabase": "estatecore_db",
+  "sandboxDatabase": "estatecore_test_restore",
+  "sourceTables": [
+    "appointments",
+    "inquiries",
+    "migrations",
+    "properties",
+    "users"
+  ],
+  "restoredTables": [
+    "appointments",
+    "inquiries",
+    "migrations",
+    "properties",
+    "users"
+  ],
+  "tables": {
+    "appointments": {
+      "liveRowCount": 4,
+      "sandboxRowCount": 4,
+      "rowMatch": true,
+      "columnsCount": {
+        "live": 10,
+        "sandbox": 10
+      },
+      "columnMatch": true,
+      "keysCount": {
+        "live": 6,
+        "sandbox": 6
+      },
+      "keyMatch": true,
+      "foreignKeysCount": {
+        "live": 3,
+        "sandbox": 3
+      },
+      "foreignKeyMatch": true,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_appointments_agentId",
+          "COLUMN_NAME": "agentId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_appointments_clientId",
+          "COLUMN_NAME": "clientId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_appointments_propertyId",
+          "COLUMN_NAME": "propertyId",
+          "REFERENCED_TABLE_NAME": "properties",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "inquiries": {
+      "liveRowCount": 7,
+      "sandboxRowCount": 7,
+      "rowMatch": true,
+      "columnsCount": {
+        "live": 10,
+        "sandbox": 10
+      },
+      "columnMatch": true,
+      "keysCount": {
+        "live": 5,
+        "sandbox": 5
+      },
+      "keyMatch": true,
+      "foreignKeysCount": {
+        "live": 3,
+        "sandbox": 3
+      },
+      "foreignKeyMatch": true,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_inquiries_assignedAgentId",
+          "COLUMN_NAME": "assignedAgentId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_inquiries_clientId",
+          "COLUMN_NAME": "clientId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_inquiries_propertyId",
+          "COLUMN_NAME": "propertyId",
+          "REFERENCED_TABLE_NAME": "properties",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "migrations": {
+      "liveRowCount": 1,
+      "sandboxRowCount": 1,
+      "rowMatch": true,
+      "columnsCount": {
+        "live": 3,
+        "sandbox": 3
+      },
+      "columnMatch": true,
+      "keysCount": {
+        "live": 1,
+        "sandbox": 1
+      },
+      "keyMatch": true,
+      "foreignKeysCount": {
+        "live": 0,
+        "sandbox": 0
+      },
+      "foreignKeyMatch": true,
+      "foreignKeys": []
+    },
+    "properties": {
+      "liveRowCount": 8,
+      "sandboxRowCount": 8,
+      "rowMatch": true,
+      "columnsCount": {
+        "live": 16,
+        "sandbox": 16
+      },
+      "columnMatch": true,
+      "keysCount": {
+        "live": 6,
+        "sandbox": 6
+      },
+      "keyMatch": true,
+      "foreignKeysCount": {
+        "live": 1,
+        "sandbox": 1
+      },
+      "foreignKeyMatch": true,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_properties_agentId",
+          "COLUMN_NAME": "agentId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "users": {
+      "liveRowCount": 11,
+      "sandboxRowCount": 11,
+      "rowMatch": true,
+      "columnsCount": {
+        "live": 8,
+        "sandbox": 8
+      },
+      "columnMatch": true,
+      "keysCount": {
+        "live": 2,
+        "sandbox": 2
+      },
+      "keyMatch": true,
+      "foreignKeysCount": {
+        "live": 0,
+        "sandbox": 0
+      },
+      "foreignKeyMatch": true,
+      "foreignKeys": []
+    }
+  }
+}
