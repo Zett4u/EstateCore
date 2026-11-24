@@ -1,62 +1,63 @@
-# EstateCore — Role-Based Access Control (RBAC) Permission Matrix
+# EstateCore — Role-Based Access Control (RBAC) & Ownership Matrix
+### Reconciled Security Architecture: Laboratory Activity 06 & Enterprise Model
 
-## 1. System Role Definitions
-
-| Role | Domain Scope | Primary Responsibilities |
-| :--- | :--- | :--- |
-| **PUBLIC** | Anonymous Visitor | Browsing landing page, public property catalog, property specifications, about, and contact pages. |
-| **CLIENT** | Prospective Buyer / Tenant | Managing personal profile, submitting inquiries, scheduling viewing tours, tracking their own inquiries and appointments. |
-| **AGENT** | Licensed Real Estate Broker | Managing assigned property listings, creating new listings, responding to assigned prospect inquiries, confirming/conducting viewing appointments. |
-| **ADMIN** | System / Brokerage Administrator | Full operational oversight: user management, agent account creation/deactivation, listing reassignment, system-wide inquiry and appointment management. |
+This matrix specifies allowed operations, ownership boundaries, and HTTP response codes across all system endpoints and entities, reconciling the PDF roles (**Guest**, **Buyer/Renter**, **Seller/PropertyManager**, **Agent**, **Admin**) with EstateCore's core runtime roles (**ADMIN**, **AGENT**, **CLIENT**).
 
 ---
 
-## 2. Complete REST Endpoint Permission Matrix
+## 1. Role Reconciliation Model
 
-| Endpoint | Method | Allowed Roles | Ownership & Business Rules | Expected Success | Expected Denial |
-| :--- | :---: | :--- | :--- | :---: | :---: |
-| `/api/auth/register` | `POST` | `PUBLIC` | Open registration. Server strictly forces `role = CLIENT`. | `201 Created` | `400 Bad Request` (Validation) / `409 Conflict` (Email in use) |
-| `/api/auth/login` | `POST` | `PUBLIC` | Validates email & hashed password via bcrypt. Returns signed JWT. | `200 OK` | `401 Unauthorized` |
-| `/api/auth/me` | `GET` | `CLIENT`, `AGENT`, `ADMIN` | Returns profile of the authenticated user from the validated JWT payload. | `200 OK` | `401 Unauthorized` (Missing/Invalid Token) |
-| `/api/users` | `GET` | `ADMIN` | System user directory with optional filtering by role and active status. | `200 OK` | `401 Unauthorized` / `403 Forbidden` |
-| `/api/users/:id` | `GET` | `ADMIN`, `AGENT`, `CLIENT` | Self-only for `CLIENT` and `AGENT` (`id === user.id`). `ADMIN` can view any user. | `200 OK` | `401 Unauthorized` / `403 Forbidden` (`id !== user.id`) / `404 Not Found` |
-| `/api/users/:id` | `PATCH` | `ADMIN`, `AGENT`, `CLIENT` | Non-admins can only update their own profile; `role` and `isActive` are stripped unless `ADMIN`. | `200 OK` | `401 Unauthorized` / `403 Forbidden` / `409 Conflict` (Email taken) |
-| `/api/users/:id` | `DELETE` | `ADMIN` | Safely deactivates account (`isActive = false`) to protect historical relational integrity. | `200 OK` | `401 Unauthorized` / `403 Forbidden` |
-| `/api/properties` | `GET` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Public catalog search with filters (type, listing, price range, status). | `200 OK` | N/A (Publicly readable) |
-| `/api/properties/:id` | `GET` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Detailed property dossier with agent bio and specifications. | `200 OK` | `404 Not Found` |
-| `/api/properties` | `POST` | `ADMIN`, `AGENT` | `AGENT` is forced as `agentId = user.id`. `ADMIN` can assign any valid agent. | `201 Created` | `401 Unauthorized` / `403 Forbidden` (Clients rejected) |
-| `/api/properties/:id` | `PATCH` | `ADMIN`, `AGENT` | `ADMIN` can update any property. `AGENT` can only update properties assigned to them (`property.agentId === user.id`). | `200 OK` | `401 Unauthorized` / `403 Forbidden` (Clients & other agents rejected) |
-| `/api/properties/:id` | `DELETE` | `ADMIN`, `AGENT` | `ADMIN` can delete any property. `AGENT` can only delete properties assigned to them. | `200 OK` | `401 Unauthorized` / `403 Forbidden` |
-| `/api/inquiries` | `GET` | `CLIENT`, `AGENT`, `ADMIN` | `CLIENT` sees only their own inquiries (`clientId = user.id`). `AGENT` sees only inquiries on their properties (`assignedAgentId = user.id`). `ADMIN` sees all. | `200 OK` | `401 Unauthorized` |
-| `/api/inquiries/:id` | `GET` | `CLIENT`, `AGENT`, `ADMIN` | `CLIENT` can only view if `clientId === user.id`. `AGENT` can only view if `assignedAgentId === user.id`. `ADMIN` can view any. | `200 OK` | `401 Unauthorized` / `403 Forbidden` (IDOR blocked) |
-| `/api/inquiries` | `POST` | `CLIENT`, `AGENT`, `ADMIN` | Submits property inquiry. Server strictly enforces `clientId = user.id` from JWT. | `201 Created` | `401 Unauthorized` / `404 Not Found` (Property missing) |
-| `/api/inquiries/:id` | `PATCH` | `CLIENT`, `AGENT`, `ADMIN` | `CLIENT` can only edit message/phone while `PENDING`. `AGENT` can update status. `ADMIN` can reassign agent. Other users blocked. | `200 OK` | `401 Unauthorized` / `403 Forbidden` |
-| `/api/inquiries/:id` | `DELETE` | `ADMIN`, `CLIENT` | `CLIENT` can only delete their own inquiry. `AGENT` cannot delete inquiries unless `ADMIN`. | `200 OK` | `401 Unauthorized` / `403 Forbidden` |
-| `/api/appointments` | `GET` | `CLIENT`, `AGENT`, `ADMIN` | `CLIENT` sees only their appointments (`clientId = user.id`). `AGENT` sees only their assigned tours (`agentId = user.id`). `ADMIN` sees all. | `200 OK` | `401 Unauthorized` |
-| `/api/appointments/:id` | `GET` | `CLIENT`, `AGENT`, `ADMIN` | `CLIENT` viewable only if `clientId === user.id`. `AGENT` viewable only if `agentId === user.id`. `ADMIN` viewable for all. | `200 OK` | `401 Unauthorized` / `403 Forbidden` (IDOR blocked) |
-| `/api/appointments` | `POST` | `CLIENT`, `AGENT`, `ADMIN` | Creates viewing tour request. Prevents past dates and agent scheduling conflicts. Enforces `clientId = user.id`. | `201 Created` | `400 Bad Request` (Past date) / `409 Conflict` (Slot booked) |
-| `/api/appointments/:id` | `PATCH` | `CLIENT`, `AGENT`, `ADMIN` | `CLIENT` can only change status to `CANCELLED`. `AGENT` and `ADMIN` can confirm/complete. Conflict check enforced on date/time change. | `200 OK` | `401 Unauthorized` / `403 Forbidden` (Client approval attempt) |
-| `/api/appointments/:id` | `DELETE` | `ADMIN`, `CLIENT` | `CLIENT` can delete their own appointment request. `AGENT` cannot delete appointment records (must mark `CANCELLED`). | `200 OK` | `401 Unauthorized` / `403 Forbidden` |
-
----
-
-## 3. Frontend Route Permission Matrix
-
-| Route Path | Associated Page Component | Permitted Roles | Unauthorized Action / Failure Mode |
+| PDF Persona | EstateCore Runtime Role | Relationship Anchor | Description & Privileges |
 | :--- | :--- | :--- | :--- |
-| `/` | `LandingPage` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Open access for all visitors |
-| `/properties` | `PropertiesList` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Open catalog access for all visitors |
-| `/properties/:id` | `PropertyDetail` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Open details access; action buttons adapt to login state |
-| `/about` | `AboutPage` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Open access |
-| `/contact` | `ContactPage` | `PUBLIC`, `CLIENT`, `AGENT`, `ADMIN` | Open access |
-| `/login` | `Login` | `PUBLIC` | Authenticated users redirected to their respective dashboard |
-| `/register` | `Register` | `PUBLIC` | Authenticated users redirected to `/client` |
-| `/admin` | `AdminDashboard` | `ADMIN` only | Non-admins redirected to their authorized dashboard |
-| `/users` | `UsersList` | `ADMIN` only | Non-admins redirected to their authorized dashboard |
-| `/agent` | `AgentDashboard` | `AGENT` only | Non-agents redirected to their authorized dashboard |
-| `/properties/new` | `PropertyForm` | `ADMIN`, `AGENT` | Clients redirected to `/client` |
-| `/properties/:id/edit`| `PropertyForm` | `ADMIN`, `AGENT` (Ownership verified) | Non-owner agents proactively redirected to `/properties` |
-| `/client` | `ClientDashboard` | `CLIENT` only | Admins/Agents redirected to their authorized dashboard |
-| `/inquiries` | `InquiriesList` | `ADMIN`, `AGENT`, `CLIENT` | Scope strictly filtered by backend JWT |
-| `/appointments` | `AppointmentsList` | `ADMIN`, `AGENT`, `CLIENT` | Scope strictly filtered by backend JWT |
-| `/profile` | `UserProfile` | `ADMIN`, `AGENT`, `CLIENT` | Self-profile update only |
+| **Guest** | *Unauthenticated* | None (`No JWT`) | Public discovery. Can browse public listings, view photos, search, and register an account. Cannot book viewings or inquire. |
+| **Buyer / Renter** | `CLIENT` | `User.UserID = BuyerID` / `Inquiry.UserID` | Prospective customer. Can submit inquiries, make price offers, schedule and cancel viewing tours, and view own purchase/lease deals. |
+| **Seller / PropertyManager** | `CLIENT` / `ADMIN` | `Property.OwnerID = User.UserID` | Property deed holder or developer. Can list property for representation, review assigned agent status, and inspect deal transactions on their assets. |
+| **Agent** | `AGENT` | `Agent.UserID` / `Property.AgentID` | Licensed real estate professional. Must possess verified `Agent` profile with `LicenseNumber`. Manages assigned listings, responds to inquiries, conducts tours, and creates transactions. |
+| **Admin** | `ADMIN` | System-wide root | System administrator. User governance, global platform oversight, dispute resolution, and listing lifecycle management. |
+
+---
+
+## 2. Granular Endpoint Permission Matrix
+
+| # | Endpoint URI | Method | Guest | Buyer / Renter (`CLIENT`) | Seller / Owner (`CLIENT`) | Agent (`AGENT`) | Admin (`ADMIN`) | Ownership Enforcement | Denial Code |
+| :- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- | :---: |
+| **1** | `/api/v1/auth/register` | `POST` | **ALLOW** | **ALLOW** | **ALLOW** | **DENY** | **DENY** | Self registration only allows `CLIENT` role. Privileged roles rejected. | `400 Bad Request` |
+| **2** | `/api/v1/auth/login` | `POST` | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | Credential verification against bcrypt `PasswordHash`. | `401 Unauthorized` |
+| **3** | `/api/v1/users/{id}` | `GET` | **DENY** | **OWN** | **OWN** | **OWN** | **ALLOW** | Non-admins may only view their own user profile (`sub === id`). | `403 Forbidden` |
+| **4** | `/api/v1/users/{id}` | `PATCH` | **DENY** | **OWN** | **OWN** | **OWN** | **ALLOW** | Cannot self-elevate `role`. Only Admin can change roles. | `403 Forbidden` |
+| **5** | `/api/v1/users/{id}` | `DELETE` | **DENY** | **DENY** | **DENY** | **DENY** | **ALLOW** | Admin only. Soft-deactivates user (`IsActive = 0`). | `403 Forbidden` |
+| **6** | `/api/v1/agents` | `GET` | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | Public directory of licensed real estate agents. | `200 OK` |
+| **7** | `/api/v1/agents` | `POST` | **DENY** | **DENY** | **DENY** | **ALLOW** | **ALLOW** | Creates `Agent` profile. Requires `Agent` role and unique `LicenseNumber`. | `403 Forbidden` |
+| **8** | `/api/v1/properties` | `GET` | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | Public property portfolio search, filtering, and pagination. | `200 OK` |
+| **9** | `/api/v1/properties/{id}` | `GET` | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | Public single property dossier with specifications. | `404 Not Found` |
+| **10** | `/api/v1/properties` | `POST` | **DENY** | **DENY** | **DENY** | **ALLOW** | **ALLOW** | Agent or Admin only. Sets `AgentID` to token's agent record. | `403 Forbidden` |
+| **11** | `/api/v1/properties/{id}` | `PATCH`/`PUT` | **DENY** | **DENY** | **OWN** | **OWN** | **ALLOW** | Only the assigned listing `Agent` or asset `Owner` or `Admin` can edit. | `403 Forbidden` |
+| **12** | `/api/v1/properties/{id}` | `DELETE` | **DENY** | **DENY** | **DENY** | **OWN** | **ALLOW** | Cannot delete property if active transactions exist (`409 Conflict`). | `403` / `409` |
+| **13** | `/api/v1/properties/{id}/photos`| `GET` | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | Public photo gallery of listing. | `200 OK` |
+| **14** | `/api/v1/properties/{id}/photos`| `POST` | **DENY** | **DENY** | **DENY** | **OWN** | **ALLOW** | Only assigned agent or admin may attach listing photos. | `403 Forbidden` |
+| **15** | `/api/v1/properties/{id}/inquiries` | `POST` | **DENY** | **ALLOW** | **ALLOW** | **DENY** | **DENY** | Buyer/Renter submits question or price offer (`OfferAmount > 0`). | `401` / `403` |
+| **16** | `/api/v1/properties/{id}/inquiries` | `GET` | **DENY** | **DENY** | **DENY** | **OWN** | **ALLOW** | Only the assigned listing agent or admin can view received inquiries. | `403 Forbidden` |
+| **17** | `/api/v1/inquiries` | `GET` | **DENY** | **OWN** | **OWN** | **OWN** | **ALLOW** | Clients see own sent inquiries; Agents see inquiries on their listings. | `403 Forbidden` |
+| **18** | `/api/v1/properties/{id}/inquiries/{inquiryId}` | `PATCH` | **DENY** | **DENY** | **DENY** | **OWN** | **ALLOW** | Only assigned agent can update status (`Accepted`, `Rejected`, `Replied`). | `403 Forbidden` |
+| **19** | `/api/v1/transactions` | `POST` | **DENY** | **DENY** | **DENY** | **ALLOW** | **ALLOW** | Only authorized agents or admin record deals. Verifies property is available. | `403` / `409` |
+| **20** | `/api/v1/transactions/{id}` | `GET` | **DENY** | **OWN** | **OWN** | **OWN** | **ALLOW** | Only the Buyer involved, the Handling Agent, or Admin can inspect deal. | `403 Forbidden` |
+| **21** | `/api/v1/appointments` | `POST` | **DENY** | **ALLOW** | **ALLOW** | **DENY** | **DENY** | Client requests viewing tour. Validates future date and no agent conflicts. | `400` / `409` |
+| **22** | `/api/v1/appointments` | `GET` | **DENY** | **OWN** | **OWN** | **OWN** | **ALLOW** | Clients view own booked tours; Agents view tours assigned to them. | `403 Forbidden` |
+| **23** | `/api/v1/appointments/{id}` | `PATCH` | **DENY** | **OWN** | **DENY** | **OWN** | **ALLOW** | Client may cancel tour (`CANCELLED`). Agent may confirm (`CONFIRMED`). | `403 Forbidden` |
+
+---
+
+## 3. Strict Denial Enforcement Rules
+
+1. **Unauthenticated Access (`401 Unauthorized`)**:
+   Returned whenever a protected endpoint is accessed without an `Authorization: Bearer <token>` header, or if the token signature is invalid or expired.
+2. **Unauthorized Access (`403 Forbidden`)**:
+   Returned when the user is logged in, but:
+   - Does not possess the required application role (e.g. `CLIENT` attempting to call `POST /api/v1/properties`).
+   - Does not own the resource (e.g. `Agent 3` attempting to edit a listing assigned to `Agent 2`, or `Client A` accessing `Client B`'s inquiries).
+   - Attempts to self-escalate roles via `PATCH /api/v1/users/{id}`.
+3. **Conflict & Business Logic Violations (`409 Conflict`)**:
+   - Creating a transaction on a property with status `Sold`.
+   - Attempting to delete a property that has linked historical transactions.
+   - Registering a duplicate email address or duplicate PRC agent license number.
+   - Booking a tour when the assigned agent already has a confirmed tour at the exact same date and time.
