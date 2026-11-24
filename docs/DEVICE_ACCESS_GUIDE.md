@@ -121,7 +121,19 @@ git clone https://github.com/Zett4u/EstateCore.git
 cd EstateCore
 ```
 
-#### 2. Start MySQL via Docker
+#### 2. Copy the Environment Configuration (.env)
+The repository provides ready-to-run `.env.example` templates with all matching database ports and credentials:
+```bash
+# On Linux / macOS / Git Bash:
+cp .env.example .env
+cp backend/.env.example backend/.env
+
+# On Windows PowerShell:
+Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
+```
+
+#### 3. Start MySQL via Docker
 ```bash
 docker compose up -d
 ```
@@ -130,7 +142,7 @@ Check that the database container is running:
 docker compose ps
 ```
 
-#### 3. Setup Backend
+#### 4. Setup Backend
 ```bash
 cd backend
 npm install

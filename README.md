@@ -101,7 +101,20 @@ git clone https://github.com/Zett4u/EstateCore.git
 cd EstateCore
 ```
 
-#### 2. Start the MySQL 8.4 Database Container
+#### 2. Create the Environment Configuration Files (.env)
+The repository includes pre-configured `.env.example` templates with all matching database credentials and ports ready out-of-the-box:
+```bash
+# On Linux / macOS / Git Bash:
+cp .env.example .env
+cp backend/.env.example backend/.env
+
+# On Windows PowerShell:
+Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
+```
+*(Note: If you skip this step, NestJS and Docker Compose will automatically use built-in safe defaults, but copying the file ensures custom configurations are supported).*
+
+#### 3. Start the MySQL 8.4 Database Container
 ```bash
 docker compose up -d
 ```
@@ -111,7 +124,7 @@ docker compose ps
 ```
 *(MySQL is exposed on host port `3307` mapped to internal `3306` to prevent conflicts with local services like XAMPP).*
 
-#### 3. Setup and Start the Backend API
+#### 4. Setup and Start the Backend API
 Open a new terminal window:
 ```bash
 cd backend
@@ -130,7 +143,7 @@ npm run start:dev
 ```
 *Backend API will be running at:* `http://localhost:3000/api`
 
-#### 4. Setup and Start the Frontend Application
+#### 5. Setup and Start the Frontend Application
 Open a second terminal window:
 ```bash
 cd frontend
