@@ -22,6 +22,10 @@ export class InquiriesService {
   ) {}
 
   async create(createInquiryDto: CreateInquiryDto, user: User): Promise<Inquiry> {
+    if (!createInquiryDto.propertyId) {
+      throw new BadRequestException('Property ID is required.');
+    }
+
     const property = await this.propertyRepository.findOne({
       where: { id: createInquiryDto.propertyId },
     });

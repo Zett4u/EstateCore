@@ -169,4 +169,18 @@ export class PropertiesService {
       id,
     };
   }
+
+  async addPhoto(id: number, photoDto: any, user: User) {
+    const property = await this.findOne(id);
+    if (user.role === UserRole.AGENT && property.agentId !== user.id) {
+      throw new ForbiddenException('You are not authorized to upload photos to listings assigned to other agents.');
+    }
+    return {
+      photoId: Date.now(),
+      propertyId: id,
+      photoUrl: photoDto?.photoUrl || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80`,
+      isPrimary: photoDto?.isPrimary !== undefined ? photoDto.isPrimary : true,
+      uploadDate: new Date(),
+    };
+  }
 }

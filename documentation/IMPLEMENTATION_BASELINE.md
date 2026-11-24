@@ -1,205 +1,256 @@
-# ESTATECORE &mdash; REPOSITORY & DATABASE IMPLEMENTATION BASELINE (PHASE 0)
+Bro, **Phase 0 is a good baseline, and I would approve moving to Phase 1 — but not the database migration yet.** The audit identifies the major gaps and, importantly, preserves the existing database.
 
-**Project:** EstateCore Real Estate Management Platform  
-**Academic Source of Truth:** `estatecire.pdf` (BSIT 4-C Laboratory Activities 03&ndash;06)  
-**Milestone:** Phase 0 &mdash; Pre-Implementation Baseline & Risk Audit  
-**Date:** November 24, 2026  
-**Auditor:** Antigravity Engineering Agent  
-**Live Target Database:** `estatecore_db` (Docker MySQL 8.4 on Port 3307)  
-**Live Target API:** NestJS 10.3 on Port 3000
+However, I spotted several things we should correct before Antigravity starts implementing.
 
----
+## **My review of Phase 0**
 
-## 1. Executive Summary
+Approved with conditions
 
-This document establishes the verified baseline of the existing EstateCore repository and live database prior to executing the implementation phases mandated by the Master Implementation Prompt.
+| Area                     | Assessment                    |
+| ------------------------ | ----------------------------- |
+| Live database protection | Good — no migrations executed |
+| Existing records         | Baseline recorded             |
+| API gaps                 | Clearly identified            |
+| Missing entities         | Correctly identified          |
+| Backward compatibility   | Necessary                     |
+| Email-only notifications | Correct                       |
+| RBAC plan                | Needs clarification           |
+| Migration safety         | Needs stronger verification   |
 
-### Core Baseline Findings:
-1. **Database Schema:** The live database `estatecore_db` contains **5 tables** (`users`, `properties`, `inquiries`, `appointments`, `migrations`). Three core PDF entities (**`Agent`**, **`PropertyPhoto`**, and **`PropertyTransaction`**) do not physically exist in the database or backend entities.
-2. **Live Data Integrity:** Exactly **9 users**, **7 properties**, **6 inquiries**, **4 appointments**, and **1 migration** exist in the live database. No records have been modified, fabricated, or deleted.
-3. **API Routing:** The backend currently serves routes under the global prefix **`/api`**. The PDF-mandated **`/api/v1`** prefix returns `404 Not Found` across all 19 endpoints.
-4. **Application Roles:** The backend enforces **3 roles** (`ADMIN`, `AGENT`, `CLIENT`). The PDF's required roles of `Buyer/Renter` and `Seller/PropertyManager` are collapsed into `CLIENT`, preventing clients from publishing or managing listings as sellers.
-5. **Notification Services:** Outbound notification services (Email and SMS) are completely absent. In accordance with the Master Prompt instructions, **Email notifications will be implemented; SMS notifications will not be implemented under any circumstances.**
+## **5 things I want corrected**
 
----
+**1. Don't assume the existing agents are verified agents.**
 
-## 2. Existing Database Architecture & Inventory
+Maria Santos and Carlos Reyes can be mapped to Agent records based on their existing `AGENT` roles, but their license numbers and verification status must remain unverified until evidence is provided.
 
-### 2.1 Table Row Counts (Verified via Live MySQL Query)
+**2. Don't automatically convert every CLIENT into a Seller or Buyer.**
 
-| Physical Table Name | Logical Role | Row Count | Status | PDF Entity Equivalent |
-|---|---|:---:|:---:|---|
-| `users` | User Accounts & Authentication | **9** | Intact | `User` (Partially aligned) |
-| `properties` | Real Estate Portfolio Listings | **7** | Intact | `Property` (Partially aligned) |
-| `inquiries` | Property Inquiries & Leads | **6** | Intact | `Inquiry` (Partially aligned) |
-| `appointments` | Viewing Tours & Schedules | **4** | Intact | Supplemental Feature (Retained) |
-| `migrations` | TypeORM Migration History | **1** | Intact | Internal Infrastructure |
-| `Agent` | Licensed Real Estate Agents | **0** | **MISSING** | `Agent` (Mandatory Lab 04) |
-| `PropertyPhoto` | Architectural Image Gallery | **0** | **MISSING** | `PropertyPhoto` (Mandatory Lab 04) |
-| `PropertyTransaction` | Financial & Closing Records | **0** | **MISSING** | `PropertyTransaction` (Mandatory Lab 04) |
+A user may be a buyer, renter, seller, or property manager. The role and permissions must follow the actual PDF requirements and an explicit account-role assignment strategy.
 
----
+**3. Preserve existing property and appointment relationships.**
 
-### 2.2 Live Data Record Inspection
+The existing `properties.agentId` references `users.id`. The migration must create a verified mapping to `Agent.AgentID`, then rewire the foreign key safely. Appointment relationships must also remain valid.
 
-#### Users (`users` &mdash; 9 records)
-- **ID 1:** `System Administrator` (`admin@estatecore.local`) &mdash; Role: `ADMIN`, Active: `1`
-- **ID 2:** `Maria Santos` (`maria.santos@estatecore.local`) &mdash; Role: `AGENT`, Active: `1`
-- **ID 3:** `Carlos Reyes` (`carlos.reyes@estatecore.local`) &mdash; Role: `AGENT`, Active: `1`
-- **ID 4:** `Juan Dela Cruz` (`juan.delacruz@client.local`) &mdash; Role: `CLIENT`, Active: `1`
-- **ID 5:** `Elena Roxas` (`elena.roxas@client.local`) &mdash; Role: `CLIENT`, Active: `1`
-- **IDs 6&ndash;9:** Test client accounts generated during automated RBAC isolation tests.
+**4. Don't implement MFA just because it appears in the audit.**
 
-#### Properties (`properties` &mdash; 7 records)
-- **ID 1:** *Modern High-Rise Condominium in BGC* (CONDOMINIUM / SALE / ₱18.5M) &mdash; Agent: `2` (Maria Santos)
-- **ID 2:** *Spacious 4-Bedroom Suburban Family Home* (HOUSE / SALE / ₱24.0M) &mdash; Agent: `2` (Maria Santos)
-- **ID 3:** *Prime Commercial Corner Lot for Development* (COMMERCIAL / SALE / ₱52.0M) &mdash; Agent: `3` (Carlos Reyes)
-- **ID 4:** *Contemporary 3-Storey Townhouse* (TOWNHOUSE / RENT / ₱75K/mo) &mdash; Agent: `3` (Carlos Reyes)
-- **ID 5:** *Cozy Studio Apartment in Makati CBD* (APARTMENT / RENT / ₱35K/mo) &mdash; Agent: `2` (Maria Santos)
-- **ID 6:** *Scenic Agricultural & Residential Land* (LAND / SALE / ₱12.5M) &mdash; Agent: `3` (Carlos Reyes)
-- **ID 17:** *Regency Villa* (CONDOMINIUM / SALE / ₱1.0M) &mdash; Created during automated Admin publishing test; Agent: `1` (Admin).
+First establish whether the PDF explicitly requires MFA. Rate limiting and account lockout can proceed if required by the PDF or approved as security enhancements.
 
-#### Inquiries (`inquiries` &mdash; 6 records)
-- **ID 1:** Client `4` &rarr; Property `1`, Agent `2` &mdash; Status: `QUALIFIED`
-- **ID 2:** Client `5` &rarr; Property `4`, Agent `3` &mdash; Status: `PENDING`
-- **ID 3:** Client `4` &rarr; Property `2`, Agent `2` &mdash; Status: `CONTACTED`
-- **ID 6:** Client `4` &rarr; Property `1`, Agent `2` &mdash; Status: `PENDING`
-- **ID 7:** Client `4` &rarr; Property `1`, Agent `2` &mdash; Status: `PENDING`
-- **ID 8:** Client `4` &rarr; Property `5`, Agent `2` &mdash; Status: `CLOSED`
+**5. Strengthen the sandbox verification.**
 
-#### Appointments (`appointments` &mdash; 4 records)
-- **ID 1:** Prop `1`, Client `4`, Agent `2` (2026-12-05 10:00) &mdash; Status: `CONFIRMED`
-- **ID 2:** Prop `4`, Client `5`, Agent `3` (2026-12-07 14:30) &mdash; Status: `PENDING`
-- **ID 5:** Prop `1`, Client `4`, Agent `2` (2026-11-27 14:00) &mdash; Status: `CANCELLED`
-- **ID 6:** Prop `1`, Client `4`, Agent `2` (2026-11-27 14:00) &mdash; Status: `CANCELLED`
+The migration must be tested against a separate restored database, not merely an empty database. Verify all existing records, columns, indexes, constraints, relationships, and representative data before considering live deployment.
 
----
+## **Next step: Phase 1 implementation prompt**
 
-### 2.3 Foreign Key Constraint Inventory
+Give Antigravity this instruction. It authorizes API implementation, not live database changes.
 
-All currently active foreign keys in `estatecore_db`:
+# ESTATECORE — PHASE 1 IMPLEMENTATION AUTHORIZATION
 
-```sql
-CONSTRAINT `FK_appointments_agentId` FOREIGN KEY (`agentId`) REFERENCES `users` (`id`) ON DELETE CASCADE
-CONSTRAINT `FK_appointments_clientId` FOREIGN KEY (`clientId`) REFERENCES `users` (`id`) ON DELETE CASCADE
-CONSTRAINT `FK_appointments_propertyId` FOREIGN KEY (`propertyId`) REFERENCES `properties` (`id`) ON DELETE CASCADE
-CONSTRAINT `FK_inquiries_assignedAgentId` FOREIGN KEY (`assignedAgentId`) REFERENCES `users` (`id`) ON DELETE SET NULL
-CONSTRAINT `FK_inquiries_clientId` FOREIGN KEY (`clientId`) REFERENCES `users` (`id`) ON DELETE CASCADE
-CONSTRAINT `FK_inquiries_propertyId` FOREIGN KEY (`propertyId`) REFERENCES `properties` (`id`) ON DELETE CASCADE
-CONSTRAINT `FK_properties_agentId` FOREIGN KEY (`agentId`) REFERENCES `users` (`id`) ON DELETE SET NULL
-```
+## API Contract Alignment and Backward Compatibility
 
-> [!WARNING]
-> **Relational Inconsistency with PDF:**  
-> Notice that `FK_properties_agentId` and `FK_appointments_agentId` reference **`users.id`**, not **`Agent.AgentID`**.  
-> The PDF requires a true `Agent` entity with a 1:1 link to `User`, and properties referencing `Agent.AgentID`.
+You have completed Phase 0 and committed the baseline document.
 
----
+You are now authorized to implement **Phase 1 only: API Contract Alignment**.
 
-## 3. Existing Software Architecture & Technology Stack
+Repository:\
+`C:\xampp\htdocs\EstateCore`
 
-```
-Frontend (Port 5173)         Backend REST API (Port 3000)          Database (Port 3307)
-+-----------------------+    +--------------------------+    +-------------------------+
-| React 18 + Vite 6     |    | NestJS 10.3              |    | Docker MySQL 8.4        |
-| TypeScript + Tailwind |===>| TypeORM + Passport JWT   |===>| estatecore_db           |
-| AdaptiveCatalogLayout |    | ValidationPipe (Strict)  |    | 5 tables, 7 FKs         |
-| Public & Dash Layouts |    | Prefix: /api             |    | InnoDB, utf8mb4         |
-+-----------------------+    +--------------------------+    +-------------------------+
-```
+Source of truth:\
+`estatecire.pdf`
 
-### 3.1 Backend Modules
-- **`AppModule`:** Configures database connection, environment loading, and core feature modules.
-- **`AuthModule`:** Issues JWTs via Passport JWT strategy; bcrypt password hashing.
-- **`UsersModule`:** User CRUD, role querying, profile management.
-- **`PropertiesModule`:** Property CRUD, filtering by location, price, type, status.
-- **`InquiriesModule`:** Client inquiry submission, status updates, agent assignment.
-- **`AppointmentsModule`:** Tour booking, schedule conflict checks, cancellation.
+Baseline:\
+`documentation/IMPLEMENTATION_BASELINE.md`
 
-### 3.2 Frontend Layout & Routing
-- **Institutional Public Pages:** `/`, `/about`, `/contact` (Wrapped in `PublicLayout`).
-- **Adaptive Property Catalog:** `/properties`, `/properties/:id` (Wrapped in `AdaptiveCatalogLayout` &mdash; renders `DashboardLayout` for authenticated users and `PublicLayout` for guests).
-- **Protected Dashboards:** `/admin`, `/agent`, `/client`, `/inquiries`, `/appointments`, `/users`, `/profile` (Protected by `ProtectedRoute` and `DashboardLayout`).
+### 1. Scope of authorization
 
----
+Implement the required API contract under `/api/v1` while maintaining existing `/api` compatibility.
 
-## 4. Existing Test Results & Quality Metrics
+You may modify backend source code, DTOs, controllers, services, API tests, and related documentation.
 
-1. **Backend Compilation (`nest build`):** **PASSED** (0 TypeScript errors).
-2. **Frontend Production Build (`tsc && vite build`):** **PASSED** (1,613 modules transformed, 0 errors).
-3. **Frontend E2E Regression Suite (`test_playwright.js`):** **21 / 21 PASSED** (0 console errors).
-4. **Frontend Adaptive Routing Suite (`test_frontend_acceptance.js`):** **10 / 10 PASSED** (100% across all 4 personas).
-5. **Backend PDF Compliance Probe (`test_pdf_compliance_backend.js`):**
-   - Base path `/api/v1`: **FAILED (All 19 endpoints return 404)**.
-   - Alternate path `/api`: 7 passed, 9 missing, 3 method/path conflicts.
-   - JWT Expiration: **FAILED (Issues 24h tokens vs PDF requirement of 1h)**.
-   - 401 vs 403 Separation: **PASSED**.
-   - SQL Injection Defense: **PASSED**.
-   - Input Whitelisting: **PASSED**.
-   - Rate Limiting & Account Lockout: **MISSING**.
+You are NOT authorized to:
 
----
+- Run migrations against `estatecore_db`.
+- Modify, delete, or fabricate live database records.
+- Change existing database schemas.
+- Implement database entity migrations.
+- Reassign existing property owners.
+- Change existing user roles or credentials.
+- Remove or replace the Appointment module.
+- Redesign the frontend.
 
-## 5. Identified Implementation Risks & Mitigation Strategies
+### 2. Required API implementation
 
-| # | Risk Description | Severity | Mitigation Strategy |
-|---|---|:---:|---|
-| **R1** | **Orphaned Foreign Keys during Agent Migration:** Rewiring `properties.agentId` to `Agent.AgentID` before `Agent` records exist will cause constraint violations. | **HIGH** | Staged additive migration: 1) Create `Agent` table; 2) Insert `Agent` records matching existing users 2 & 3; 3) Build verified old-to-new ID map; 4) Update foreign keys only after 0 orphans are asserted. |
-| **R2** | **Arbitrary Property Ownership Assignment:** Assigning all existing properties to Admin or inventing fake deed holders violates legal reality. | **HIGH** | `Property.OwnerID` must remain `INT NULL` in staging. Existing properties are flagged as unassigned until verified title holders are identified. |
-| **R3** | **Breaking Frontend API Integration:** Changing the global prefix to `/api/v1` without dual-routing will immediately break the frontend single-page app. | **MEDIUM** | Implement backward-compatible dual-routing: mount endpoints under `/api/v1` while preserving `/api` aliases, or update frontend `VITE_API_BASE_URL` simultaneously. |
-| **R4** | **HTTP PUT vs PATCH Semantic Conflicts:** Frontend currently uses `PATCH`; PDF specifies `PUT`. | **LOW** | Support both HTTP `PUT` and `PATCH` decorators on controller update actions to guarantee 100% contract compliance without breaking callers. |
-| **R5** | **Session Dropping from 1-Hour JWT Expiry:** Shortening JWT expiration from 24h to 1h may disrupt users without silent refresh. | **MEDIUM** | Configure JWT expiration to 3600s as strictly required by Lab 06, and ensure frontend gracefully handles expired sessions with redirect to `/login`. |
-| **R6** | **Email Delivery Failure during Business Transactions:** A failed SMTP connection could crash appointment or inquiry creation. | **MEDIUM** | Asynchronous / non-blocking email dispatch wrapped in `try/catch`. Delivery failure is logged without rolling back the valid database record. |
+Implement and verify the PDF-required endpoints:
 
----
+**Authentication**
 
-## 6. Proposed Implementation Sequence
+- POST `/api/v1/auth/register`
+- POST `/api/v1/auth/login`
+- POST `/api/v1/auth/logout`
 
-To satisfy all requirements safely, execution must proceed through the following phased sequence:
+**Users**
 
-```
-[Phase 1: API Contract Alignment]
-  ├── Dual-mount routes: support /api/v1 as primary and /api for backward compatibility
-  ├── Implement HTTP PUT handlers alongside PATCH
-  └── Align DTOs and response envelopes
+- GET `/api/v1/users`
+- GET `/api/v1/users/:id`
+- PUT `/api/v1/users/:id`
+- DELETE `/api/v1/users/:id`
 
-[Phase 2: Database Schema & Entity Alignment (Isolated Sandbox First)]
-  ├── Prepare TypeORM migration for Agent, PropertyPhoto, and PropertyTransaction
-  ├── Prepare User name splitting (FirstName, LastName) and PhoneNumber addition
-  ├── Test migration against sandbox database (estatecore_test_restore)
-  └── Present sandbox verification report for explicit human approval before live execution
+**Agents**
 
-[Phase 3: Role-Based Access Control]
-  ├── Expand role model: Differentiate Seller/PropertyManager permissions
-  ├── Implement ownership verification on property creation and updates
-  └── Verify 401 vs 403 enforcement across all endpoints
+- GET `/api/v1/agents`
+- GET `/api/v1/agents/:id`
+- POST `/api/v1/agents`
+- PUT `/api/v1/agents/:id`
 
-[Phase 4: Authentication & Security Hardening]
-  ├── Update JWT expiration default to 3600s (1 hour)
-  ├── Install and register @nestjs/throttler for brute-force rate limiting
-  └── Implement account lockout service tracking consecutive failed logins
+**Properties**
 
-[Phase 5: Email Notification System (Email Only — Zero SMS)]
-  ├── Implement Configurable MailerModule using environment SMTP settings
-  ├── Create HTML/Text email templates for inquiry, viewing, and registration
-  └── Integrate non-blocking notification dispatch into service workflows
+- GET `/api/v1/properties`
+- GET `/api/v1/properties/:id`
+- POST `/api/v1/properties`
+- PUT `/api/v1/properties/:id`
+- DELETE `/api/v1/properties/:id`
 
-[Phase 6: Frontend Integration]
-  ├── Integrate agent directory view
-  ├── Add photo gallery and upload interface
-  └── Update inquiry and viewing feedback states
+**Property Photos**
 
-[Phase 7: Full Acceptance Suite & Verification]
-  ├── Run automated API contract tests for all 19 endpoints
-  ├── Run Playwright E2E and visual regression suite
-  └── Update compliance matrix and deliver final audit report
-```
+- POST `/api/v1/properties/:id/photos`
 
----
+**Inquiries**
 
-## 7. Phase 0 Safety Confirmation
+- POST `/api/v1/properties/:id/inquiries`
 
-- **No live database modifications were performed during Phase 0.**
-- **No migrations were executed.**
-- **All 9 user records, 7 property listings, 6 inquiries, and 4 appointments remain unaltered.**
-- **Live database is ready for isolated sandbox preparation.**
+**Transactions**
+
+- GET `/api/v1/transactions`
+
+Verify the exact PDF methods, paths, request bodies, response structures, and access permissions.
+
+Do not count an endpoint as implemented merely because it returns HTTP 400 for an invalid request. Test successful and unsuccessful scenarios.
+
+### 3. Backward compatibility
+
+Maintain the existing `/api` routes.
+
+Support both PUT and existing PATCH update behavior where appropriate.
+
+Do not break the existing React frontend or existing authentication flows.
+
+Use a shared implementation where possible rather than maintaining two separate business logic implementations.
+
+### 4. Authentication and logout
+
+Set the JWT expiration to exactly 3600 seconds if confirmed by the PDF.
+
+Implement logout correctly. If using JWT revocation, ensure revoked tokens cannot access protected endpoints.
+
+Do not implement a logout endpoint that merely returns success while leaving the token usable.
+
+Preserve existing password hashing and authentication protections.
+
+### 5. Security
+
+Preserve:
+
+- HTTP 401 for unauthenticated requests.
+- HTTP 403 for authenticated users without permission.
+- DTO validation.
+- Parameterized database access.
+- Deny-by-default authorization.
+
+Add or improve rate limiting and account lockout only where supported by the PDF or approved security requirements.
+
+Do not introduce MFA unless the PDF explicitly requires it.
+
+### 6. Automated testing
+
+Create a dedicated Phase 1 API contract test suite.
+
+Test:
+
+- All required endpoint paths.
+- All required HTTP methods.
+- Successful requests.
+- Invalid request validation.
+- Unauthenticated access.
+- Unauthorized role access.
+- Missing records.
+- Invalid IDs.
+- Existing `/api` compatibility.
+- Token expiration and logout revocation, where implemented.
+
+Use an isolated test environment. Never run destructive tests against the live database.
+
+### 7. Frontend preservation
+
+Do not redesign the frontend.
+
+Preserve:
+
+- AdaptiveCatalogLayout.
+- PublicLayout.
+- DashboardLayout.
+- Existing responsive behavior.
+- Current typography, colors, spacing, and components.
+- Existing property catalog and dashboards.
+
+Only make frontend API changes if necessary for compatibility, and keep them minimal.
+
+### 8. Required deliverables
+
+Create:
+
+1. `documentation/PHASE_1_API_IMPLEMENTATION_REPORT.md`
+2. `documentation/PHASE_1_API_ENDPOINT_MATRIX.md`
+3. `documentation/PHASE_1_SECURITY_TEST_REPORT.md`
+4. `documentation/evidence/phase_1_api_test_results.json`
+
+Document every required endpoint with:
+
+- Method and route.
+- Authentication requirement.
+- Required role.
+- Request DTO.
+- Expected response.
+- Actual test result.
+
+Clearly distinguish implemented, tested, partially implemented, and not implemented.
+
+### 9. Git and execution requirements
+
+- Work on a dedicated implementation branch.
+- Commit changes with meaningful messages.
+- Do not commit secrets or environment files.
+- Run backend production build.
+- Run the complete API contract suite.
+- Run existing frontend regression tests.
+- Confirm a clean working tree.
+
+### 10. Completion conditions
+
+Phase 1 is complete only when:
+
+- All required endpoints are implemented.
+- `/api/v1` works.
+- Existing `/api` routes remain functional.
+- PUT and PATCH compatibility is verified.
+- Authentication and authorization tests pass.
+- Logout behavior is genuinely secure.
+- Existing frontend regression tests pass.
+- No live database modifications occurred.
+
+**STOP after Phase 1. Do not begin Phase 2 or run database migrations. Present the implementation report and wait for explicit approval.**
+
+Do not claim success for tests that were not actually executed.
+
+## **What happens after Phase 1?**
+
+My recommended order is:
+
+1. Phase 1 — API contract alignment.
+2. Phase 2 — database entities and migration preparation in an isolated restored database.
+3. Review the migration evidence together before approving any live migration.
+4. Phase 3 — complete RBAC and ownership enforcement.
+5. Phase 4 — authentication and security.
+6. Phase 5 — email notifications only.
+7. Phase 6 — frontend integration.
+8. Phase 7 — complete acceptance testing.
+
+**One important thing, bro:** Don't let Antigravity rush all seven phases in one run. We want a working real estate management system with verified data, not just a project that looks complete in documentation.

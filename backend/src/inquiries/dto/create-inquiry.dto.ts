@@ -3,10 +3,10 @@ import { Type } from 'class-transformer';
 import { InquiryStatus } from '../../common/enums/inquiry.enum';
 
 export class CreateInquiryDto {
-  @IsNotEmpty({ message: 'Property ID is required.' })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'Property ID must be a number.' })
-  propertyId: number;
+  propertyId?: number;
 
   @IsNotEmpty({ message: 'Subject is required.' })
   @IsString()

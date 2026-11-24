@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { PropertiesModule } from './properties/properties.module';
 import { InquiriesModule } from './inquiries/inquiries.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { AgentsModule } from './agents/agents.module';
+import { TransactionsModule } from './transactions/transactions.module';
 import { User } from './users/entities/user.entity';
 import { Property } from './properties/entities/property.entity';
 import { Inquiry } from './inquiries/entities/inquiry.entity';
@@ -38,6 +40,8 @@ import { Appointment } from './appointments/entities/appointment.entity';
     PropertiesModule,
     InquiriesModule,
     AppointmentsModule,
+    AgentsModule,
+    TransactionsModule,
   ],
 })
 export class AppModule {}

@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Put,
   Patch,
   Delete,
   Param,
@@ -43,6 +44,15 @@ export class UsersController {
       throw new ForbiddenException('You can only view your own profile.');
     }
     return this.usersService.findOne(id);
+  }
+
+  @Put(':id')
+  async updatePut(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<User> {
+    return this.update(id, updateUserDto, currentUser);
   }
 
   @Patch(':id')
