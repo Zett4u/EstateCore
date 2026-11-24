@@ -11,7 +11,7 @@
 - **Course Instructor:** John Vincent A. Dallego, MIT
 - **Submission Type:** Individual Final Project Prototype (Week 17)
 - **Primary Technology Stack:** NestJS, TypeScript, TypeORM, MySQL 8.4 (Docker), Passport JWT, React 18, Vite, Tailwind CSS
-- **GitHub Repository Link:** [https://github.com/Zett-xoftwarex/EstateCore](https://github.com/Zett-xoftwarex/EstateCore)
+- **GitHub Repository Link:** [https://github.com/Zett4u/EstateCore](https://github.com/Zett4u/EstateCore)
 - **Video Walkthrough Demonstration Link:** [https://drive.google.com/file/d/ESTATECORE-DEMO-RECORDING-PLACEHOLDER/view](https://drive.google.com/file/d/ESTATECORE-DEMO-RECORDING-PLACEHOLDER/view)
 
 ---

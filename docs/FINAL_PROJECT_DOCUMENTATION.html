@@ -2,148 +2,1849 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EstateCore — ITEC 116 Final Project Documentation</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.0/github-markdown.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.1/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+  <title>EstateCore — ITEC 116 Technical Documentation</title>
   <style>
-    @media print {
-      body { background-color: #fff !important; }
-      .no-print { display: none !important; }
-      .markdown-body { max-width: 100% !important; margin: 0 !important; padding: 0 !important; font-size: 11pt !important; }
-      h1, h2, h3 { page-break-after: avoid; }
-      table, pre, .mermaid { page-break-inside: avoid; }
+    @page {
+      size: letter;
+      margin: 18mm 16mm 18mm 16mm;
+      @bottom-right {
+        content: counter(page);
+      }
     }
     body {
-      background-color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.5;
+      color: #1e293b;
+      background: #fff;
       margin: 0;
       padding: 0;
-      color: #1e293b;
     }
-    .top-bar {
+    .wrapper {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 24px 32px;
+    }
+    h1 {
+      font-size: 22pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 2px solid #2563eb;
+      padding-bottom: 8px;
+      margin-top: 24px;
+      margin-bottom: 16px;
+      page-break-after: avoid;
+    }
+    h2 {
+      font-size: 15pt;
+      font-weight: 700;
+      color: #1e3a8a;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 6px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+    p, li {
+      font-size: 10pt;
+      color: #334155;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 9pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    code {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      font-size: 8.5pt;
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #0969da;
+    }
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      font-size: 8.5pt;
+      line-height: 1.4;
+      page-break-inside: avoid;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    blockquote {
+      border-left: 4px solid #2563eb;
+      margin: 12px 0;
+      padding: 6px 12px;
+      background: #eff6ff;
+      color: #1e40af;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: #e2e8f0;
+      margin: 24px 0;
+    }
+    .print-bar {
       position: sticky;
       top: 0;
       background: #0f172a;
       color: #fff;
-      padding: 12px 24px;
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .top-bar h1 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-print {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-    .btn-print:hover {
-      background: #1d4ed8;
-    }
-    .container {
-      max-width: 960px;
-      margin: 32px auto;
-      background: #fff;
-      padding: 48px 64px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-      border: 1px solid #e2e8f0;
-    }
-    .markdown-body {
-      box-sizing: border-box;
-      min-width: 200px;
-      max-width: 980px;
-      margin: 0 auto;
-    }
-    .mermaid {
-      background: #f8fafc;
-      padding: 16px;
+      margin-bottom: 20px;
       border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      margin: 20px 0;
-      text-align: center;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { margin: 0; padding: 0; }
+      .wrapper { max-width: 100%; margin: 0; padding: 0; }
     }
   </style>
 </head>
 <body>
-  <div class="top-bar no-print">
-    <h1>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      EstateCore — ITEC 116 Technical Documentation
-    </h1>
-    <div style="display: flex; gap: 12px; align-items: center;">
-      <a href="PRESENTATION_SLIDES.html" target="_blank" style="color: #94a3b8; font-size: 13px; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #334155;">View Presentation Slides</a>
-      <button class="btn-print" onclick="window.print()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        Save as PDF / Print
+  <div class="wrapper">
+    <div class="print-bar no-print">
+      <span style="font-weight: 600;">EstateCore — Final Project Documentation</span>
+      <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-weight:600; cursor:pointer;">
+        Print / Save as PDF
       </button>
     </div>
-  </div>
+    <div class="content">
+      <h1>ESTATECORE: Full-Stack Real Estate Management System</h1>
+<h2>Systems Integration Backend Prototype &amp; Technical Documentation</h2>
+<h3>Course: ITEC 116 — IT Elective 4 (Systems Integration and Architecture 2)</h3>
+<hr>
+<h2>1. COVER PAGE</h2>
+<ul>
+<li><strong>Project Name:</strong> EstateCore Real Estate Management System</li>
+<li><strong>Academic Course:</strong> ITEC 116 — IT Elective 4 (Systems Integration and Architecture 2)</li>
+<li><strong>Course Instructor:</strong> John Vincent A. Dallego, MIT</li>
+<li><strong>Submission Type:</strong> Individual Final Project Prototype (Week 17)</li>
+<li><strong>Primary Technology Stack:</strong> NestJS, TypeScript, TypeORM, MySQL 8.4 (Docker), Passport JWT, React 18, Vite, Tailwind CSS</li>
+<li><strong>GitHub Repository Link:</strong> <a href="https://github.com/Zett4u/EstateCore">https://github.com/Zett4u/EstateCore</a></li>
+<li><strong>Video Walkthrough Demonstration Link:</strong> <a href="https://drive.google.com/file/d/ESTATECORE-DEMO-RECORDING-PLACEHOLDER/view">https://drive.google.com/file/d/ESTATECORE-DEMO-RECORDING-PLACEHOLDER/view</a></li>
+</ul>
+<hr>
+<h2>2. TABLE OF CONTENTS</h2>
+<ol>
+<li><a href="#1-cover-page">Cover Page</a></li>
+<li><a href="#2-table-of-contents">Table of Contents</a></li>
+<li><a href="#3-project-overview">Project Overview</a><ul>
+<li>3.1 <a href="#31-system-concept--purpose">System Concept &amp; Purpose</a></li>
+<li>3.2 <a href="#32-project-objectives">Project Objectives</a></li>
+<li>3.3 <a href="#33-intended-users--access-matrix">Intended Users &amp; Access Matrix</a></li>
+</ul>
+</li>
+<li><a href="#4-system-analysis">System Analysis</a><ul>
+<li>4.1 <a href="#41-functional-requirements">Functional Requirements</a></li>
+<li>4.2 <a href="#42-non-functional-requirements">Non-Functional Requirements</a></li>
+<li>4.3 <a href="#43-system-use-case-diagram">System Use Case Diagram</a></li>
+</ul>
+</li>
+<li><a href="#5-system-architecture">System Architecture</a><ul>
+<li>5.1 <a href="#51-high-level-architectural-model">High-Level Architectural Model</a></li>
+<li>5.2 <a href="#52-layered-data-flow--control-flow">Layered Data Flow &amp; Control Flow</a></li>
+<li>5.3 <a href="#53-technology-stack-justification">Technology Stack Justification</a></li>
+</ul>
+</li>
+<li><a href="#6-database-design">Database Design</a><ul>
+<li>6.1 <a href="#61-entity-relationship-diagram-erd">Entity-Relationship Diagram (ERD)</a></li>
+<li>6.2 <a href="#62-data-dictionary--entity-specifications">Data Dictionary &amp; Entity Specifications</a></li>
+<li>6.3 <a href="#63-relational-normalization-analysis-1nf-2nf-3nf">Relational Normalization Analysis (1NF, 2NF, 3NF)</a></li>
+<li>6.4 <a href="#64-migrations--seeding-integrity">Migrations &amp; Seeding Integrity</a></li>
+</ul>
+</li>
+<li><a href="#7-rest-api-design--specification">REST API Design &amp; Specification</a><ul>
+<li>7.1 <a href="#71-rest-endpoint-catalog-22-implemented-endpoints">REST Endpoint Catalog (22 Implemented Endpoints)</a></li>
+<li>7.2 <a href="#72-detailed-endpoint-specifications">Detailed Endpoint Specifications</a></li>
+</ul>
+</li>
+<li><a href="#8-authentication-and-security">Authentication and Security</a><ul>
+<li>8.1 <a href="#81-jwt-authentication-workflow">JWT Authentication Workflow</a></li>
+<li>8.2 <a href="#82-password-security--salting">Password Security &amp; Salting</a></li>
+<li>8.3 <a href="#83-role-based-access-control-rbac-architecture">Role-Based Access Control (RBAC) Architecture</a></li>
+<li>8.4 <a href="#84-input-validation--payload-sanitization">Input Validation &amp; Payload Sanitization</a></li>
+</ul>
+</li>
+<li><a href="#9-backend-implementation">Backend Implementation</a><ul>
+<li>9.1 <a href="#91-project-structure--separation-of-concerns">Project Structure &amp; Separation of Concerns</a></li>
+<li>9.2 <a href="#92-controller--service--repository-walkthrough">Controller → Service → Repository Walkthrough</a></li>
+<li>9.3 <a href="#93-exception-filtering--centralized-error-handling">Exception Filtering &amp; Centralized Error Handling</a></li>
+</ul>
+</li>
+<li><a href="#10-frontend-architecture--ui-overview">Frontend Architecture &amp; UI Overview</a><ul>
+<li>10.1 <a href="#101-design-principles--component-model">Design Principles &amp; Component Model</a></li>
+<li>10.2 <a href="#102-live-screen-implementations">Live Screen Implementations</a></li>
+</ul>
+</li>
+<li><a href="#11-api-testing-and-validation">API Testing and Validation</a><ul>
+<li>11.1 <a href="#111-automated-test-execution-evidence-2626-tests-passed">Automated Test Execution Evidence (26/26 Tests Passed)</a></li>
+<li>11.2 <a href="#112-postman-collection-architecture">Postman Collection Architecture</a></li>
+<li>11.3 <a href="#113-test-evidence--screenshots-placeholder">Test Evidence &amp; Screenshots Placeholder</a></li>
+</ul>
+</li>
+<li><a href="#12-conclusion--academic-defense-summary">Conclusion &amp; Academic Defense Summary</a><ul>
+<li>12.1 <a href="#121-project-outcomes">Project Outcomes</a></li>
+<li>12.2 <a href="#122-challenges-overcome">Challenges Overcome</a></li>
+<li>12.3 <a href="#123-future-system-roadmap">Future System Roadmap</a></li>
+</ul>
+</li>
+<li><a href="#13-references">References</a></li>
+<li><a href="#14-appendix">Appendix</a><ul>
+<li>Appendix A: <a href="#appendix-a-local-setup--startup-runbook">Local Setup &amp; Startup Runbook</a></li>
+<li>Appendix B: <a href="#appendix-b-docker-operations--database-restoration">Docker Operations &amp; Database Restoration</a></li>
+<li>Appendix C: <a href="#appendix-c-seed-account-credentials-reference">Seed Account Credentials Reference</a></li>
+<li>Appendix D: <a href="#appendix-d-510-minute-video-narration-script">5–10 Minute Video Narration Script</a></li>
+<li>Appendix E: <a href="#appendix-e-final-presentation-slide-outline">Final Presentation Slide Outline</a></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>3. PROJECT OVERVIEW</h2>
+<h3>3.1 System Concept &amp; Purpose</h3>
+<p>EstateCore is a centralized enterprise-grade Real Estate Management Information System developed as the final prototype for ITEC 116 (Systems Integration and Architecture 2). In contemporary real estate operations, communication bottlenecks between prospective buyers/renters, licensed real estate agents, and brokerage administrators frequently lead to missed inquiries, overlapping viewing schedules, and disorganized property records.</p>
+<p>EstateCore establishes a unified, secure RESTful architecture that integrates four core operational domains:</p>
+<ol>
+<li><strong>Property Portfolio Management:</strong> Cataloging real estate listings across diverse categories (House, Apartment, Condominium, Townhouse, Commercial, Land) with granular filtering and status tracking (Available, Reserved, Sold, Rented).</li>
+<li><strong>Inquiry Processing Lifecycle:</strong> Structured communication channel connecting prospective clients to assigned listing agents with status management (Pending, Contacted, Qualified, Closed).</li>
+<li><strong>Property Viewing Appointment Scheduling:</strong> Conflict-checked scheduling engine preventing overlapping viewing appointments for agents and verifying future dates.</li>
+<li><strong>Role-Based User Administration:</strong> Fine-grained authorization differentiating System Administrators, Licensed Real Estate Agents, and Verified Clients.</li>
+</ol>
+<h3>3.2 Project Objectives</h3>
+<ul>
+<li>Architect and deploy an end-to-end backend service using <strong>NestJS</strong> and <strong>TypeScript</strong> adhering to strict Controller-Service-Repository separation of concerns.</li>
+<li>Enforce relational database persistence and normalization using <strong>TypeORM</strong> and <strong>MySQL 8.4</strong> hosted in an isolated, persistent <strong>Docker</strong> container.</li>
+<li>Implement stateless <strong>JWT (JSON Web Token)</strong> authentication, salt-hashed passwords via <strong>bcrypt</strong>, and route protection via custom NestJS Guards.</li>
+<li>Expose <strong>22 verified REST API endpoints</strong> supporting full CRUD operations, query filtering, and HTTP semantics.</li>
+<li>Deliver an integrated <strong>React + Vite + Tailwind CSS</strong> frontend management application backed by real live API data.</li>
+</ul>
+<h3>3.3 Intended Users &amp; Access Matrix</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Feature / Domain</th>
+<th align="center">Administrator (<code>ADMIN</code>)</th>
+<th align="center">Real Estate Agent (<code>AGENT</code>)</th>
+<th align="center">Client / Buyer (<code>CLIENT</code>)</th>
+<th align="center">Public / Unauth</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Browse Property Catalog</td>
+<td align="center">Full</td>
+<td align="center">Full</td>
+<td align="center">Full</td>
+<td align="center">Full (Read-Only)</td>
+</tr>
+<tr>
+<td align="left">Filter &amp; Search Listings</td>
+<td align="center">Full</td>
+<td align="center">Full</td>
+<td align="center">Full</td>
+<td align="center">Full</td>
+</tr>
+<tr>
+<td align="left">Create Property Listing</td>
+<td align="center">Yes</td>
+<td align="center">Yes (Self-Assigned)</td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Edit Property Listing</td>
+<td align="center">Any Property</td>
+<td align="center">Assigned Only</td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Delete Property Listing</td>
+<td align="center">Any Property</td>
+<td align="center">Assigned Only</td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Submit Property Inquiry</td>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Update Inquiry Status</td>
+<td align="center">Any Inquiry</td>
+<td align="center">Assigned Only</td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Schedule Viewing Tour</td>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Confirm Appointment</td>
+<td align="center">Yes</td>
+<td align="center">Assigned Only</td>
+<td align="center">No</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">Cancel Appointment</td>
+<td align="center">Any</td>
+<td align="center">Assigned</td>
+<td align="center">Own Appointment</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">User Account Management</td>
+<td align="center">Full (Deactivate/Role)</td>
+<td align="center">No</td>
+<td align="center">Self Profile Only</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="left">System Activity Dashboard</td>
+<td align="center">Full Metrics</td>
+<td align="center">Agent Metrics</td>
+<td align="center">Client Activity</td>
+<td align="center">No</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>4. SYSTEM ANALYSIS</h2>
+<h3>4.1 Functional Requirements</h3>
+<ul>
+<li><strong>FR-AUTH-01 (Public Registration):</strong> Public users can register a client account. Server-side logic strictly forces the role to <code>CLIENT</code>.</li>
+<li><strong>FR-AUTH-02 (Secure Login):</strong> System authenticates users via email and bcrypt-hashed password comparison, returning a signed JWT access token.</li>
+<li><strong>FR-AUTH-03 (Token Introspection):</strong> Authenticated requests with Bearer JWT tokens can retrieve the authenticated user profile (<code>/api/auth/me</code>).</li>
+<li><strong>FR-PROP-01 (Property Creation):</strong> Authorized agents and administrators can publish listings with title, description, property type, listing type, price, address, and dimensions.</li>
+<li><strong>FR-PROP-02 (Granular Property Filtering):</strong> Clients and guests can query properties filtered by property type, listing type, price range, location keyword, and availability status.</li>
+<li><strong>FR-PROP-03 (Listing Ownership Enforcement):</strong> Agents can only update or delete property records that are assigned to their specific user ID.</li>
+<li><strong>FR-INQ-01 (Inquiry Submission):</strong> Clients can submit structured inquiries linked to a specific property and auto-assigned to the listing agent.</li>
+<li><strong>FR-INQ-02 (Inquiry Pipeline):</strong> Agents can advance inquiry statuses across <code>PENDING</code> -&gt; <code>CONTACTED</code> -&gt; <code>QUALIFIED</code> -&gt; <code>CLOSED</code>.</li>
+<li><strong>FR-APPT-01 (Viewing Scheduling):</strong> Clients can request viewing appointments with date and time validation ensuring dates are not in the past.</li>
+<li><strong>FR-APPT-02 (Agent Schedule Conflict Check):</strong> The system validates that an agent does not have overlapping confirmed viewings at the requested timestamp.</li>
+<li><strong>FR-USER-01 (User Administration):</strong> Administrators can view all system users, update roles, and safely deactivate accounts without breaking referential integrity.</li>
+</ul>
+<h3>4.2 Non-Functional Requirements</h3>
+<ul>
+<li><strong>NFR-SEC-01 (Stateless Authorization):</strong> All private endpoints require cryptographically signed Bearer JWT tokens. Passwords are never stored in plain-text and never returned in API payloads (<code>select: false</code>).</li>
+<li><strong>NFR-SEC-02 (Payload Validation):</strong> Global NestJS <code>ValidationPipe</code> whitelists input fields, strips unauthorized properties, and rejects malformed types with HTTP 400 Bad Request.</li>
+<li><strong>NFR-PERF-01 (Response Latency):</strong> Database indexing on foreign keys, property types, listing types, and status fields guarantees sub-50ms query execution under normal concurrency.</li>
+<li><strong>NFR-REL-01 (Data Integrity):</strong> Foreign key constraints with <code>ON DELETE CASCADE</code> and <code>ON DELETE SET NULL</code> maintain transactional integrity across relational tables.</li>
+<li><strong>NFR-PORT-01 (Containerized Infrastructure):</strong> Database dependencies are encapsulated in Docker Compose using official <code>mysql:8.4</code> images and persistent named volumes.</li>
+</ul>
+<h3>4.3 System Use Case Diagram</h3>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Users [&quot;System Actors&quot;]
+        Admin([&quot;Administrator&quot;])
+        Agent([&quot;Real Estate Agent&quot;])
+        Client([&quot;Buyer / Client&quot;])
+        Guest([&quot;Guest / Public&quot;])
+    end
 
-  <div class="container">
-    <div id="content" class="markdown-body">
-      <p style="text-align: center; color: #64748b; padding: 40px;">Rendering documentation markdown...</p>
-    </div>
-  </div>
+    subgraph AuthModule [&quot;Authentication&quot;]
+        UC_Reg[&quot;Register Account&quot;]
+        UC_Login[&quot;Authenticate (JWT)&quot;]
+        UC_Profile[&quot;View Profile&quot;]
+    end
 
-  <script>
-    mermaid.initialize({ startOnLoad: false, theme: 'default' });
+    subgraph PropModule [&quot;Property Management&quot;]
+        UC_Browse[&quot;Browse Listings&quot;]
+        UC_CreateProp[&quot;Create Listing&quot;]
+        UC_UpdateProp[&quot;Update Listing&quot;]
+        UC_DeleteProp[&quot;Delete Listing&quot;]
+    end
 
-    async function loadMarkdown() {
-      try {
-        const response = await fetch('FINAL_PROJECT_DOCUMENTATION.md');
-        if (!response.ok) throw new Error('Could not fetch FINAL_PROJECT_DOCUMENTATION.md');
-        const text = await response.text();
+    subgraph InqModule [&quot;Inquiry Processing&quot;]
+        UC_SubInq[&quot;Submit Inquiry&quot;]
+        UC_UpdateInq[&quot;Update Inquiry Status&quot;]
+        UC_ViewInq[&quot;View Inquiries&quot;]
+    end
 
-        // Custom renderer for marked
-        const renderer = new marked.Renderer();
-        const defaultCode = renderer.code.bind(renderer);
-        renderer.code = function(code, lang) {
-          if (lang === 'mermaid') {
-            return '<div class="mermaid">' + code + '</div>';
-          }
-          return defaultCode(code, lang);
-        };
+    subgraph ApptModule [&quot;Appointment Scheduling&quot;]
+        UC_SchedAppt[&quot;Schedule Viewing&quot;]
+        UC_ConfirmAppt[&quot;Confirm Appointment&quot;]
+        UC_CancelAppt[&quot;Cancel Appointment&quot;]
+    end
 
-        marked.setOptions({
-          renderer: renderer,
-          highlight: function(code, lang) {
-            const language = highlight.getLanguage(lang) ? lang : 'plaintext';
-            return highlight.highlight(code, { language }).value;
-          },
-          gfm: true,
-          breaks: false
-        });
+    subgraph UserModule [&quot;User Administration&quot;]
+        UC_ManageUsers[&quot;Manage Users &amp; Roles&quot;]
+        UC_DeactUser[&quot;Deactivate Account&quot;]
+    end
 
-        document.getElementById('content').innerHTML = marked.parse(text);
-        mermaid.run({ querySelector: '.mermaid' });
-      } catch (err) {
-        document.getElementById('content').innerHTML = '<div style="color: red; padding: 20px;">Failed to load markdown: ' + err.message + '</div>';
-      }
+    Guest --&gt; UC_Reg
+    Guest --&gt; UC_Login
+    Guest --&gt; UC_Browse
+
+    Client --&gt; UC_Login
+    Client --&gt; UC_Profile
+    Client --&gt; UC_Browse
+    Client --&gt; UC_SubInq
+    Client --&gt; UC_ViewInq
+    Client --&gt; UC_SchedAppt
+    Client --&gt; UC_CancelAppt
+
+    Agent --&gt; UC_Login
+    Agent --&gt; UC_Profile
+    Agent --&gt; UC_Browse
+    Agent --&gt; UC_CreateProp
+    Agent --&gt; UC_UpdateProp
+    Agent --&gt; UC_DeleteProp
+    Agent --&gt; UC_ViewInq
+    Agent --&gt; UC_UpdateInq
+    Agent --&gt; UC_ConfirmAppt
+    Agent --&gt; UC_CancelAppt
+
+    Admin --&gt; UC_Login
+    Admin --&gt; UC_Profile
+    Admin --&gt; UC_ManageUsers
+    Admin --&gt; UC_DeactUser
+    Admin --&gt; UC_CreateProp
+    Admin --&gt; UC_UpdateProp
+    Admin --&gt; UC_DeleteProp
+    Admin --&gt; UC_ViewInq
+    Admin --&gt; UC_UpdateInq
+    Admin --&gt; UC_ConfirmAppt
+</code></pre>
+<hr>
+<h2>5. SYSTEM ARCHITECTURE</h2>
+<h3>5.1 High-Level Architectural Model</h3>
+<p>EstateCore implements a multi-tier, decoupled REST architecture. The client presentation tier (React + Vite) communicates with the application service tier (NestJS) over HTTP/JSON. The service tier connects to the containerized relational database tier (MySQL 8.4 on Docker) using the TypeORM object-relational mapping layer.</p>
+<pre><code class="language-mermaid">flowchart TD
+    subgraph ClientTier [&quot;Presentation Tier (Frontend)&quot;]
+        Browser[&quot;Web Browser (React 18 + Vite + Tailwind)&quot;]
+        PostmanClient[&quot;Postman API Client (Automated Test Suite)&quot;]
+    end
+
+    subgraph GatewayTier [&quot;HTTP Request Handling&quot;]
+        CORS[&quot;CORS Middleware&quot;]
+        Prefix[&quot;Global Prefix: /api&quot;]
+        Pipes[&quot;Global ValidationPipe (class-validator)&quot;]
+        Filter[&quot;Global AllExceptionsFilter&quot;]
+    end
+
+    subgraph SecurityTier [&quot;Security &amp; Guards Layer&quot;]
+        JwtGuard[&quot;JwtAuthGuard (Passport JWT)&quot;]
+        RolesGuard[&quot;RolesGuard (Reflector RBAC)&quot;]
+    end
+
+    subgraph ApplicationTier [&quot;NestJS Application Modules&quot;]
+        AuthMod[&quot;AuthModule&quot;]
+        UserMod[&quot;UsersModule&quot;]
+        PropMod[&quot;PropertiesModule&quot;]
+        InqMod[&quot;InquiriesModule&quot;]
+        ApptMod[&quot;AppointmentsModule&quot;]
+    end
+
+    subgraph ServiceTier [&quot;Business Logic &amp; Data Access&quot;]
+        AuthSvc[&quot;AuthService&quot;]
+        UserSvc[&quot;UsersService&quot;]
+        PropSvc[&quot;PropertiesService&quot;]
+        InqSvc[&quot;InquiriesService&quot;]
+        ApptSvc[&quot;AppointmentsService&quot;]
+        TypeORMRepo[&quot;TypeORM Repositories (Data-Source)&quot;]
+    end
+
+    subgraph PersistenceTier [&quot;Database Infrastructure (Docker)&quot;]
+        MySQLContainer[(&quot;MySQL 8.4 Engine\nContainer: estatecore-mysql\nPort: 3307 -&gt; 3306&quot;)]
+        Volume[(&quot;Named Volume\nestatecore_mysql_data&quot;)]
+    end
+
+    Browser --&gt;|HTTP REST / JWT| CORS
+    PostmanClient --&gt;|HTTP REST / JWT| CORS
+    CORS --&gt; Prefix --&gt; Pipes --&gt; Filter
+    Filter --&gt; JwtGuard --&gt; RolesGuard
+    RolesGuard --&gt; AuthMod &amp; UserMod &amp; PropMod &amp; InqMod &amp; ApptMod
+
+    AuthMod --&gt; AuthSvc
+    UserMod --&gt; UserSvc
+    PropMod --&gt; PropSvc
+    InqMod --&gt; InqSvc
+    ApptMod --&gt; ApptSvc
+
+    AuthSvc &amp; UserSvc &amp; PropSvc &amp; InqSvc &amp; ApptSvc --&gt; TypeORMRepo
+    TypeORMRepo --&gt;|TCP Socket Connection| MySQLContainer
+    MySQLContainer --- Volume
+</code></pre>
+<h3>5.2 Layered Data Flow &amp; Control Flow</h3>
+<p>The request-response lifecycle follows strict unidirectional dependency injection:</p>
+<p>$$\text{HTTP Request} \longrightarrow \text{Controller} \longrightarrow \text{Service} \longrightarrow \text{Repository} \longrightarrow \text{MySQL Database}$$
+$$\text{HTTP Response} \longleftarrow \text{Controller} \longleftarrow \text{Service} \longleftarrow \text{Repository} \longleftarrow \text{MySQL Database}$$</p>
+<ol>
+<li><strong>Client / Postman:</strong> Issues an HTTP request containing request headers (<code>Authorization: Bearer &lt;token&gt;</code>) and JSON body.</li>
+<li><strong>Global ValidationPipe:</strong> Validates incoming payload against target DTO classes using decorators (<code>@IsNotEmpty</code>, <code>@IsEmail</code>, <code>@MinLength</code>).</li>
+<li><strong>Guards:</strong> <code>JwtAuthGuard</code> verifies cryptographic token signature and unpacks user claims; <code>RolesGuard</code> compares <code>@Roles()</code> metadata with user role.</li>
+<li><strong>Controller:</strong> Dispatches validated request to corresponding service method with typed parameters.</li>
+<li><strong>Service Layer:</strong> Executes domain rules (e.g. ownership verification, appointment date conflict checking, password hashing).</li>
+<li><strong>Repository Layer:</strong> Interacts with MySQL through TypeORM QueryBuilder or EntityManager.</li>
+<li><strong>Database Engine:</strong> Executes optimized SQL query within transaction isolation and returns raw tuples.</li>
+<li><strong>Serialization:</strong> TypeORM maps tuples to TypeScript entity instances, omits sensitive fields (<code>select: false</code>), and returns structured JSON with semantic HTTP status codes.</li>
+</ol>
+<h3>5.3 Technology Stack Justification</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Technology</th>
+<th align="left">Role</th>
+<th align="left">Justification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>NestJS 10</strong></td>
+<td align="left">Backend Framework</td>
+<td align="left">Provides an enterprise architectural framework with native TypeScript support, dependency injection, modular structure, and built-in validation pipelines.</td>
+</tr>
+<tr>
+<td align="left"><strong>TypeScript 5</strong></td>
+<td align="left">Programming Language</td>
+<td align="left">Delivers static typing across the entire monorepo, preventing runtime type mismatches between API request contracts and database entities.</td>
+</tr>
+<tr>
+<td align="left"><strong>TypeORM 0.3</strong></td>
+<td align="left">ORM Framework</td>
+<td align="left">Industry-standard ORM with full migration capabilities, explicit relationship decorators (<code>@ManyToOne</code>, <code>@OneToMany</code>), and active query building.</td>
+</tr>
+<tr>
+<td align="left"><strong>MySQL 8.4 LTS</strong></td>
+<td align="left">Relational Database</td>
+<td align="left">Battle-tested relational database engine providing ACID compliance, foreign key constraints, JSON support, and high performance.</td>
+</tr>
+<tr>
+<td align="left"><strong>Docker Desktop &amp; Compose</strong></td>
+<td align="left">Infrastructure</td>
+<td align="left">Ensures 100% reproducible development and evaluation environments across host machines without local database version mismatches.</td>
+</tr>
+<tr>
+<td align="left"><strong>Passport &amp; JWT</strong></td>
+<td align="left">Authentication</td>
+<td align="left">Stateless authentication standard minimizing server memory footprint and supporting modern distributed client architectures.</td>
+</tr>
+<tr>
+<td align="left"><strong>bcryptjs</strong></td>
+<td align="left">Cryptography</td>
+<td align="left">One-way salted adaptive hashing function (10 salt rounds) resilient against rainbow table and brute-force attacks.</td>
+</tr>
+<tr>
+<td align="left"><strong>React 18 + Vite</strong></td>
+<td align="left">Frontend Framework</td>
+<td align="left">High-performance reactive UI framework with instant Hot Module Replacement (HMR) and optimized build times.</td>
+</tr>
+<tr>
+<td align="left"><strong>Tailwind CSS 3</strong></td>
+<td align="left">UI Styling</td>
+<td align="left">Utility-first CSS framework enabling a restrained, professional, corporate real estate management aesthetic without bloated UI libraries.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>6. DATABASE DESIGN</h2>
+<h3>6.1 Entity-Relationship Diagram (ERD)</h3>
+<pre><code class="language-mermaid">erDiagram
+    users ||--o{ properties : &quot;manages / lists (as Agent)&quot;
+    users ||--o{ inquiries : &quot;submits (as Client)&quot;
+    users ||--o{ inquiries : &quot;assigned to (as Agent)&quot;
+    users ||--o{ appointments : &quot;requests (as Client)&quot;
+    users ||--o{ appointments : &quot;conducts (as Agent)&quot;
+    properties ||--o{ inquiries : &quot;receives&quot;
+    properties ||--o{ appointments : &quot;booked for viewing&quot;
+
+    users {
+        int id PK &quot;AUTO_INCREMENT&quot;
+        varchar fullName &quot;150 chars&quot;
+        varchar email UK &quot;150 chars, UNIQUE INDEX&quot;
+        varchar password &quot;255 chars, bcrypt hash&quot;
+        enum role &quot;ADMIN, AGENT, CLIENT&quot;
+        tinyint isActive &quot;Default 1 (Active)&quot;
+        timestamp createdAt &quot;CURRENT_TIMESTAMP&quot;
+        timestamp updatedAt &quot;CURRENT_TIMESTAMP ON UPDATE&quot;
     }
 
-    loadMarkdown();
-  </script>
+    properties {
+        int id PK &quot;AUTO_INCREMENT&quot;
+        varchar title &quot;255 chars&quot;
+        text description &quot;Property narrative&quot;
+        enum propertyType &quot;HOUSE, APARTMENT, CONDOMINIUM, COMMERCIAL, LAND, TOWNHOUSE&quot;
+        enum listingType &quot;SALE, RENT&quot;
+        decimal price &quot;12, 2&quot;
+        varchar location &quot;150 chars&quot;
+        varchar address &quot;255 chars&quot;
+        int bedrooms &quot;Default 1&quot;
+        int bathrooms &quot;Default 1&quot;
+        decimal floorArea &quot;10, 2&quot;
+        decimal lotArea &quot;10, 2&quot;
+        enum status &quot;AVAILABLE, RESERVED, SOLD, RENTED&quot;
+        int agentId FK &quot;References users(id) ON DELETE SET NULL&quot;
+        timestamp createdAt &quot;CURRENT_TIMESTAMP&quot;
+        timestamp updatedAt &quot;CURRENT_TIMESTAMP ON UPDATE&quot;
+    }
+
+    inquiries {
+        int id PK &quot;AUTO_INCREMENT&quot;
+        int clientId FK &quot;References users(id) ON DELETE CASCADE&quot;
+        int propertyId FK &quot;References properties(id) ON DELETE CASCADE&quot;
+        int assignedAgentId FK &quot;References users(id) ON DELETE SET NULL&quot;
+        varchar subject &quot;200 chars&quot;
+        text message &quot;Inquiry inquiry content&quot;
+        varchar contactNumber &quot;50 chars&quot;
+        enum status &quot;PENDING, CONTACTED, QUALIFIED, CLOSED&quot;
+        timestamp createdAt &quot;CURRENT_TIMESTAMP&quot;
+        timestamp updatedAt &quot;CURRENT_TIMESTAMP ON UPDATE&quot;
+    }
+
+    appointments {
+        int id PK &quot;AUTO_INCREMENT&quot;
+        int propertyId FK &quot;References properties(id) ON DELETE CASCADE&quot;
+        int clientId FK &quot;References users(id) ON DELETE CASCADE&quot;
+        int agentId FK &quot;References users(id) ON DELETE CASCADE&quot;
+        date appointmentDate &quot;YYYY-MM-DD&quot;
+        varchar appointmentTime &quot;20 chars (HH:MM)&quot;
+        enum status &quot;PENDING, CONFIRMED, COMPLETED, CANCELLED&quot;
+        text notes &quot;Special instructions or notes&quot;
+        timestamp createdAt &quot;CURRENT_TIMESTAMP&quot;
+        timestamp updatedAt &quot;CURRENT_TIMESTAMP ON UPDATE&quot;
+    }
+</code></pre>
+<h3>6.2 Data Dictionary &amp; Entity Specifications</h3>
+<h4>A. Users Table (<code>users</code>)</h4>
+<table>
+<thead>
+<tr>
+<th align="left">Column Name</th>
+<th align="left">Data Type</th>
+<th align="center">Nullable</th>
+<th align="left">Default</th>
+<th align="left">Constraints / Index</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>id</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">Auto Increment</td>
+<td align="left"><code>PRIMARY KEY</code></td>
+<td align="left">Unique surrogate identifier for user account</td>
+</tr>
+<tr>
+<td align="left"><code>fullName</code></td>
+<td align="left"><code>VARCHAR(150)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Legal full name of user</td>
+</tr>
+<tr>
+<td align="left"><code>email</code></td>
+<td align="left"><code>VARCHAR(150)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>UNIQUE INDEX</code></td>
+<td align="left">Primary login identity and contact email</td>
+</tr>
+<tr>
+<td align="left"><code>password</code></td>
+<td align="left"><code>VARCHAR(255)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">Hidden (<code>select: false</code>)</td>
+<td align="left">Salted bcrypt password hash</td>
+</tr>
+<tr>
+<td align="left"><code>role</code></td>
+<td align="left"><code>ENUM</code></td>
+<td align="center">No</td>
+<td align="left"><code>&#39;CLIENT&#39;</code></td>
+<td align="left"><code>&#39;ADMIN&#39;, &#39;AGENT&#39;, &#39;CLIENT&#39;</code></td>
+<td align="left">System access privilege classification</td>
+</tr>
+<tr>
+<td align="left"><code>isActive</code></td>
+<td align="left"><code>TINYINT(1)</code></td>
+<td align="center">No</td>
+<td align="left"><code>1</code></td>
+<td align="left">None</td>
+<td align="left">Account activity toggle (soft-deactivation)</td>
+</tr>
+<tr>
+<td align="left"><code>createdAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left">None</td>
+<td align="left">Audit timestamp when user registered</td>
+</tr>
+<tr>
+<td align="left"><code>updatedAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left"><code>ON UPDATE CURRENT_TIMESTAMP</code></td>
+<td align="left">Audit timestamp of last user update</td>
+</tr>
+</tbody></table>
+<h4>B. Properties Table (<code>properties</code>)</h4>
+<table>
+<thead>
+<tr>
+<th align="left">Column Name</th>
+<th align="left">Data Type</th>
+<th align="center">Nullable</th>
+<th align="left">Default</th>
+<th align="left">Constraints / Index</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>id</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">Auto Increment</td>
+<td align="left"><code>PRIMARY KEY</code></td>
+<td align="left">Unique property listing identifier</td>
+</tr>
+<tr>
+<td align="left"><code>title</code></td>
+<td align="left"><code>VARCHAR(255)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Marketing headline title</td>
+</tr>
+<tr>
+<td align="left"><code>description</code></td>
+<td align="left"><code>TEXT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Narrative specifications and features</td>
+</tr>
+<tr>
+<td align="left"><code>propertyType</code></td>
+<td align="left"><code>ENUM</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>INDEX</code></td>
+<td align="left"><code>HOUSE, APARTMENT, CONDOMINIUM, COMMERCIAL, LAND, TOWNHOUSE</code></td>
+</tr>
+<tr>
+<td align="left"><code>listingType</code></td>
+<td align="left"><code>ENUM</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>INDEX</code></td>
+<td align="left">Listing transaction mode: <code>SALE, RENT</code></td>
+</tr>
+<tr>
+<td align="left"><code>price</code></td>
+<td align="left"><code>DECIMAL(12,2)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Price in Philippine Peso (PHP)</td>
+</tr>
+<tr>
+<td align="left"><code>location</code></td>
+<td align="left"><code>VARCHAR(150)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>INDEX</code></td>
+<td align="left">City or provincial municipality</td>
+</tr>
+<tr>
+<td align="left"><code>address</code></td>
+<td align="left"><code>VARCHAR(255)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Specific street and unit address</td>
+</tr>
+<tr>
+<td align="left"><code>bedrooms</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left"><code>1</code></td>
+<td align="left">None</td>
+<td align="left">Number of sleeping bedrooms</td>
+</tr>
+<tr>
+<td align="left"><code>bathrooms</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left"><code>1</code></td>
+<td align="left">None</td>
+<td align="left">Number of complete bathrooms</td>
+</tr>
+<tr>
+<td align="left"><code>floorArea</code></td>
+<td align="left"><code>DECIMAL(10,2)</code></td>
+<td align="center">No</td>
+<td align="left"><code>0.00</code></td>
+<td align="left">None</td>
+<td align="left">Usable floor area in square meters</td>
+</tr>
+<tr>
+<td align="left"><code>lotArea</code></td>
+<td align="left"><code>DECIMAL(10,2)</code></td>
+<td align="center">No</td>
+<td align="left"><code>0.00</code></td>
+<td align="left">None</td>
+<td align="left">Total land lot area in square meters</td>
+</tr>
+<tr>
+<td align="left"><code>status</code></td>
+<td align="left"><code>ENUM</code></td>
+<td align="center">No</td>
+<td align="left"><code>&#39;AVAILABLE&#39;</code></td>
+<td align="left"><code>INDEX</code></td>
+<td align="left">Status: <code>AVAILABLE, RESERVED, SOLD, RENTED</code></td>
+</tr>
+<tr>
+<td align="left"><code>agentId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">Yes</td>
+<td align="left"><code>NULL</code></td>
+<td align="left"><code>FK -&gt; users(id) ON DELETE SET NULL</code></td>
+<td align="left">Assigned listing agent</td>
+</tr>
+<tr>
+<td align="left"><code>createdAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left">None</td>
+<td align="left">Listing publishing timestamp</td>
+</tr>
+<tr>
+<td align="left"><code>updatedAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left"><code>ON UPDATE CURRENT_TIMESTAMP</code></td>
+<td align="left">Timestamp of last listing modification</td>
+</tr>
+</tbody></table>
+<h4>C. Inquiries Table (<code>inquiries</code>)</h4>
+<table>
+<thead>
+<tr>
+<th align="left">Column Name</th>
+<th align="left">Data Type</th>
+<th align="center">Nullable</th>
+<th align="left">Default</th>
+<th align="left">Constraints / Index</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>id</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">Auto Increment</td>
+<td align="left"><code>PRIMARY KEY</code></td>
+<td align="left">Unique inquiry identifier</td>
+</tr>
+<tr>
+<td align="left"><code>clientId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>FK -&gt; users(id) ON DELETE CASCADE</code></td>
+<td align="left">Client who submitted inquiry</td>
+</tr>
+<tr>
+<td align="left"><code>propertyId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>FK -&gt; properties(id) ON DELETE CASCADE</code></td>
+<td align="left">Associated property listing</td>
+</tr>
+<tr>
+<td align="left"><code>assignedAgentId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">Yes</td>
+<td align="left"><code>NULL</code></td>
+<td align="left"><code>FK -&gt; users(id) ON DELETE SET NULL</code></td>
+<td align="left">Agent assigned to follow up</td>
+</tr>
+<tr>
+<td align="left"><code>subject</code></td>
+<td align="left"><code>VARCHAR(200)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Short inquiry summary headline</td>
+</tr>
+<tr>
+<td align="left"><code>message</code></td>
+<td align="left"><code>TEXT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Complete message narrative</td>
+</tr>
+<tr>
+<td align="left"><code>contactNumber</code></td>
+<td align="left"><code>VARCHAR(50)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Client telephone/mobile contact</td>
+</tr>
+<tr>
+<td align="left"><code>status</code></td>
+<td align="left"><code>ENUM</code></td>
+<td align="center">No</td>
+<td align="left"><code>&#39;PENDING&#39;</code></td>
+<td align="left"><code>INDEX</code></td>
+<td align="left"><code>PENDING, CONTACTED, QUALIFIED, CLOSED</code></td>
+</tr>
+<tr>
+<td align="left"><code>createdAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left">None</td>
+<td align="left">Inquiry submission timestamp</td>
+</tr>
+<tr>
+<td align="left"><code>updatedAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left"><code>ON UPDATE CURRENT_TIMESTAMP</code></td>
+<td align="left">Inquiry status update timestamp</td>
+</tr>
+</tbody></table>
+<h4>D. Appointments Table (<code>appointments</code>)</h4>
+<table>
+<thead>
+<tr>
+<th align="left">Column Name</th>
+<th align="left">Data Type</th>
+<th align="center">Nullable</th>
+<th align="left">Default</th>
+<th align="left">Constraints / Index</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>id</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">Auto Increment</td>
+<td align="left"><code>PRIMARY KEY</code></td>
+<td align="left">Unique appointment identifier</td>
+</tr>
+<tr>
+<td align="left"><code>propertyId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>FK -&gt; properties(id) ON DELETE CASCADE</code></td>
+<td align="left">Property site to be toured</td>
+</tr>
+<tr>
+<td align="left"><code>clientId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>FK -&gt; users(id) ON DELETE CASCADE</code></td>
+<td align="left">Client attending viewing tour</td>
+</tr>
+<tr>
+<td align="left"><code>agentId</code></td>
+<td align="left"><code>INT</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>FK -&gt; users(id) ON DELETE CASCADE</code></td>
+<td align="left">Agent facilitating viewing tour</td>
+</tr>
+<tr>
+<td align="left"><code>appointmentDate</code></td>
+<td align="left"><code>DATE</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left"><code>INDEX</code></td>
+<td align="left">Tour date (<code>YYYY-MM-DD</code>)</td>
+</tr>
+<tr>
+<td align="left"><code>appointmentTime</code></td>
+<td align="left"><code>VARCHAR(20)</code></td>
+<td align="center">No</td>
+<td align="left">None</td>
+<td align="left">None</td>
+<td align="left">Tour start time (<code>HH:MM</code>)</td>
+</tr>
+<tr>
+<td align="left"><code>status</code></td>
+<td align="left"><code>ENUM</code></td>
+<td align="center">No</td>
+<td align="left"><code>&#39;PENDING&#39;</code></td>
+<td align="left"><code>INDEX</code></td>
+<td align="left"><code>PENDING, CONFIRMED, COMPLETED, CANCELLED</code></td>
+</tr>
+<tr>
+<td align="left"><code>notes</code></td>
+<td align="left"><code>TEXT</code></td>
+<td align="center">Yes</td>
+<td align="left"><code>NULL</code></td>
+<td align="left">None</td>
+<td align="left">Special client requests or gate instructions</td>
+</tr>
+<tr>
+<td align="left"><code>createdAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left">None</td>
+<td align="left">Appointment creation timestamp</td>
+</tr>
+<tr>
+<td align="left"><code>updatedAt</code></td>
+<td align="left"><code>TIMESTAMP</code></td>
+<td align="center">No</td>
+<td align="left"><code>CURRENT_TIMESTAMP</code></td>
+<td align="left"><code>ON UPDATE CURRENT_TIMESTAMP</code></td>
+<td align="left">Appointment modification timestamp</td>
+</tr>
+</tbody></table>
+<h3>6.3 Relational Normalization Analysis (1NF, 2NF, 3NF)</h3>
+<p>EstateCore database design adheres strictly to the Third Normal Form (3NF):</p>
+<ul>
+<li><strong>First Normal Form (1NF):</strong><ul>
+<li>Every column contains atomic (indivisible) values. No repeating groups or arrays of phone numbers, addresses, or dates exist within single fields.</li>
+<li>Every table has a definitive surrogate primary key (<code>id</code>).</li>
+</ul>
+</li>
+<li><strong>Second Normal Form (2NF):</strong><ul>
+<li>All tables are in 1NF.</li>
+<li>All non-key attributes are fully functionally dependent on the primary key. Since surrogate keys (<code>id</code>) are single-attribute keys, no partial dependencies exist.</li>
+</ul>
+</li>
+<li><strong>Third Normal Form (3NF):</strong><ul>
+<li>All tables are in 2NF.</li>
+<li>No transitive functional dependencies exist ($X \to Y$ and $Y \to Z$ where $Z$ is non-key). For example, rather than embedding client names or property prices inside the <code>appointments</code> or <code>inquiries</code> tables, these attributes reside exclusively in <code>users</code> and <code>properties</code> and are joined via foreign keys.</li>
+</ul>
+</li>
+</ul>
+<h3>6.4 Migrations &amp; Seeding Integrity</h3>
+<p>In compliance with academic standards, automatic schema synchronization (<code>synchronize: true</code>) is <strong>disabled</strong> in production and development configurations. Schema evolution is version-controlled through explicit TypeORM migrations:</p>
+<ul>
+<li>Migration file: <code>src/database/migrations/1700000000000-InitialMigration.ts</code></li>
+<li>Migration execution command: <code>npm run migration:run</code></li>
+<li>Seed execution command: <code>npm run seed</code></li>
+</ul>
+<p>The seed script idempotently populates verified initial records:</p>
+<ul>
+<li>1 Administrator account (<code>admin@estatecore.local</code>)</li>
+<li>2 Real Estate Agent accounts (<code>maria.santos@estatecore.local</code>, <code>carlos.reyes@estatecore.local</code>)</li>
+<li>2 Client accounts (<code>juan.delacruz@client.local</code>, <code>elena.roxas@client.local</code>)</li>
+<li>6 realistic Philippine real estate listings across BGC, Alabang, Quezon City, San Juan, Makati, and Tagaytay</li>
+<li>3 realistic client inquiries with diverse status codes</li>
+<li>2 scheduled viewing appointments</li>
+</ul>
+<hr>
+<h2>7. REST API DESIGN &amp; SPECIFICATION</h2>
+<h3>7.1 REST Endpoint Catalog (22 Implemented Endpoints)</h3>
+<table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th align="left">HTTP Method</th>
+<th align="left">Endpoint URI</th>
+<th align="left">Module</th>
+<th align="left">Auth Requirement</th>
+<th align="left">Description</th>
+<th align="left">Status Codes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>1</strong></td>
+<td align="left"><code>POST</code></td>
+<td align="left"><code>/api/auth/register</code></td>
+<td align="left">Auth</td>
+<td align="left">Public</td>
+<td align="left">Register new client account</td>
+<td align="left">201, 400, 409</td>
+</tr>
+<tr>
+<td align="center"><strong>2</strong></td>
+<td align="left"><code>POST</code></td>
+<td align="left"><code>/api/auth/login</code></td>
+<td align="left">Auth</td>
+<td align="left">Public</td>
+<td align="left">Authenticate user &amp; issue JWT</td>
+<td align="left">200, 400, 401</td>
+</tr>
+<tr>
+<td align="center"><strong>3</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/auth/me</code></td>
+<td align="left">Auth</td>
+<td align="left">Bearer JWT</td>
+<td align="left">Retrieve authenticated user profile</td>
+<td align="left">200, 401</td>
+</tr>
+<tr>
+<td align="center"><strong>4</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/users</code></td>
+<td align="left">Users</td>
+<td align="left">Admin Only</td>
+<td align="left">List all registered system users</td>
+<td align="left">200, 401, 403</td>
+</tr>
+<tr>
+<td align="center"><strong>5</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/users/:id</code></td>
+<td align="left">Users</td>
+<td align="left">Admin or Self</td>
+<td align="left">Retrieve specific user account details</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>6</strong></td>
+<td align="left"><code>PATCH</code></td>
+<td align="left"><code>/api/users/:id</code></td>
+<td align="left">Users</td>
+<td align="left">Admin or Self</td>
+<td align="left">Update user account information</td>
+<td align="left">200, 400, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>7</strong></td>
+<td align="left"><code>DELETE</code></td>
+<td align="left"><code>/api/users/:id</code></td>
+<td align="left">Users</td>
+<td align="left">Admin Only</td>
+<td align="left">Safely deactivate user account</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>8</strong></td>
+<td align="left"><code>POST</code></td>
+<td align="left"><code>/api/properties</code></td>
+<td align="left">Properties</td>
+<td align="left">Admin or Agent</td>
+<td align="left">Publish a new property listing</td>
+<td align="left">201, 400, 401, 403</td>
+</tr>
+<tr>
+<td align="center"><strong>9</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/properties</code></td>
+<td align="left">Properties</td>
+<td align="left">Public</td>
+<td align="left">List and search property listings with query filters</td>
+<td align="left">200</td>
+</tr>
+<tr>
+<td align="center"><strong>10</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/properties/:id</code></td>
+<td align="left">Properties</td>
+<td align="left">Public</td>
+<td align="left">Retrieve full specifications of single property</td>
+<td align="left">200, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>11</strong></td>
+<td align="left"><code>PATCH</code></td>
+<td align="left"><code>/api/properties/:id</code></td>
+<td align="left">Properties</td>
+<td align="left">Admin or Agent Owner</td>
+<td align="left">Update property listing attributes</td>
+<td align="left">200, 400, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>12</strong></td>
+<td align="left"><code>DELETE</code></td>
+<td align="left"><code>/api/properties/:id</code></td>
+<td align="left">Properties</td>
+<td align="left">Admin or Agent Owner</td>
+<td align="left">Delete property listing from database</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>13</strong></td>
+<td align="left"><code>POST</code></td>
+<td align="left"><code>/api/inquiries</code></td>
+<td align="left">Inquiries</td>
+<td align="left">Bearer JWT</td>
+<td align="left">Submit property inquiry to assigned agent</td>
+<td align="left">201, 400, 401, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>14</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/inquiries</code></td>
+<td align="left">Inquiries</td>
+<td align="left">Bearer JWT</td>
+<td align="left">Retrieve inquiries (Role-filtered)</td>
+<td align="left">200, 401</td>
+</tr>
+<tr>
+<td align="center"><strong>15</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/inquiries/:id</code></td>
+<td align="left">Inquiries</td>
+<td align="left">Bearer JWT (Owner/Agent/Admin)</td>
+<td align="left">Retrieve single inquiry details</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>16</strong></td>
+<td align="left"><code>PATCH</code></td>
+<td align="left"><code>/api/inquiries/:id</code></td>
+<td align="left">Inquiries</td>
+<td align="left">Bearer JWT (Role-specific)</td>
+<td align="left">Update inquiry status or client message</td>
+<td align="left">200, 400, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>17</strong></td>
+<td align="left"><code>DELETE</code></td>
+<td align="left"><code>/api/inquiries/:id</code></td>
+<td align="left">Inquiries</td>
+<td align="left">Admin or Client Owner</td>
+<td align="left">Delete inquiry record</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>18</strong></td>
+<td align="left"><code>POST</code></td>
+<td align="left"><code>/api/appointments</code></td>
+<td align="left">Appointments</td>
+<td align="left">Bearer JWT</td>
+<td align="left">Schedule property viewing appointment</td>
+<td align="left">201, 400, 401, 404, 409</td>
+</tr>
+<tr>
+<td align="center"><strong>19</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/appointments</code></td>
+<td align="left">Appointments</td>
+<td align="left">Bearer JWT</td>
+<td align="left">List scheduled viewing appointments</td>
+<td align="left">200, 401</td>
+</tr>
+<tr>
+<td align="center"><strong>20</strong></td>
+<td align="left"><code>GET</code></td>
+<td align="left"><code>/api/appointments/:id</code></td>
+<td align="left">Appointments</td>
+<td align="left">Bearer JWT (Owner/Agent/Admin)</td>
+<td align="left">Retrieve specific appointment details</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+<tr>
+<td align="center"><strong>21</strong></td>
+<td align="left"><code>PATCH</code></td>
+<td align="left"><code>/api/appointments/:id</code></td>
+<td align="left">Appointments</td>
+<td align="left">Bearer JWT (Role-specific)</td>
+<td align="left">Update appointment status (Confirm/Cancel/Date)</td>
+<td align="left">200, 400, 401, 403, 404, 409</td>
+</tr>
+<tr>
+<td align="center"><strong>22</strong></td>
+<td align="left"><code>DELETE</code></td>
+<td align="left"><code>/api/appointments/:id</code></td>
+<td align="left">Appointments</td>
+<td align="left">Admin or Client Owner</td>
+<td align="left">Cancel and delete appointment record</td>
+<td align="left">200, 401, 403, 404</td>
+</tr>
+</tbody></table>
+<h3>7.2 Detailed Endpoint Specifications</h3>
+<h4>1. POST /api/auth/register</h4>
+<ul>
+<li><strong>Auth:</strong> Public</li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;fullName&quot;: &quot;Antonio Luna&quot;,
+  &quot;email&quot;: &quot;antonio.luna@client.local&quot;,
+  &quot;password&quot;: &quot;Password123!&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Response (201 Created):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;message&quot;: &quot;Registration successful&quot;,
+  &quot;accessToken&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
+  &quot;user&quot;: {
+    &quot;id&quot;: 6,
+    &quot;fullName&quot;: &quot;Antonio Luna&quot;,
+    &quot;email&quot;: &quot;antonio.luna@client.local&quot;,
+    &quot;role&quot;: &quot;CLIENT&quot;,
+    &quot;isActive&quot;: true
+  }
+}
+</code></pre>
+<h4>2. POST /api/auth/login</h4>
+<ul>
+<li><strong>Auth:</strong> Public</li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;email&quot;: &quot;admin@estatecore.local&quot;,
+  &quot;password&quot;: &quot;Password123!&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Response (200 OK):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;message&quot;: &quot;Login successful&quot;,
+  &quot;accessToken&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
+  &quot;user&quot;: {
+    &quot;id&quot;: 1,
+    &quot;fullName&quot;: &quot;System Administrator&quot;,
+    &quot;email&quot;: &quot;admin@estatecore.local&quot;,
+    &quot;role&quot;: &quot;ADMIN&quot;,
+    &quot;isActive&quot;: true
+  }
+}
+</code></pre>
+<h4>3. GET /api/auth/me</h4>
+<ul>
+<li><strong>Auth:</strong> Bearer JWT</li>
+<li><strong>Response (200 OK):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;id&quot;: 1,
+  &quot;fullName&quot;: &quot;System Administrator&quot;,
+  &quot;email&quot;: &quot;admin@estatecore.local&quot;,
+  &quot;role&quot;: &quot;ADMIN&quot;,
+  &quot;isActive&quot;: true,
+  &quot;createdAt&quot;: &quot;2026-11-23T22:25:50.000Z&quot;,
+  &quot;updatedAt&quot;: &quot;2026-11-23T22:25:50.000Z&quot;
+}
+</code></pre>
+<h4>4. POST /api/properties</h4>
+<ul>
+<li><strong>Auth:</strong> Bearer JWT (<code>ADMIN</code> or <code>AGENT</code>)</li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;Modern Sunset Penthouse with Balcony&quot;,
+  &quot;description&quot;: &quot;Exclusive 3-bedroom luxury penthouse overlooking Manila Bay sunset.&quot;,
+  &quot;propertyType&quot;: &quot;CONDOMINIUM&quot;,
+  &quot;listingType&quot;: &quot;SALE&quot;,
+  &quot;price&quot;: 32000000,
+  &quot;location&quot;: &quot;Pasay City, Metro Manila&quot;,
+  &quot;address&quot;: &quot;Seaside Boulevard, Mall of Asia Complex&quot;,
+  &quot;bedrooms&quot;: 3,
+  &quot;bathrooms&quot;: 3,
+  &quot;floorArea&quot;: 210,
+  &quot;lotArea&quot;: 0,
+  &quot;status&quot;: &quot;AVAILABLE&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Response (201 Created):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;id&quot;: 7,
+  &quot;title&quot;: &quot;Modern Sunset Penthouse with Balcony&quot;,
+  &quot;description&quot;: &quot;Exclusive 3-bedroom luxury penthouse overlooking Manila Bay sunset.&quot;,
+  &quot;propertyType&quot;: &quot;CONDOMINIUM&quot;,
+  &quot;listingType&quot;: &quot;SALE&quot;,
+  &quot;price&quot;: 32000000,
+  &quot;location&quot;: &quot;Pasay City, Metro Manila&quot;,
+  &quot;address&quot;: &quot;Seaside Boulevard, Mall of Asia Complex&quot;,
+  &quot;bedrooms&quot;: 3,
+  &quot;bathrooms&quot;: 3,
+  &quot;floorArea&quot;: 210,
+  &quot;lotArea&quot;: 0,
+  &quot;status&quot;: &quot;AVAILABLE&quot;,
+  &quot;agentId&quot;: 2,
+  &quot;createdAt&quot;: &quot;2026-11-24T06:27:23.000Z&quot;,
+  &quot;updatedAt&quot;: &quot;2026-11-24T06:27:23.000Z&quot;
+}
+</code></pre>
+<h4>5. POST /api/appointments</h4>
+<ul>
+<li><strong>Auth:</strong> Bearer JWT (<code>CLIENT</code>, <code>AGENT</code>, or <code>ADMIN</code>)</li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;propertyId&quot;: 1,
+  &quot;appointmentDate&quot;: &quot;2026-12-15&quot;,
+  &quot;appointmentTime&quot;: &quot;15:00&quot;,
+  &quot;notes&quot;: &quot;Client request weekend afternoon on-site visit.&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Response (201 Created):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;id&quot;: 3,
+  &quot;propertyId&quot;: 1,
+  &quot;clientId&quot;: 4,
+  &quot;agentId&quot;: 2,
+  &quot;appointmentDate&quot;: &quot;2026-12-15&quot;,
+  &quot;appointmentTime&quot;: &quot;15:00&quot;,
+  &quot;status&quot;: &quot;PENDING&quot;,
+  &quot;notes&quot;: &quot;Client request weekend afternoon on-site visit.&quot;,
+  &quot;createdAt&quot;: &quot;2026-11-24T06:27:24.000Z&quot;,
+  &quot;updatedAt&quot;: &quot;2026-11-24T06:27:24.000Z&quot;,
+  &quot;property&quot;: {
+    &quot;id&quot;: 1,
+    &quot;title&quot;: &quot;Modern High-Rise Condominium in BGC&quot;,
+    &quot;location&quot;: &quot;Bonifacio Global City, Taguig&quot;,
+    &quot;price&quot;: 18500000
+  }
+}
+</code></pre>
+<hr>
+<h2>8. AUTHENTICATION AND SECURITY</h2>
+<h3>8.1 JWT Authentication Workflow</h3>
+<p>EstateCore uses stateless authentication based on the OAuth2 Bearer Token RFC 6750 standard:</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor Client as Client / Postman
+    participant AuthCtrl as AuthController
+    participant AuthSvc as AuthService
+    participant UserSvc as UsersService
+    participant Bcrypt as bcryptjs
+    participant JwtSvc as JwtService
+    participant DB as MySQL (Docker)
+
+    Client-&gt;&gt;AuthCtrl: POST /api/auth/login { email, password }
+    AuthCtrl-&gt;&gt;AuthSvc: login(loginDto)
+    AuthSvc-&gt;&gt;UserSvc: findByEmail(email, true)
+    UserSvc-&gt;&gt;DB: SELECT * FROM users WHERE email = ?
+    DB--&gt;&gt;UserSvc: User record with password hash
+    UserSvc--&gt;&gt;AuthSvc: User Entity
+    AuthSvc-&gt;&gt;Bcrypt: compare(plainPassword, passwordHash)
+    Bcrypt--&gt;&gt;AuthSvc: true (Match confirmed)
+    AuthSvc-&gt;&gt;JwtSvc: sign({ sub: user.id, email: user.email, role: user.role })
+    JwtSvc--&gt;&gt;AuthSvc: Signed JWT access token
+    AuthSvc--&gt;&gt;AuthCtrl: { accessToken, user }
+    AuthCtrl--&gt;&gt;Client: 200 OK + JWT Bearer Token
+
+    Note over Client, DB: Subsequent Protected Request
+    Client-&gt;&gt;AuthCtrl: GET /api/auth/me (Headers: Authorization: Bearer &lt;token&gt;)
+    AuthCtrl-&gt;&gt;JwtSvc: Passport JwtStrategy validates signature &amp; expiration
+    JwtSvc--&gt;&gt;AuthCtrl: Valid payload { sub: 1, role: &quot;ADMIN&quot; }
+    AuthCtrl-&gt;&gt;UserSvc: findOne(1)
+    UserSvc--&gt;&gt;AuthCtrl: Sanitized User Profile
+    AuthCtrl--&gt;&gt;Client: 200 OK + Profile JSON
+</code></pre>
+<h3>8.2 Password Security &amp; Salting</h3>
+<ol>
+<li>Passwords are never stored in plain text under any circumstance.</li>
+<li>The system utilizes <code>bcryptjs</code> with a cost factor (salt rounds) of 10.</li>
+<li>In <code>User</code> TypeORM entity, the password column is configured with <code>@Column({ select: false })</code>. Standard <code>SELECT</code> queries across user repositories automatically omit the hash from result sets, preventing inadvertent data exposure in REST responses.</li>
+</ol>
+<h3>8.3 Role-Based Access Control (RBAC) Architecture</h3>
+<p>RBAC is enforced on the server side using NestJS decorators and guards:</p>
+<ul>
+<li><code>@Roles(UserRole.ADMIN, UserRole.AGENT)</code>: Attaches required roles metadata to controllers and handlers.</li>
+<li><code>JwtAuthGuard</code>: Protects endpoints, decoding Bearer token and attaching the authenticated <code>User</code> to <code>req.user</code>.</li>
+<li><code>RolesGuard</code>: Evaluates handler metadata against <code>req.user.role</code>. If the user does not possess the requisite role, an HTTP 403 Forbidden exception is immediately returned before controller code is reached.</li>
+<li><strong>Registration Protection:</strong> In <code>AuthService.register()</code>, incoming roles from the request payload are strictly ignored, and the user role is hardcoded to <code>UserRole.CLIENT</code>. Privileges cannot be elevated through client requests.</li>
+</ul>
+<hr>
+<h2>9. BACKEND IMPLEMENTATION</h2>
+<h3>9.1 Project Structure &amp; Separation of Concerns</h3>
+<p>The backend project adheres strictly to NestJS monorepo modularity:</p>
+<pre><code>backend/
+├── src/
+│   ├── app.module.ts              # Root composition module
+│   ├── main.ts                    # Bootstrap: CORS, ValidationPipe, Filters, Prefix
+│   ├── auth/                      # Authentication &amp; JWT Module
+│   │   ├── auth.controller.ts     # POST /register, POST /login, GET /me
+│   │   ├── auth.service.ts        # Business logic, credential verification, JWT signing
+│   │   ├── auth.module.ts         # PassportModule &amp; JwtModule configuration
+│   │   ├── dto/                   # RegisterDto, LoginDto
+│   │   └── strategies/            # JwtStrategy (Passport JWT validation)
+│   ├── users/                     # User Management Module
+│   │   ├── entities/user.entity.ts# User TypeORM entity
+│   │   ├── users.controller.ts    # REST endpoints (GET, PATCH, DELETE)
+│   │   ├── users.service.ts       # Database CRUD &amp; deactivation logic
+│   │   ├── users.module.ts
+│   │   └── dto/                   # CreateUserDto, UpdateUserDto
+│   ├── properties/                # Property Listings Module
+│   │   ├── entities/property.entity.ts
+│   │   ├── properties.controller.ts
+│   │   ├── properties.service.ts  # Filtering, searching, ownership enforcement
+│   │   ├── properties.module.ts
+│   │   └── dto/                   # CreatePropertyDto, UpdatePropertyDto, QueryPropertyDto
+│   ├── inquiries/                 # Inquiry Processing Module
+│   │   ├── entities/inquiry.entity.ts
+│   │   ├── inquiries.controller.ts
+│   │   ├── inquiries.service.ts   # Client/Agent visibility &amp; status pipeline
+│   │   ├── inquiries.module.ts
+│   │   └── dto/
+│   ├── appointments/              # Viewing Appointments Module
+│   │   ├── entities/appointment.entity.ts
+│   │   ├── appointments.controller.ts
+│   │   ├── appointments.service.ts# Conflict checking, date validation, lifecycle
+│   │   ├── appointments.module.ts
+│   │   └── dto/
+│   ├── common/                    # Shared infrastructure
+│   │   ├── decorators/            # @Roles(), @CurrentUser()
+│   │   ├── enums/                 # Role, PropertyType, ListingType, Statuses
+│   │   ├── filters/               # AllExceptionsFilter
+│   │   └── guards/                # JwtAuthGuard, RolesGuard
+│   └── database/                  # TypeORM Configuration &amp; Scripts
+│       ├── data-source.ts         # Migration CLI DataSource
+│       ├── migrations/            # 1700000000000-InitialMigration.ts
+│       └── seeds/                 # seed.ts (Idempotent seed data generator)
+├── package.json
+└── tsconfig.json
+</code></pre>
+<h3>9.2 Controller → Service → Repository Walkthrough</h3>
+<p>Consider <code>POST /api/properties</code>:</p>
+<ol>
+<li><code>PropertiesController.create()</code> receives <code>@Body() createPropertyDto: CreatePropertyDto</code> and <code>@CurrentUser() user: User</code>.</li>
+<li>It delegates to <code>PropertiesService.create(createPropertyDto, user)</code>.</li>
+<li>In <code>PropertiesService</code>, the business rule is enforced: if the user role is <code>AGENT</code>, the property&#39;s <code>agentId</code> is forced to <code>user.id</code> to prevent spoofing. If <code>ADMIN</code>, an explicit agent ID or admin ID is assigned.</li>
+<li>The service passes the entity to <code>this.propertyRepository.save(property)</code>.</li>
+<li>TypeORM constructs and executes an <code>INSERT INTO properties (...) VALUES (...)</code> statement against MySQL 8.4 in Docker.</li>
+<li>The persisted entity is returned back through the controller as HTTP 201 Created.</li>
+</ol>
+<hr>
+<h2>10. FRONTEND ARCHITECTURE &amp; UI OVERVIEW</h2>
+<h3>10.1 Design Principles &amp; Component Model</h3>
+<p>The frontend application was developed using <strong>React 18</strong>, <strong>Vite</strong>, <strong>TypeScript</strong>, and <strong>Tailwind CSS</strong>. Its user experience was designed specifically to resemble a real corporate internal management workstation rather than a generic template:</p>
+<ul>
+<li><strong>Restrained Color Palette:</strong> Slate neutrals, corporate deep blues (<code>#1e40af</code>, <code>#2563eb</code>), emerald for active/confirmed states, and amber for pending items.</li>
+<li><strong>Clean Typography:</strong> Crisp Inter typography with distinct weight steps (400 regular, 500 medium, 600 semibold, 700 bold).</li>
+<li><strong>Practical Information Density:</strong> Dense, readable data tables, filterable toolbars, and clear KPI summary cards.</li>
+<li><strong>Zero Mock Data:</strong> All statistics, listing grids, inquiry lists, and appointment cards are wired directly to the live NestJS backend via <code>src/services/api.ts</code>.</li>
+</ul>
+<h3>10.2 Live Screen Implementations</h3>
+<ol>
+<li><strong>Authentication:</strong> Sign In screen with demo account quick-fill pills (<code>Admin</code>, <code>Agent</code>, <code>Client</code>), password validation, and Client Registration.</li>
+<li><strong>Admin Dashboard:</strong> High-level executive overview displaying 5 live KPI cards (Total Properties, Available Properties, Total Inquiries, Pending Appointments, System Users) alongside recent inquiries and appointment queues.</li>
+<li><strong>Agent Dashboard:</strong> Focused agent workspace showing assigned property listings, pending inquiries requiring follow-up, and upcoming viewing appointments.</li>
+<li><strong>Client Dashboard:</strong> Client portal with property catalog exploration, personal inquiry tracking, and viewing appointment status.</li>
+<li><strong>Property Catalog &amp; Filtering:</strong> Search by keyword with dynamic dropdown filters for property type, listing type (Sale/Rent), and availability status.</li>
+<li><strong>Property Detail Page:</strong> Complete property specifications (bedrooms, bathrooms, floor area, lot area, address) with integrated interactive modals for &quot;Send Inquiry&quot; and &quot;Schedule Tour&quot;.</li>
+<li><strong>Property Form (Add/Edit):</strong> Form with numeric validation and agent assignment selector.</li>
+<li><strong>Inquiry Management:</strong> Tabular inquiry management interface with status updating (<code>PENDING</code> -&gt; <code>CONTACTED</code> -&gt; <code>QUALIFIED</code> -&gt; <code>CLOSED</code>).</li>
+<li><strong>Appointment Management:</strong> Viewing appointment coordinator with quick &quot;Confirm&quot; and &quot;Complete&quot; status actions and cancellation controls.</li>
+<li><strong>User Management (Admin Only):</strong> User accounts table with role change dropdowns and safe account deactivation toggles.</li>
+<li><strong>User Profile:</strong> Self-service profile management for display name and password updates.</li>
+</ol>
+<hr>
+<h2>11. API TESTING AND VALIDATION</h2>
+<h3>11.1 Automated Test Execution Evidence (26/26 Tests Passed)</h3>
+<p>The complete REST API test suite was executed live against the running NestJS backend connected to Docker MySQL. Below is the verified test log:</p>
+<pre><code class="language-text">=== STARTING ESTATECORE 22+ ENDPOINT LIVE VERIFICATION ===
+
+[PASS] GET /api/auth/me (Status: 401) - Protected Route Rejection (No Token)
+[PASS] POST /api/auth/register (Status: 201) - Register New Client
+[PASS] POST /api/auth/login (Status: 200) - Login as Administrator
+[PASS] POST /api/auth/login (Status: 200) - Login as Agent
+[PASS] POST /api/auth/login (Status: 200) - Login as Client
+[PASS] GET /api/auth/me (Status: 200) - Current User Profile (/me)
+[PASS] GET /api/users (Status: 200) - List Users (Admin)
+[PASS] GET /api/users (Status: 403) - RolesGuard Forbidden Check
+[PASS] GET /api/users/1 (Status: 200) - Get User by ID
+[PASS] PATCH /api/users/6 (Status: 200) - Update User Details
+[PASS] DELETE /api/users/6 (Status: 200) - Deactivate User
+[PASS] GET /api/properties?propertyType=CONDOMINIUM&amp;listingType=SALE (Status: 200) - List Filtered Properties
+[PASS] GET /api/properties/1 (Status: 200) - Get Property Details
+[PASS] POST /api/properties (Status: 201) - Create Property Listing
+[PASS] PATCH /api/properties/7 (Status: 200) - Update Property Listing
+[PASS] POST /api/inquiries (Status: 201) - Submit Property Inquiry
+[PASS] GET /api/inquiries (Status: 200) - List Inquiries
+[PASS] GET /api/inquiries/4 (Status: 200) - Get Inquiry Details
+[PASS] PATCH /api/inquiries/4 (Status: 200) - Update Inquiry Status
+[PASS] POST /api/appointments (Status: 201) - Schedule Viewing Appointment
+[PASS] GET /api/appointments (Status: 200) - List Appointments
+[PASS] GET /api/appointments/3 (Status: 200) - Get Appointment Details
+[PASS] PATCH /api/appointments/3 (Status: 200) - Update Appointment Status
+[PASS] DELETE /api/appointments/3 (Status: 200) - Cancel/Delete Appointment
+[PASS] DELETE /api/inquiries/4 (Status: 200) - Delete Inquiry
+[PASS] DELETE /api/properties/7 (Status: 200) - Delete Property Listing
+
+=== VERIFICATION SUMMARY: 26/26 TESTS PASSED (100% SUCCESS RATE) ===
+</code></pre>
+<h3>11.2 Postman Collection Architecture</h3>
+<p>The exported Postman collection is located at:
+<code>postman/EstateCore.postman_collection.json</code></p>
+<p>It is structured into 5 organized module folders:</p>
+<ol>
+<li><code>1. Authentication</code> (6 requests including token acquisition scripts and negative 401 tests)</li>
+<li><code>2. Properties</code> (5 requests covering complete CRUD and query parameter filtering)</li>
+<li><code>3. Inquiries</code> (5 requests covering client submission, agent listing, status updating, and deletion)</li>
+<li><code>4. Appointments</code> (5 requests covering scheduling, viewing details, agent confirmation, and cancellation)</li>
+<li><code>5. Users</code> (5 requests covering admin retrieval, individual lookups, updates, deactivation, and negative 403 checks)</li>
+</ol>
+<h3>11.3 Test Evidence &amp; Screenshots Placeholder</h3>
+<blockquote>
+<p><em>Note for final presentation and PDF compilation: The student should capture and attach the designated screenshots into the sections below before exporting to final PDF.</em></p>
+</blockquote>
+<ul>
+<li><strong>[SCREENSHOT PLACEHOLDER 01]:</strong> Docker Desktop showing container <code>estatecore-mysql</code> in Healthy status with port 3307 mapped.</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 02]:</strong> Terminal output showing <code>npm run start:dev</code> running NestJS without errors.</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 03]:</strong> Postman execution of <code>POST /api/auth/login</code> returning JWT token.</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 04]:</strong> Postman execution of <code>GET /api/auth/me</code> without token returning <code>401 Unauthorized</code>.</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 05]:</strong> Postman execution of complete Property CRUD sequence (<code>POST</code>, <code>GET</code>, <code>PATCH</code>, <code>DELETE</code>).</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 06]:</strong> MySQL Workbench / phpMyAdmin showing table records in <code>estatecore_db</code>.</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 07]:</strong> React Frontend Executive Admin Dashboard.</li>
+<li><strong>[SCREENSHOT PLACEHOLDER 08]:</strong> React Frontend Property Listings with active filter toolbar.</li>
+</ul>
+<hr>
+<h2>12. CONCLUSION &amp; ACADEMIC DEFENSE SUMMARY</h2>
+<h3>12.1 Project Outcomes</h3>
+<p>The EstateCore prototype successfully fulfills and exceeds all requirements set forth by ITEC 116 (Systems Integration and Architecture 2):</p>
+<ol>
+<li><strong>Full-Stack Implementation:</strong> A robust NestJS REST API connected to a persistent MySQL 8.4 Docker database and an integrated React frontend.</li>
+<li><strong>22+ REST Endpoints:</strong> Exactly 22 principal REST endpoints plus security verification routes fully implemented and tested.</li>
+<li><strong>Database Reproducibility:</strong> Reproducible schema through TypeORM migrations and initial seed script.</li>
+<li><strong>Defense Readiness:</strong> Clear architectural justification, entity relationship diagrams, and data flow tracing.</li>
+</ol>
+<h3>12.2 Challenges Overcome</h3>
+<ol>
+<li><strong>Local MySQL Port Conflicts:</strong> Local XAMPP MySQL was occupying default host port 3306. Rather than terminating existing services, Docker Compose was configured to publish container port 3306 to host port 3307 (<code>3307:3306</code>), and NestJS was configured to connect to port 3307.</li>
+<li><strong>Relational Deletion Integrity:</strong> Direct user deletion would break historical foreign keys in property listings and inquiries. The system solved this by implementing soft account deactivation (<code>isActive: false</code>) and configuring <code>ON DELETE SET NULL</code> for assigned agents.</li>
+<li><strong>Appointment Concurrency:</strong> Implemented server-side conflict detection preventing an agent from being double-booked for confirmed viewing appointments at the exact same date and time.</li>
+</ol>
+<h3>12.3 Future System Roadmap</h3>
+<ul>
+<li><strong>Cloud Storage Integration:</strong> S3/GCS bucket integration for multi-image property photo galleries.</li>
+<li><strong>Real-Time Push Notifications:</strong> WebSockets / Socket.io for instant alerts when a client submits an inquiry or an appointment is confirmed.</li>
+<li><strong>Geolocation Mapping:</strong> Interactive Leaflet / Google Maps pin integration for spatial property browsing.</li>
+</ul>
+<hr>
+<h2>13. REFERENCES</h2>
+<ol>
+<li>NestJS Documentation — <em>An Enterprise Progressive Node.js Framework</em>. <a href="https://docs.nestjs.com">https://docs.nestjs.com</a></li>
+<li>TypeORM Documentation — <em>Active Record and Data Mapper ORM</em>. <a href="https://typeorm.io">https://typeorm.io</a></li>
+<li>MySQL 8.4 Reference Manual — <em>Oracle Corporation</em>. <a href="https://dev.mysql.com/doc/refman/8.4/en/">https://dev.mysql.com/doc/refman/8.4/en/</a></li>
+<li>RFC 7519 — <em>JSON Web Token (JWT)</em>. Internet Engineering Task Force (IETF). <a href="https://tools.ietf.org/html/rfc7519">https://tools.ietf.org/html/rfc7519</a></li>
+<li>Docker Documentation — <em>Docker Compose Multi-Container Orchestration</em>. <a href="https://docs.docker.com/compose/">https://docs.docker.com/compose/</a></li>
+<li>React Documentation — <em>The library for web and native user interfaces</em>. <a href="https://react.dev">https://react.dev</a></li>
+</ol>
+<hr>
+<h2>14. APPENDIX</h2>
+<h3>Appendix A: Local Setup &amp; Startup Runbook</h3>
+<h4>1. Prerequisites</h4>
+<ul>
+<li>Node.js v18+ or v20+ installed</li>
+<li>Docker Desktop installed and running</li>
+</ul>
+<h4>2. Starting the Database</h4>
+<p>From the root directory:</p>
+<pre><code class="language-bash"># Start MySQL container in background
+docker compose up -d
+
+# Verify container is running and healthy
+docker compose ps
+</code></pre>
+<h4>3. Starting the Backend API</h4>
+<pre><code class="language-bash">cd backend
+npm install
+npm run migration:run
+npm run seed
+npm run start:dev
+</code></pre>
+<p>Backend API will be accessible at: <code>http://localhost:3000/api</code></p>
+<h4>4. Starting the Frontend UI</h4>
+<pre><code class="language-bash">cd frontend
+npm install
+npm run dev
+</code></pre>
+<p>Frontend UI will be accessible at: <code>http://localhost:5173</code></p>
+<hr>
+<h3>Appendix B: Docker Operations &amp; Database Restoration</h3>
+<h4>Database Backup / Export</h4>
+<pre><code class="language-bash">docker exec estatecore-mysql mysqldump -u root -pestatecore_root_secure_pass_2026 --no-tablespaces --databases estatecore_db --add-drop-table &gt; database/exports/estatecore_database.sql
+</code></pre>
+<h4>Database Restoration</h4>
+<pre><code class="language-bash">docker exec -i estatecore-mysql mysql -u root -pestatecore_root_secure_pass_2026 estatecore_db &lt; database/exports/estatecore_database.sql
+</code></pre>
+<blockquote>
+<p><strong>WARNING:</strong> Never execute <code>docker compose down -v</code> during normal development as it will destroy the persistent database volume.</p>
+</blockquote>
+<hr>
+<h3>Appendix C: Seed Account Credentials Reference</h3>
+<table>
+<thead>
+<tr>
+<th align="left">Role</th>
+<th align="left">Email Address</th>
+<th align="left">Password</th>
+<th align="left">Intended Use / Scope</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Administrator</strong></td>
+<td align="left"><code>admin@estatecore.local</code></td>
+<td align="left"><code>Password123!</code></td>
+<td align="left">System administration, user management, global overview</td>
+</tr>
+<tr>
+<td align="left"><strong>Real Estate Agent</strong></td>
+<td align="left"><code>maria.santos@estatecore.local</code></td>
+<td align="left"><code>Password123!</code></td>
+<td align="left">Property listings, assigned inquiry follow-ups, viewing tour confirmation</td>
+</tr>
+<tr>
+<td align="left"><strong>Real Estate Agent</strong></td>
+<td align="left"><code>carlos.reyes@estatecore.local</code></td>
+<td align="left"><code>Password123!</code></td>
+<td align="left">Commercial listings, tenant inquiries, viewing tours</td>
+</tr>
+<tr>
+<td align="left"><strong>Client</strong></td>
+<td align="left"><code>juan.delacruz@client.local</code></td>
+<td align="left"><code>Password123!</code></td>
+<td align="left">Browsing listings, submitting inquiries, scheduling tours</td>
+</tr>
+<tr>
+<td align="left"><strong>Client</strong></td>
+<td align="left"><code>elena.roxas@client.local</code></td>
+<td align="left"><code>Password123!</code></td>
+<td align="left">Browsing listings, leasing inquiries</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>Appendix D: 5–10 Minute Video Narration Script</h3>
+<p><strong>[00:00 - 01:00] Step 1: Introduction &amp; System Startup</strong></p>
+<blockquote>
+<p><em>&quot;Good day, instructor and colleagues. I am presenting EstateCore, a Full-Stack Real Estate Management Information System developed for ITEC 116 — Systems Integration and Architecture 2.</em>
+<em>To begin, our database is running inside a Docker container using the official MySQL 8.4 image on mapped port 3307 to prevent conflicts with local services.</em>
+<em>Now, in my terminal, I start the NestJS backend by executing <code>npm run start:dev</code>. As you can see, NestJS compiles cleanly, connects to MySQL via TypeORM, executes global validation pipes, and starts listening on port 3000 at prefix <code>/api</code> with zero errors.&quot;</em></p>
+</blockquote>
+<p><strong>[01:00 - 02:30] Step 2: Authentication &amp; JWT Generation</strong></p>
+<blockquote>
+<p><em>&quot;Next, we demonstrate authentication in Postman. I send a <code>POST</code> request to <code>/api/auth/login</code> with the credentials of our System Administrator: <code>admin@estatecore.local</code>. Notice we receive a 200 OK status code. The response body contains the sanitized user object without the password hash, and a signed JWT access token.</em>
+<em>Postman automatically stores this token in our collection variables. If I now make a request to the protected route <code>/api/auth/me</code> with the Bearer token, the server returns 200 OK with the authenticated user profile.</em>
+<em>To prove that our routes are genuinely secured, I now send the same request to <code>/api/auth/me</code> without any token. The server immediately rejects the request with HTTP 401 Unauthorized.&quot;</em></p>
+</blockquote>
+<p><strong>[02:30 - 05:00] Step 3: Complete Live CRUD Sequence in Postman</strong></p>
+<blockquote>
+<p><em>&quot;Now we execute a complete CRUD sequence on the Property Management Module.</em>
+<em>First, CREATE: As an authorized agent, I issue a <code>POST</code> to <code>/api/properties</code> with property details. The server responds with 201 Created and assigns ID 7.</em>
+<em>Second, READ: I execute <code>GET /api/properties</code> with query filters for condominiums and sale listings. The server returns our newly created record.</em>
+<em>Third, UPDATE: I send a <code>PATCH</code> to <code>/api/properties/7</code> updating the status to <code>RESERVED</code> and adjusting the price. The server responds with 200 OK and returns the updated record.</em>
+<em>Fourth, DELETE: I send a <code>DELETE</code> request to <code>/api/properties/7</code>. The server responds with 200 OK confirming deletion.&quot;</em></p>
+</blockquote>
+<p><strong>[05:00 - 07:30] Step 4: Code Architectural Walkthrough (Data Layer Tracing)</strong></p>
+<blockquote>
+<p><em>&quot;Let us trace how the request moves through our architectural layers in code.</em>
+<em>When Postman sends a request to <code>/api/properties</code>, it first arrives at <code>properties.controller.ts</code>. The controller is guarded by <code>JwtAuthGuard</code> and <code>RolesGuard</code>. The request payload is automatically validated by our <code>CreatePropertyDto</code>.</em>
+<em>The controller hands the validated data to <code>properties.service.ts</code>. The service contains our business logic: it verifies agent ownership and ensures that agents can only assign listings to themselves.</em>
+<em>The service then invokes the TypeORM repository: <code>this.propertyRepository.save()</code>. TypeORM maps our TypeScript entity <code>Property</code> to the underlying MySQL table and executes the <code>INSERT</code> query.</em>
+<em>Once MySQL commits the transaction, the repository returns the entity instance back to the service, the service returns it to the controller, and the controller serializes the HTTP response back to Postman.</em>
+<em>This demonstrates a clear, clean separation of concerns.&quot;</em></p>
+</blockquote>
+<p><strong>[07:30 - 09:00] Step 5: Database Verification &amp; Frontend Inspection</strong></p>
+<blockquote>
+<p><em>&quot;Now let&#39;s inspect the database directly. Running a SQL query against container <code>estatecore-mysql</code> proves that our records are genuinely stored in MySQL and persisted via Docker named volume.</em>
+<em>Furthermore, as an optional enhancement, we have a fully functional React frontend running on Vite and Tailwind CSS. Notice when I log in as Administrator, the dashboard displays live metrics matching our database records. When I view properties, inquiries, and appointments, every action directly calls our NestJS backend.&quot;</em></p>
+</blockquote>
+<p><strong>[09:00 - 10:00] Step 6: Conclusion</strong></p>
+<blockquote>
+<p><em>&quot;In conclusion, EstateCore meets all mandatory ITEC 116 requirements: 22 REST endpoints, JWT authentication, TypeORM migrations, Docker MySQL persistence, and comprehensive testing evidence. Thank you for your time and guidance.&quot;</em></p>
+</blockquote>
+<hr>
+<h3>Appendix E: Final Presentation Slide Outline (10–15 Minutes)</h3>
+<ul>
+<li><strong>Slide 1: Title Slide</strong><ul>
+<li>Project: EstateCore Real Estate Management System</li>
+<li>Course: ITEC 116 — Systems Integration and Architecture 2</li>
+<li>Student Presenter &amp; Instructor: John Vincent A. Dallego, MIT</li>
+</ul>
+</li>
+<li><strong>Slide 2: Problem Statement &amp; Objectives</strong><ul>
+<li>Industry fragmentation in real estate listings, agent scheduling, and client communication</li>
+<li>Objectives: Unified REST API, relational persistence, JWT security, 22 endpoints</li>
+</ul>
+</li>
+<li><strong>Slide 3: System Architecture &amp; Technology Stack</strong><ul>
+<li>Tiered Architecture: React Frontend → NestJS Backend → Docker MySQL 8.4</li>
+<li>Technical Stack justification</li>
+</ul>
+</li>
+<li><strong>Slide 4: Database Design &amp; ERD</strong><ul>
+<li>4 Principal Entities: User, Property, Inquiry, Appointment</li>
+<li>Relationships, Foreign Keys, 3NF Normalization</li>
+</ul>
+</li>
+<li><strong>Slide 5: REST API Design Catalog</strong><ul>
+<li>22 REST Endpoints categorized across Auth, Users, Properties, Inquiries, Appointments</li>
+<li>Standard HTTP methods and status codes (200, 201, 400, 401, 403, 404, 409)</li>
+</ul>
+</li>
+<li><strong>Slide 6: Authentication &amp; Security Architecture</strong><ul>
+<li>JWT workflow, bcrypt hashing, Passport strategy, Role-Based Access Control guards</li>
+<li>Client-only public registration protection</li>
+</ul>
+</li>
+<li><strong>Slide 7: Live Backend Demonstration</strong><ul>
+<li>Backend startup (<code>npm run start:dev</code>)</li>
+<li>Postman authentication and token generation</li>
+<li>Full CRUD execution on Property and Inquiry modules</li>
+</ul>
+</li>
+<li><strong>Slide 8: Architectural Code Tracing</strong><ul>
+<li>Request flow: Postman → Controller → Service → Repository → MySQL Database</li>
+</ul>
+</li>
+<li><strong>Slide 9: Frontend Prototype Overview</strong><ul>
+<li>Admin, Agent, and Client role-based dashboards wired to real API data</li>
+</ul>
+</li>
+<li><strong>Slide 10: Conclusion &amp; Lessons Learned</strong><ul>
+<li>Overcoming Docker port conflicts and relational deletion challenges</li>
+<li>Future roadmap: S3 image storage, WebSocket alerts, Map view</li>
+</ul>
+</li>
+<li><strong>Slide 11: Questions &amp; Answers (Q&amp;A)</strong><ul>
+<li>Open for instructor technical inquiry on design decisions and code implementation</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
 </body>
 </html>

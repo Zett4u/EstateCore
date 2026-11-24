@@ -87,7 +87,7 @@ EstateCore/
 ### Step 1: Start the MySQL Database (Docker)
 ```bash
 # Clone the repository
-git clone https://github.com/Zett-xoftwarex/EstateCore.git
+git clone https://github.com/Zett4u/EstateCore.git
 cd EstateCore
 
 # Start the MySQL container in the background
