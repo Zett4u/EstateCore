@@ -8,7 +8,7 @@
     "pass": true,
     "details": {
       "statusCode": 401,
-      "timestamp": "2026-11-24T06:27:23.331Z",
+      "timestamp": "2026-11-24T06:46:16.306Z",
       "path": "/api/auth/me",
       "method": "GET",
       "error": "Unauthorized",
@@ -23,7 +23,7 @@
     "actualStatus": 201,
     "pass": true,
     "details": {
-      "userId": 6,
+      "userId": 7,
       "role": "CLIENT"
     }
   },
@@ -88,7 +88,7 @@
     "actualStatus": 200,
     "pass": true,
     "details": {
-      "count": 6
+      "count": 7
     }
   },
   {
@@ -100,7 +100,7 @@
     "pass": true,
     "details": {
       "statusCode": 403,
-      "timestamp": "2026-11-24T06:27:24.249Z",
+      "timestamp": "2026-11-24T06:46:17.917Z",
       "path": "/api/users",
       "method": "GET",
       "error": "Forbidden",
@@ -121,7 +121,7 @@
   },
   {
     "name": "Update User Details",
-    "endpoint": "/api/users/6",
+    "endpoint": "/api/users/7",
     "method": "PATCH",
     "expectedStatus": 200,
     "actualStatus": 200,
@@ -132,14 +132,14 @@
   },
   {
     "name": "Deactivate User",
-    "endpoint": "/api/users/6",
+    "endpoint": "/api/users/7",
     "method": "DELETE",
     "expectedStatus": 200,
     "actualStatus": 200,
     "pass": true,
     "details": {
-      "message": "User ID 6 successfully deactivated.",
-      "id": 6,
+      "message": "User ID 7 successfully deactivated.",
+      "id": 7,
       "deactivated": true
     }
   },
@@ -174,13 +174,13 @@
     "actualStatus": 201,
     "pass": true,
     "details": {
-      "id": 7,
+      "id": 8,
       "title": "Modern Sunset Penthouse with Balcony"
     }
   },
   {
     "name": "Update Property Listing",
-    "endpoint": "/api/properties/7",
+    "endpoint": "/api/properties/8",
     "method": "PATCH",
     "expectedStatus": 200,
     "actualStatus": 200,
@@ -198,7 +198,7 @@
     "actualStatus": 201,
     "pass": true,
     "details": {
-      "id": 4,
+      "id": 5,
       "status": "PENDING"
     }
   },
@@ -215,7 +215,7 @@
   },
   {
     "name": "Get Inquiry Details",
-    "endpoint": "/api/inquiries/4",
+    "endpoint": "/api/inquiries/5",
     "method": "GET",
     "expectedStatus": 200,
     "actualStatus": 200,
@@ -226,7 +226,7 @@
   },
   {
     "name": "Update Inquiry Status",
-    "endpoint": "/api/inquiries/4",
+    "endpoint": "/api/inquiries/5",
     "method": "PATCH",
     "expectedStatus": 200,
     "actualStatus": 200,
@@ -243,7 +243,7 @@
     "actualStatus": 201,
     "pass": true,
     "details": {
-      "id": 3,
+      "id": 4,
       "date": "2026-12-15"
     }
   },
@@ -260,7 +260,7 @@
   },
   {
     "name": "Get Appointment Details",
-    "endpoint": "/api/appointments/3",
+    "endpoint": "/api/appointments/4",
     "method": "GET",
     "expectedStatus": 200,
     "actualStatus": 200,
@@ -271,7 +271,7 @@
   },
   {
     "name": "Update Appointment Status",
-    "endpoint": "/api/appointments/3",
+    "endpoint": "/api/appointments/4",
     "method": "PATCH",
     "expectedStatus": 200,
     "actualStatus": 200,
@@ -282,38 +282,38 @@
   },
   {
     "name": "Cancel/Delete Appointment",
-    "endpoint": "/api/appointments/3",
+    "endpoint": "/api/appointments/4",
     "method": "DELETE",
     "expectedStatus": 200,
     "actualStatus": 200,
     "pass": true,
     "details": {
-      "message": "Appointment ID 3 deleted successfully.",
-      "id": 3
-    }
-  },
-  {
-    "name": "Delete Inquiry",
-    "endpoint": "/api/inquiries/4",
-    "method": "DELETE",
-    "expectedStatus": 200,
-    "actualStatus": 200,
-    "pass": true,
-    "details": {
-      "message": "Inquiry ID 4 deleted successfully.",
+      "message": "Appointment ID 4 deleted successfully.",
       "id": 4
     }
   },
   {
-    "name": "Delete Property Listing",
-    "endpoint": "/api/properties/7",
+    "name": "Delete Inquiry",
+    "endpoint": "/api/inquiries/5",
     "method": "DELETE",
     "expectedStatus": 200,
     "actualStatus": 200,
     "pass": true,
     "details": {
-      "message": "Property ID 7 ('Modern Sunset Penthouse with Balcony') deleted successfully.",
-      "id": 7
+      "message": "Inquiry ID 5 deleted successfully.",
+      "id": 5
+    }
+  },
+  {
+    "name": "Delete Property Listing",
+    "endpoint": "/api/properties/8",
+    "method": "DELETE",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "message": "Property ID 8 ('Modern Sunset Penthouse with Balcony') deleted successfully.",
+      "id": 8
     }
   }
 ]
