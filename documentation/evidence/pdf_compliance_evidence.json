@@ -1,0 +1,286 @@
+{
+  "timestamp": "2026-11-24T10:26:52.870Z",
+  "apiBasePath": {
+    "/api": "ACTIVE",
+    "/api/v1": "INACTIVE (404 Not Found)"
+  },
+  "jwtAudit": {
+    "sub": 1,
+    "role": "ADMIN",
+    "issuedAt": 1795516012,
+    "expiresAt": 1795602412,
+    "durationSeconds": 86400,
+    "pdfRequirementSeconds": 3600,
+    "matchesPdfRequirement": false,
+    "discrepancyNote": "Token expires in 24 hours (86400s). PDF Lab 06 Page 2 specifies 1 hour (3600s)."
+  },
+  "securityChecks": {
+    "401_unauthorized": {
+      "status": 401,
+      "correct": true,
+      "message": "Authentication token is missing, invalid, or expired."
+    },
+    "403_forbidden": {
+      "status": 403,
+      "correct": true,
+      "message": "Forbidden: Role 'CLIENT' is not authorized to access this resource."
+    },
+    "input_whitelist_validation": {
+      "status": 400,
+      "correct": true,
+      "message": [
+        "property maliciousHackerField should not exist",
+        "property hackedRole should not exist",
+        "description must be a string",
+        "Description is required.",
+        "Invalid property type.",
+        "Property type is required.",
+        "Listing type must be SALE or RENT.",
+        "Listing type is required.",
+        "location must be a string",
+        "Location is required.",
+        "address must be a string",
+        "Address is required."
+      ]
+    },
+    "sql_injection_defense": {
+      "status": 200,
+      "defended": true,
+      "returnedCount": 0
+    },
+    "rate_limiting": {
+      "implemented": false,
+      "assessment": "MISSING (No ThrottlerGuard on /auth/login)"
+    }
+  },
+  "endpointAudit": [
+    {
+      "id": "EP-01",
+      "method": "POST",
+      "requiredPath": "/api/v1/auth/register",
+      "existingPath": "/api/auth/register",
+      "authRequirement": "Public",
+      "v1Status": 404,
+      "altStatus": 400,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-02",
+      "method": "POST",
+      "requiredPath": "/api/v1/auth/login",
+      "existingPath": "/api/auth/login",
+      "authRequirement": "Public",
+      "v1Status": 404,
+      "altStatus": 400,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-03",
+      "method": "POST",
+      "requiredPath": "/api/v1/auth/logout",
+      "existingPath": "/api/auth/logout",
+      "authRequirement": "Authenticated",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-04",
+      "method": "GET",
+      "requiredPath": "/api/v1/users",
+      "existingPath": "/api/users",
+      "authRequirement": "Admin",
+      "v1Status": 404,
+      "altStatus": 200,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-05",
+      "method": "GET",
+      "requiredPath": "/api/v1/users/1",
+      "existingPath": "/api/users/1",
+      "authRequirement": "Admin / Self",
+      "v1Status": 404,
+      "altStatus": 200,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-06",
+      "method": "PUT",
+      "requiredPath": "/api/v1/users/1",
+      "existingPath": "/api/users/1",
+      "authRequirement": "Admin / Self",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-07",
+      "method": "DELETE",
+      "requiredPath": "/api/v1/users/999",
+      "existingPath": "/api/users/999",
+      "authRequirement": "Admin",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-08",
+      "method": "GET",
+      "requiredPath": "/api/v1/agents",
+      "existingPath": "/api/agents",
+      "authRequirement": "Public / Auth",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-09",
+      "method": "GET",
+      "requiredPath": "/api/v1/agents/1",
+      "existingPath": "/api/agents/1",
+      "authRequirement": "Public / Auth",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-10",
+      "method": "POST",
+      "requiredPath": "/api/v1/agents",
+      "existingPath": "/api/agents",
+      "authRequirement": "Admin / Agent",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-11",
+      "method": "PUT",
+      "requiredPath": "/api/v1/agents/1",
+      "existingPath": "/api/agents/1",
+      "authRequirement": "Admin / Agent",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-12",
+      "method": "GET",
+      "requiredPath": "/api/v1/properties",
+      "existingPath": "/api/properties",
+      "authRequirement": "Public",
+      "v1Status": 404,
+      "altStatus": 200,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-13",
+      "method": "GET",
+      "requiredPath": "/api/v1/properties/1",
+      "existingPath": "/api/properties/1",
+      "authRequirement": "Public",
+      "v1Status": 404,
+      "altStatus": 200,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-14",
+      "method": "POST",
+      "requiredPath": "/api/v1/properties",
+      "existingPath": "/api/properties",
+      "authRequirement": "Agent / Admin",
+      "v1Status": 404,
+      "altStatus": 400,
+      "implementedInV1": false,
+      "implementedInExistingApi": true,
+      "assessment": "IMPLEMENTED_WITH_PATH_DISCREPANCY"
+    },
+    {
+      "id": "EP-15",
+      "method": "PUT",
+      "requiredPath": "/api/v1/properties/1",
+      "existingPath": "/api/properties/1",
+      "authRequirement": "Agent / Admin",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-16",
+      "method": "DELETE",
+      "requiredPath": "/api/v1/properties/999",
+      "existingPath": "/api/properties/999",
+      "authRequirement": "Owner / Admin",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-17",
+      "method": "POST",
+      "requiredPath": "/api/v1/properties/1/photos",
+      "existingPath": "/api/properties/1/photos",
+      "authRequirement": "Agent / Admin",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-18",
+      "method": "POST",
+      "requiredPath": "/api/v1/properties/1/inquiries",
+      "existingPath": "/api/properties/1/inquiries",
+      "authRequirement": "Auth Client",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    },
+    {
+      "id": "EP-19",
+      "method": "GET",
+      "requiredPath": "/api/v1/transactions",
+      "existingPath": "/api/transactions",
+      "authRequirement": "Admin / Agent",
+      "v1Status": 404,
+      "altStatus": 404,
+      "implementedInV1": false,
+      "implementedInExistingApi": false,
+      "assessment": "MISSING"
+    }
+  ]
+}
