@@ -1,81 +1,170 @@
-# EstateCore — Database Architecture Audit
-### Comparative Analysis: `estatecire.pdf` Requirements vs. Current EstateCore Implementation
+# EstateCore — Database Architecture Audit (Revised)
+### Critical Comparative Audit: `estatecire.pdf` Requirements vs. Current EstateCore Implementation
 
 **Date of Audit:** November 24, 2026  
 **Auditor:** Senior Database Architect & Systems Integration Engineer  
-**Reference Document:** `estatecire.pdf` (BSIT 4-C Laboratory Activities 03–06, Cristina O. Cabico)  
-**Database Evaluated:** `estatecore_db` (MySQL 8.4 LTS on Docker port 3307)
+**Reference Document:** `estatecire.pdf` (BSIT 4-C Laboratory Activities 03, 04, 05, and 06 by Cristina O. Cabico)  
+**Database Evaluated:** `estatecore_db` (MySQL 8.4 LTS on Docker host port 3307)  
+**Status:** Audit & Architecture Review &mdash; **NO DATABASE CHANGES EXECUTED**
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Purpose
 
-This audit compares the approved academic laboratory specifications in `estatecire.pdf` against the current running prototype of **EstateCore**.
+This audit re-evaluates the running prototype of **EstateCore** against the academic specifications in `estatecire.pdf`.
 
-The reference document requires **six core relational entities** in strict PascalCase:
-1. `User` (Account & identity)
-2. `Agent` (Licensed real estate professional profile, 1:1 with User)
-3. `Property` (Real estate asset, owned by `OwnerID` [User] and managed by `AgentID` [Agent])
+The original laboratory requirements establish a **six-entity relational model** using **PascalCase** naming:
+1. `User` (System identity accounts)
+2. `Agent` (Professional real estate licensing profile, 1:1 with `User`)
+3. `Property` (Real estate listing, owned by `OwnerID` [User] and represented by `AgentID` [Agent])
 4. `PropertyPhoto` (1:M gallery of architectural photographs)
-5. `Inquiry` (M:N junction between User and Property, supporting questions and price offers)
-6. `PropertyTransaction` (Formal deals linking Property, Buyer, and Agent with payment method)
-*(Plus the retention of EstateCore's existing `Appointment` module for property tour scheduling).*
+5. `Inquiry` (M:N junction between `User` and `Property`, capturing inquiries and price offers)
+6. `PropertyTransaction` (Closed or pending deals linking `Property`, `BuyerID` [User], and `AgentID` [Agent])
+*(Plus EstateCore's existing `Appointment` module retained as a supporting feature for tour scheduling).*
 
-### Current Database Status
-The current database contains 4 application tables: `users`, `properties`, `inquiries`, and `appointments`. It completely lacks the `Agent`, `PropertyPhoto`, and `PropertyTransaction` tables; conflates property ownership with agent assignment (`agentId` references `users.id`); uses snake_case/camelCase column names instead of PascalCase; and omits transaction logging, photo tracking, and price offers.
-
----
-
-## 2. Comprehensive Entity-by-Entity Comparison Audit Table
-
-| Entity / Dimension | PDF Requirement (`estatecire.pdf`) | Current Implementation (`estatecore_db`) | Identified Issue & Discrepancy | Proposed Architectural Remediation | Risk Level | Migration Requirement |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **User Entity** | Table `User`<br>Attributes: `UserID`, `FirstName`, `LastName`, `Email`, `ContactNumber`, `PasswordHash`, `Role`, `DateRegistered` | Table `users`<br>Attributes: `id`, `fullName`, `email`, `password`, `role` (`ADMIN`,`AGENT`,`CLIENT`), `isActive`, `createdAt`, `updatedAt` | 1. Table and columns are lowercase/camelCase.<br>2. Full name is combined in a single string; `FirstName` & `LastName` not separated.<br>3. `ContactNumber` is missing from user entity.<br>4. Password field is named `password` instead of `PasswordHash`. | Align entity to `User`. Split `fullName` into `FirstName` and `LastName` during migration. Add `ContactNumber` with default fallback. Provide virtual getter/setter or schema aliases to preserve existing auth/frontend API contracts. | Low | Safe alter/mapping migration with data transformation for split names. |
-| **Agent Entity** | Table `Agent`<br>Attributes: `AgentID`, `UserID` (UNIQUE, FK &rarr; `User.UserID`), `LicenseNumber` (UNIQUE), `AgencyName` (NULL) | **Non-existent**.<br>Agents are merely `users` with `role = 'AGENT'`. | 1. Missing dedicated 1:1 professional identity table.<br>2. No license number tracking or validation.<br>3. No agency affiliation record.<br>4. Foreign keys in properties directly reference user IDs. | Create `Agent` table. For existing agent accounts (IDs 2 & 3: Maria Santos, Carlos Reyes), generate default unique license numbers (`PRC-REB-002491`, `PRC-REB-003810`) and agency names. | Medium | Create `Agent` table, seed existing agents, update foreign key references. |
-| **Property Entity** | Table `Property`<br>Attributes: `PropertyID`, `OwnerID` (FK &rarr; `User.UserID`), `AgentID` (FK &rarr; `Agent.AgentID`), `Title`, `PropertyType`, `ListingType`, `Price`, `Address`, `City`, `Bedrooms`, `Bathrooms`, `Status`, `DateListed` | Table `properties`<br>Attributes: `id`, `title`, `description`, `propertyType`, `listingType`, `price`, `location`, `address`, `bedrooms`, `bathrooms`, `floorArea`, `lotArea`, `status`, `agentId` | 1. Missing `OwnerID` &mdash; assumes listing agent owns property.<br>2. `agentId` links directly to `users` rather than `Agent`.<br>3. `location` used instead of `City`.<br>4. Lacks `DateListed` date field (uses `createdAt`). | Refactor to `Property`. Introduce `OwnerID` (defaulting to system admin or designated property owner). Point `AgentID` to `Agent.AgentID`. Map `location` &rarr; `City`. Retain `description`, `floorArea`, `lotArea` as real-world architectural enhancements. | Medium | Add columns, backfill `OwnerID` and `AgentID`, re-point foreign key constraints. |
-| **PropertyPhoto Entity** | Table `PropertyPhoto`<br>Attributes: `PhotoID`, `PropertyID` (FK &rarr; `Property.PropertyID`), `FilePath`, `DateUploaded` | **Non-existent**.<br>Photos are handled via dynamic fallback SVG/CDN URLs generated on client. | 1. No database records of uploaded or associated property images.<br>2. Cannot attach multiple real photos to a listing.<br>3. Cannot query photo gallery via API. | Create `PropertyPhoto` table with `PhotoID`, `PropertyID`, `FilePath`, and `DateUploaded`. Seed initial architectural images for all 6 active listings. | Low | Create table and populate initial image references for active listings. |
-| **Inquiry Entity** | Table `Inquiry`<br>Attributes: `InquiryID`, `PropertyID`, `UserID`, `InquiryType` (`Inquiry`/`Offer`), `Message`, `OfferAmount` (Nullable, > 0), `Status` (`Pending`/`Accepted`/`Rejected`/`Replied`), `DateSent` | Table `inquiries`<br>Attributes: `id`, `clientId`, `propertyId`, `assignedAgentId`, `subject`, `message`, `contactNumber`, `status` (`PENDING`,`CONTACTED`,`QUALIFIED`,`CLOSED`) | 1. Lacks `InquiryType` (`Inquiry` vs `Offer`).<br>2. Missing `OfferAmount` for purchase proposals.<br>3. Status enum uses CRM terms (`QUALIFIED`,`CLOSED`) rather than PDF terms (`Pending`,`Accepted`,`Rejected`,`Replied`). | Refactor to `Inquiry`. Add `InquiryType` (default `'Inquiry'`), `OfferAmount` (nullable). Map existing statuses (`PENDING`&rarr;`Pending`, `CONTACTED`&rarr;`Replied`, `QUALIFIED`&rarr;`Accepted`, `CLOSED`&rarr;`Rejected`). | Medium | Alter table columns and migrate enum/status values. |
-| **PropertyTransaction Entity** | Table `PropertyTransaction`<br>Attributes: `TransactionID`, `PropertyID`, `BuyerID` (FK &rarr; `User.UserID`), `AgentID` (FK &rarr; `Agent.AgentID`), `Amount`, `TransactionType`, `PaymentMethod`, `TransactionDate`, `Status` | **Non-existent**.<br>Transactions are not tracked or recorded anywhere in the database. | 1. Closed deals cannot be audited.<br>2. Historical sales/rentals are lost.<br>3. Payment method and deal settlement are unrecorded. | Create `PropertyTransaction` table. Implement service, controller, and DTOs with validation (`Amount > 0`, allowed `PaymentMethod`: `Cash`, `BankTransfer`, `GCash`, `Card`). Seed realistic closed and pending transactions. | High (New core module) | Create table, add constraints, create NestJS module & routes. |
-| **Supporting: Appointment Entity** | Not in PDF core 6 entities (PDF focuses on listings, inquiries, and transactions). | Table `appointments`<br>Attributes: `id`, `propertyId`, `clientId`, `agentId`, `appointmentDate`, `appointmentTime`, `status`, `notes` | The Appointment module is an existing, working feature of EstateCore. Removing it would break tour scheduling. | **Retain as supporting module.** Update `agentId` to reference `Agent.AgentID` to maintain relational consistency across the modernized schema. | Low | Update foreign key constraint to link with `Agent.AgentID`. |
+### Current Database State in `estatecore_db`
+An inspection of the active MySQL database revealed:
+- **Existing Tables:** `users` (9 rows), `properties` (6 rows), `inquiries` (5 rows), `appointments` (4 rows), `migrations` (1 row).
+- **Missing Tables:** `Agent`, `PropertyPhoto`, and `PropertyTransaction` do not exist.
+- **Relational Conflation:** Property ownership is conflated with agent assignment (`properties.agentId` directly references `users.id`).
+- **Naming Discrepancies:** Existing tables and fields use lowercase and camelCase (`fullName`, `propertyType`, `agentId`) rather than the PDF's PascalCase standard.
+- **Data Gaps:** Existing agent accounts lack professional license numbers; property listings lack deed owner attribution; user records lack separate first/last names and contact numbers.
 
 ---
 
-## 3. Relational Cardinality & Normalization Issues in Current System
+## 2. Distinction of Specifications: Academic PDF vs. Real-World Engineering
 
-1. **Denormalization of Agent Credentials:**
-   Currently, agent license numbers and agency affiliations have no home. If an agent changes their agency or license, there is no normalized entity to record it. Creating `Agent` in 1:1 relationship with `User` resolves this to 3NF.
+To ensure academic fidelity while maintaining enterprise software standards, the architectural elements are categorized into three distinct classes:
 
-2. **False Conflation of Property Owner and Broker/Agent:**
-   In real estate, an Agent almost never owns the properties they represent; they represent a Client/Seller/Developer. The current schema forced `properties.agentId` to represent both the listing broker and the owner. Introducing `OwnerID` (referencing `User.UserID`) and `AgentID` (referencing `Agent.AgentID`) cleanly separates property title ownership from broker representation.
-
-3. **Inquiry Resolution of M:N Relationship:**
-   The PDF correctly models `Inquiry` as the junction entity resolving the M:N relationship between `User` (prospective buyers/renters) and `Property` (listings). The current table used `clientId` and `assignedAgentId`. Removing `assignedAgentId` from `Inquiry` (since the responsible agent is already determined via `Property.AgentID`) eliminates transitive redundancy (2NF &rarr; 3NF).
-
-4. **Absence of Deal Lifecycle Ledger:**
-   Once a property is `SOLD` or `RENTED`, the current system has no record of who bought it, when, for how much, or through which agent. `PropertyTransaction` provides an auditable, immutable ledger.
+| Class | Definition | Examples in EstateCore |
+| :--- | :--- | :--- |
+| **PDF Core Requirements** | Explicitly defined in `estatecire.pdf` Labs 03–06. Must be preserved without alteration. | Six core entities (`User`, `Agent`, `Property`, `PropertyPhoto`, `Inquiry`, `PropertyTransaction`), PascalCase naming, 1:1 User-Agent relationship, Owner vs Agent separation, 1:M photos, InquiryType/OfferAmount, Transaction payment methods and roles. |
+| **Supporting Modules** | Existing functionality in EstateCore not in the PDF core, but required by the project. | `Appointment` (Tour booking engine with status tracking). Retained and adapted to link to `Agent.AgentID`. |
+| **Engineering Enhancements** | Technical improvements for production stability, security, and data integrity. | Soft deletion (`IsActive`), audit timestamps (`CreatedAt`, `UpdatedAt`), property floor/lot area, transaction-safe scheduling conflict guards, TypeORM column mappings preserving REST API backward compatibility. |
 
 ---
 
-## 4. API Compatibility & Naming Strategy
+## 3. Entity-by-Entity Comparative Audit
 
-- **Database Layer:** All tables, columns, and constraints will follow strict **PascalCase** matching the PDF:
-  - Tables: `User`, `Agent`, `Property`, `PropertyPhoto`, `Inquiry`, `PropertyTransaction`, `Appointment`.
-  - Columns: `UserID`, `FirstName`, `LastName`, `Email`, `PropertyID`, `OwnerID`, `AgentID`, etc.
-- **Application & TypeORM Layer:** TypeORM entities will map camelCase properties to PascalCase database columns using column name mappings:
-  ```typescript
-  @Column({ name: 'FirstName', type: 'varchar', length: 50 })
-  firstName: string;
-  ```
-- **REST API Layer:** 
-  - Standard JSON responses will expose camelCase fields (`userId`, `firstName`, `propertyId`) corresponding directly to Laboratory Activity 05 specifications.
-  - Endpoints will support both `/api/...` (current frontend) and `/api/v1/...` (PDF specification) via NestJS global versioning or controller routing.
+### A. User Entity
+- **PDF Requirement (Lab 04, p. 1 & 3):**  
+  Table `User`, PK `UserID` (`INT`, auto-increment), `FirstName` (`VARCHAR(50)`), `LastName` (`VARCHAR(50)`), `Email` (`VARCHAR(100)`, unique), `ContactNumber` (`VARCHAR(15)`), `PasswordHash` (`VARCHAR(255)`), `Role` (`VARCHAR(20)`, check constraint for `Buyer`, `Renter`, `Seller`, `PropertyManager`, `Agent`, `Admin`), `DateRegistered` (`DATE`).
+- **Current Database Implementation:**  
+  Table `users`, PK `id`, `fullName` (`VARCHAR(150)`), `email` (`VARCHAR(150)`, unique), `password` (`VARCHAR(255)`), `role` (`ENUM('ADMIN','AGENT','CLIENT')`), `isActive` (`TINYINT`), `createdAt` (`TIMESTAMP`), `updatedAt` (`TIMESTAMP`).
+- **Identified Issues & Real Data Inspection:**  
+  1. Names are stored as single composite strings (`fullName`). Inspection of actual rows:
+     - User 1: `System Administrator` &rarr; Compound title.
+     - User 2: `Maria Santos` &rarr; Standard 2-word name.
+     - User 3: `Carlos Reyes` &rarr; Standard 2-word name.
+     - User 4: `Juan Dela Cruz` &rarr; **Compound surname** (`Dela Cruz`). A naive `SUBSTRING_INDEX` at first space would corrupt this into FirstName: `Juan`, LastName: `Dela`!
+     - User 5: `Elena Roxas` &rarr; Standard 2-word name.
+  2. `ContactNumber` is missing completely from the database.
+  3. `PasswordHash` is currently named `password`.
+  4. Roles in `users` are restricted to `ADMIN`, `AGENT`, `CLIENT`.
+- **Required Architectural Remediation:**  
+  - Create PascalCase mapping for `User`.
+  - Migrate names using an explicit record-aware mapping (preserving `Dela Cruz` as surname).
+  - Add `ContactNumber` as **`NULL` allowed initially** during migration staging. Never inject a fake default phone number (e.g. `09171234567`). Real phone numbers must be collected or verified before applying `NOT NULL`.
+  - Preserve existing bcrypt password hashes exactly as-is without rehashing.
 
 ---
 
-## 5. Summary of Recommended Actions
+### B. Agent Entity
+- **PDF Requirement (Lab 04, p. 1 & 3):**  
+  Table `Agent`, PK `AgentID` (`INT`, auto-increment), `UserID` (`INT`, unique foreign key referencing `User.UserID`), `LicenseNumber` (`VARCHAR(30)`, unique), `AgencyName` (`VARCHAR(100)`, nullable).
+- **Current Database Implementation:**  
+  **Table does not exist.** The system identifies agents solely by checking `users.role = 'AGENT'`.
+- **Identified Issues & Unresolved Data:**  
+  1. Existing agents (User ID 2: Maria Santos; User ID 3: Carlos Reyes) have **no professional license numbers** stored in the database.
+  2. In the previous draft, fabricated license numbers (`PRC-REB-002491`, `PRC-REB-003810`) were proposed. **This has been completely eliminated.** Inventing professional credentials violates engineering ethics and academic integrity.
+  3. Existing properties and appointments store `agentId` as `users.id` (2 and 3). When `Agent` is created with auto-increment `AgentID`, the generated IDs will be 1 and 2. **`UserID` does NOT equal `AgentID`.**
+- **Required Architectural Remediation:**  
+  - Create table `Agent` with `LicenseNumber` declared as `VARCHAR(30) NULL` during migration staging, or marked as `PENDING_VERIFICATION` in staging.
+  - Foreign key updates on dependent tables (`Property`, `Appointment`, `PropertyTransaction`) must resolve the new `AgentID` by joining `Agent.UserID = old_agent_user_id`:
+    $$\text{Target AgentID} = \text{Agent}(\text{UserID} = \text{Legacy agentId}).\text{AgentID}$$
+  - Never execute an unverified numerical assignment.
 
-1. Approve the revised ERD in [documentation/ESTATECORE_ERD.md](ESTATECORE_ERD.md).
-2. Review the data dictionary in [documentation/DATABASE_DATA_DICTIONARY.md](DATABASE_DATA_DICTIONARY.md).
-3. Review the non-destructive migration plan in [documentation/DATABASE_MIGRATION_PLAN.md](DATABASE_MIGRATION_PLAN.md).
-4. Review the updated permissions in [documentation/RBAC_PERMISSION_MATRIX.md](RBAC_PERMISSION_MATRIX.md).
-5. Await user authorization before executing Phase 3 migrations.
+---
+
+### C. Property Entity
+- **PDF Requirement (Lab 04, p. 1 & 4):**  
+  Table `Property`, PK `PropertyID`, `OwnerID` (`INT`, FK &rarr; `User.UserID`), `AgentID` (`INT`, FK &rarr; `Agent.AgentID`), `Title` (`VARCHAR(150)`), `PropertyType` (`VARCHAR(30)`), `ListingType` (`VARCHAR(10)`, check `Sale`/`Rent`), `Price` (`DECIMAL(12,2)`, check `Price > 0`), `Address` (`VARCHAR(200)`), `City` (`VARCHAR(50)`), `Bedrooms` (`INT >= 0`), `Bathrooms` (`INT >= 0`), `Status` (`VARCHAR(15)`, check `Available`/`Reserved`/`Sold`/`Rented`), `DateListed` (`DATE`).
+- **Current Database Implementation:**  
+  Table `properties`, PK `id`, `title`, `description`, `propertyType`, `listingType`, `price`, `location` (`VARCHAR(150)`), `address` (`VARCHAR(255)`), `bedrooms`, `bathrooms`, `floorArea`, `lotArea`, `status`, `agentId` (references `users.id`).
+- **Identified Issues & Unresolved Data:**  
+  1. **Missing `OwnerID`:** The current database does not store who owns the 6 properties. In the previous draft, assigning `OwnerID = 1` (Admin) was proposed. **This was rejected.** Admin is the system administrator, not the deed holder of suburban homes or condominiums.
+  2. **City vs Location Inspection:** Actual inspection of `properties.location`:
+     - ID 1: `Bonifacio Global City, Taguig` &rarr; City is `Taguig`.
+     - ID 2: `Alabang, Muntinlupa` &rarr; City is `Muntinlupa`.
+     - ID 3: `Quezon City` &rarr; City is `Quezon City`.
+     - ID 4: `San Juan City` &rarr; City is `San Juan City`.
+     - ID 5: `Makati City` &rarr; City is `Makati City`.
+     - ID 6: `Tagaytay, Cavite` &rarr; City is `Tagaytay`.
+     `location` contains neighborhood/district qualifiers. Simply copying `location` directly into `City` violates domain accuracy.
+  3. **Agent Reference:** `properties.agentId` references `users.id` (User 2 or 3), not `Agent.AgentID`.
+- **Required Architectural Remediation:**  
+  - Add `OwnerID` as `INT NULL` during staging. Flag existing 6 listings as `UNRESOLVED_OWNERSHIP` for administrator reconciliation. Do not make `OwnerID` `NOT NULL` until real seller identities are attached.
+  - Parse `City` accurately from `location` (e.g. `Taguig`, `Muntinlupa`, `Quezon City`, `San Juan City`, `Makati City`, `Tagaytay`).
+  - Map `AgentID` using verified joins through `Agent.UserID`.
+  - Retain `Description`, `FloorArea`, and `LotArea` as valuable architectural features.
+
+---
+
+### D. PropertyPhoto Entity
+- **PDF Requirement (Lab 04, p. 1 & 4):**  
+  Table `PropertyPhoto`, PK `PhotoID`, `PropertyID` (`INT`, FK &rarr; `Property.PropertyID`), `FilePath` (`VARCHAR(255)`), `DateUploaded` (`DATE`).
+- **Current Database Implementation:**  
+  **Table does not exist.** The frontend generates dynamic CDN placeholders.
+- **Identified Issues:**  
+  - The previous migration draft inserted random Unsplash URLs as "database records". This fabricated historical records.
+- **Required Architectural Remediation:**  
+  - Create `PropertyPhoto` table with `ON DELETE CASCADE`.
+  - Start with an empty, authentic table. Do not insert fake photos into the database. Provide authentic photo upload via `POST /api/v1/properties/{id}/photos`.
+  - Document physical storage cleanup hooks to delete files when database photo records are removed.
+
+---
+
+### E. Inquiry Entity
+- **PDF Requirement (Lab 04, p. 1 & 4):**  
+  Table `Inquiry`, PK `InquiryID`, `PropertyID` (`INT`, FK &rarr; `Property`), `UserID` (`INT`, FK &rarr; `User`), `InquiryType` (`VARCHAR(10)`, check `Inquiry`/`Offer`), `Message` (`TEXT`), `OfferAmount` (`DECIMAL(12,2)` nullable, check `OfferAmount > 0`), `Status` (`VARCHAR(15)`, check `Pending`/`Accepted`/`Rejected`/`Replied`), `DateSent` (`DATETIME`).
+- **Current Database Implementation:**  
+  Table `inquiries`, PK `id`, `clientId`, `propertyId`, `assignedAgentId`, `subject`, `message`, `contactNumber`, `status` (`ENUM('PENDING','CONTACTED','QUALIFIED','CLOSED')`).
+- **Identified Issues & Status Inspection:**  
+  Inspection of current 5 inquiry rows:
+  - Row 1: Status `QUALIFIED`, Subject `"Request for BGC Condo Viewing & Payment Terms"`.
+  - Row 2: Status `PENDING`, Subject `"Lease Terms and Parking Allocation"`.
+  - Row 3: Status `CONTACTED`, Subject `"Alabang House Title Status Verification"`.
+  - Rows 6 & 7: Status `PENDING`, Subject `"Client Juan Private Inquiry"`.
+  In the previous draft, `QUALIFIED` was mapped to `Accepted` and `CLOSED` to `Rejected`. In real estate CRM, "Qualified" means the client has financing approval, not that a price offer was legally accepted!
+- **Required Architectural Remediation:**  
+  - Add `InquiryType` (`Inquiry` default).
+  - Add `OfferAmount` (nullable, strictly validated `OfferAmount > 0` when `InquiryType = 'Offer'`).
+  - Preserve original status in a migration audit column (`LegacyStatus`). For standard records: `PENDING` maps to `Pending`, `CONTACTED` maps to `Replied`. `QUALIFIED` records must be reviewed or mapped to `Replied` with qualification notes, rather than assuming contract acceptance.
+
+---
+
+### F. PropertyTransaction Entity
+- **PDF Requirement (Lab 04, p. 1 & 4; Lab 05, p. 2 & 9):**  
+  Table `PropertyTransaction`, PK `TransactionID`, `PropertyID` (`INT`, FK &rarr; `Property`), `BuyerID` (`INT`, FK &rarr; `User`), `AgentID` (`INT`, FK &rarr; `Agent`), `Amount` (`DECIMAL(12,2)`, check `Amount > 0`), `TransactionType` (`VARCHAR(10)`, check `Sale`/`Rent`), `PaymentMethod` (`VARCHAR(20)`, check `Cash`/`BankTransfer`/`GCash`/`Card`), `TransactionDate` (`DATE`), `Status` (`VARCHAR(15)`, check `Pending`/`Completed`/`Cancelled`).
+- **Current Database Implementation:**  
+  **Table does not exist.** No sales or leases are tracked in MySQL.
+- **Identified Issues & Business Rules:**  
+  1. The previous draft inserted a fake transaction (Client 4 buying Property 1). **This has been eliminated.** No fake transactions will be seeded.
+  2. **Rental Deal Recurrence:** A property can be rented repeatedly over time. The schema must **not** restrict a property to only 1 lifetime transaction.
+  3. **Immutability vs Status Transition:** In a real-world financial system, completed transactions must be immutable, but a deal begins as `Pending` and transitions to `Completed` or `Cancelled`. Once `Completed`, the deal amount, buyer, agent, and property cannot be edited.
+- **Required Architectural Remediation:**  
+  - Create table `PropertyTransaction` matching PDF specifications.
+  - Leave table empty until authentic transactions are executed via `POST /api/v1/transactions`.
+  - Implement business logic: when a `Sale` reaches `Completed`, set `Property.Status = 'Sold'`. When a `Rent` reaches `Completed`, set `Property.Status = 'Rented'`. Support repeated rentals by allowing new transactions when status returns to `Available`.
+
+---
+
+### G. Supporting Module: Appointment Entity
+- **Status:** Retained as a supporting module in EstateCore.
+- **Identified Issues:**  
+  1. Currently references `users.id` as `agentId`. Must be re-pointed to `Agent.AgentID` via verified `Agent.UserID` join.
+  2. **Scheduling Conflict Prevention:** A standard MySQL composite index on `(AppointmentDate, AppointmentTime)` does not prevent an agent from being double-booked across two different properties.
+- **Required Architectural Remediation:**  
+  - Implement transactional conflict checks:
+    $$\text{SELECT COUNT(*)} \text{ WHERE AgentID} = :agentId \text{ AND AppointmentDate} = :date \text{ AND AppointmentTime} = :time \text{ AND Status} \neq \text{'CANCELLED'}$$
+  - Reject booking with `409 Conflict` if count > 0.

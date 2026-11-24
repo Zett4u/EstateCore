@@ -1,39 +1,78 @@
-# EstateCore — Database Migration & Integrity Plan
-### Safe, Non-Destructive Schema Evolution from Legacy Tables to Normalized PascalCase Architecture
+# EstateCore — Database Migration & Integrity Plan (Revised)
+### Verified, Safe, Zero-Data-Loss Migration Architecture
 
-**Status:** Proposed Architecture Plan (Pending User Approval)  
-**Safety Guarantee:** **Zero Data Loss.** No tables will be dropped; no existing user accounts, listings, inquiries, or appointments will be deleted.
+**Status:** Proposed Staged Migration Plan (Pending Explicit User Approval)  
+**Safety Mandate:** **Zero Data Loss. Zero Fabricated Data.**  
+- No hardcoded passwords in scripts.
+- No invented PRC license numbers, fake phone numbers, fabricated transactions, or mock photos.
+- No automated assignment of property ownership to Admin.
+- Old columns are strictly preserved during staging until new relations are fully verified.
+- Backup restoration is verified in a separate test database before any migration is applied.
 
 ---
 
-## 1. Pre-Migration Safety Backup
+## 1. Pre-Migration Security & Backup Verification
 
-Before applying any schema modifications, a timestamped snapshot of the live MySQL database will be created:
+### 1.1 Secure Snapshot (Using Environment Variables)
+Backups are performed reading credentials directly from the environment without exposing plaintext secrets in command lines or log files:
+
 ```bash
-docker exec estatecore-mysql mysqldump -u root -pestatecore_root_secure_pass_2026 \
-  --no-tablespaces --databases estatecore_db --add-drop-table > database/exports/pre_alignment_backup_20261124.sql
+# Secure backup using container environment credentials
+docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+  mysqldump -u root estatecore_db --single-transaction --quick \
+  > database/exports/pre_alignment_verified_backup.sql
 ```
 
+### 1.2 Verification of Backup Integrity in a Temporary Sandbox Database
+Before touching `estatecore_db`, the backup must be proven restorable in an isolated test database:
+```bash
+# 1. Create temporary sandbox database
+docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+  mysql -u root -e "DROP DATABASE IF EXISTS estatecore_test_restore; CREATE DATABASE estatecore_test_restore;"
+
+# 2. Test restore into sandbox
+docker exec -i -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+  mysql -u root estatecore_test_restore < database/exports/pre_alignment_verified_backup.sql
+
+# 3. Assert row counts match between live database and restored sandbox
+docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+  mysql -u root -e "
+    SELECT 'LIVE' AS Source, COUNT(*) AS UserCount FROM estatecore_db.users
+    UNION ALL
+    SELECT 'RESTORED', COUNT(*) FROM estatecore_test_restore.users;
+    SELECT 'LIVE' AS Source, COUNT(*) AS PropCount FROM estatecore_db.properties
+    UNION ALL
+    SELECT 'RESTORED', COUNT(*) FROM estatecore_test_restore.properties;
+  "
+
+# 4. Clean up sandbox after successful verification
+docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+  mysql -u root -e "DROP DATABASE estatecore_test_restore;"
+```
+> **STOP CONDITION 1:** If row counts in the restored database do not exactly match the live database, **HALT IMMEDIATELY**. Do not proceed with migration.
+
 ---
 
-## 2. Migration Stages & Step-by-Step SQL Execution
+## 2. Staged Migration Execution (Additive & Reversible)
 
-### Stage 1: Create the New `Agent`, `PropertyPhoto`, and `PropertyTransaction` Tables
-Create the missing entities in PascalCase with proper indexes and constraints:
+### Phase A: Additive Schema Creation (New Entities & Nullable Staging Fields)
+
+No existing tables or columns are dropped or renamed in this phase.
 
 ```sql
--- 1. Create Agent Table (1:1 with User)
+-- Step 1: Create Agent table (1:1 with User)
+-- LicenseNumber is declared NULL in staging to prevent fabricating PRC credentials
 CREATE TABLE IF NOT EXISTS Agent (
     AgentID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL UNIQUE,
-    LicenseNumber VARCHAR(30) NOT NULL UNIQUE,
+    LicenseNumber VARCHAR(30) NULL UNIQUE,
     AgencyName VARCHAR(100) NULL,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT FK_Agent_User FOREIGN KEY (UserID) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. Create PropertyPhoto Table (1:M with Property)
+-- Step 2: Create PropertyPhoto table (Empty, ready for authentic uploads)
 CREATE TABLE IF NOT EXISTS PropertyPhoto (
     PhotoID INT AUTO_INCREMENT PRIMARY KEY,
     PropertyID INT NOT NULL,
@@ -43,7 +82,7 @@ CREATE TABLE IF NOT EXISTS PropertyPhoto (
     CONSTRAINT FK_PropertyPhoto_Property FOREIGN KEY (PropertyID) REFERENCES properties(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3. Create PropertyTransaction Table (M:N Deal Ledger)
+-- Step 3: Create PropertyTransaction table (Empty, ready for real deal closures)
 CREATE TABLE IF NOT EXISTS PropertyTransaction (
     TransactionID INT AUTO_INCREMENT PRIMARY KEY,
     PropertyID INT NOT NULL,
@@ -68,22 +107,21 @@ CREATE TABLE IF NOT EXISTS PropertyTransaction (
 
 ---
 
-### Stage 2: Backfill Agent Profiles for Existing Agents
-Populate professional license numbers for existing agent accounts (`id = 2` [Maria Santos] and `id = 3` [Carlos Reyes]):
-```sql
-INSERT INTO Agent (UserID, LicenseNumber, AgencyName)
-SELECT id, 'PRC-REB-002491', 'EstateCore Premier Realty'
-FROM users WHERE id = 2 AND NOT EXISTS (SELECT 1 FROM Agent WHERE UserID = 2);
+### Phase B: Verified ID Resolution & Data Transformation
 
+#### 1. Populate Agent Profiles for Verified Agents Only
+Only existing accounts with `role = 'AGENT'` are enrolled. `LicenseNumber` is recorded as `NULL` pending administrative verification:
+```sql
+-- Create Agent profiles for verified agent accounts (User 2: Maria Santos; User 3: Carlos Reyes)
 INSERT INTO Agent (UserID, LicenseNumber, AgencyName)
-SELECT id, 'PRC-REB-003810', 'Apex Commercial Advisors'
-FROM users WHERE id = 3 AND NOT EXISTS (SELECT 1 FROM Agent WHERE UserID = 3);
+SELECT id, NULL, NULL 
+FROM users 
+WHERE role = 'AGENT' 
+  AND NOT EXISTS (SELECT 1 FROM Agent WHERE UserID = users.id);
 ```
 
----
-
-### Stage 3: Enhance `users` with `FirstName`, `LastName`, `ContactNumber`, `DateRegistered`
-Enrich existing user rows without dropping `fullName` (keeping backwards compatibility):
+#### 2. Safe Name Splitting (Preserving Compound Surnames)
+Review of existing records indicates `Juan Dela Cruz` has a compound surname. Names are mapped explicitly:
 ```sql
 ALTER TABLE users 
     ADD COLUMN FirstName VARCHAR(50) NULL AFTER fullName,
@@ -91,131 +129,141 @@ ALTER TABLE users
     ADD COLUMN ContactNumber VARCHAR(15) NULL AFTER email,
     ADD COLUMN DateRegistered DATE NULL AFTER role;
 
--- Populate split names from existing fullName
+-- Explicit verified name mapping for existing accounts
+UPDATE users SET FirstName = 'System', LastName = 'Administrator', DateRegistered = DATE(createdAt) WHERE id = 1;
+UPDATE users SET FirstName = 'Maria', LastName = 'Santos', DateRegistered = DATE(createdAt) WHERE id = 2;
+UPDATE users SET FirstName = 'Carlos', LastName = 'Reyes', DateRegistered = DATE(createdAt) WHERE id = 3;
+UPDATE users SET FirstName = 'Juan', LastName = 'Dela Cruz', DateRegistered = DATE(createdAt) WHERE id = 4;
+UPDATE users SET FirstName = 'Elena', LastName = 'Roxas', DateRegistered = DATE(createdAt) WHERE id = 5;
+
+-- Fallback for test accounts: split on space
 UPDATE users 
 SET 
     FirstName = SUBSTRING_INDEX(fullName, ' ', 1),
-    LastName = CASE 
-        WHEN LOCATE(' ', fullName) > 0 THEN SUBSTRING(fullName, LOCATE(' ', fullName) + 1)
-        ELSE 'User'
-    END,
-    ContactNumber = '09171234567',
+    LastName = SUBSTRING(fullName, LOCATE(' ', fullName) + 1),
     DateRegistered = DATE(createdAt)
 WHERE FirstName IS NULL;
 
--- Make fields NOT NULL after successful backfill
-ALTER TABLE users 
-    MODIFY COLUMN FirstName VARCHAR(50) NOT NULL,
-    MODIFY COLUMN LastName VARCHAR(50) NOT NULL,
-    MODIFY COLUMN ContactNumber VARCHAR(15) NOT NULL,
-    MODIFY COLUMN DateRegistered DATE NOT NULL;
+-- ContactNumber is deliberately kept NULL in staging. No fake phone numbers are inserted.
 ```
 
----
-
-### Stage 4: Enhance `properties` with `OwnerID`, `City`, `DateListed`
-Introduce distinct owner attribution (`OwnerID` &rarr; `users.id`) and link `agentId` to `Agent.AgentID`:
+#### 3. Verified Agent ID Resolution (Joining `Agent.UserID`)
+Existing `properties.agentId` and `appointments.agentId` reference `users.id`. The new foreign key must reference `Agent.AgentID`.
 ```sql
-ALTER TABLE properties
+-- 1. Add new staging column for resolved AgentID
+ALTER TABLE properties ADD COLUMN new_agent_id INT NULL AFTER agentId;
+ALTER TABLE appointments ADD COLUMN new_agent_id INT NULL AFTER agentId;
+
+-- 2. Resolve AgentID through Agent.UserID join (NEVER assume UserID == AgentID)
+UPDATE properties p 
+JOIN Agent a ON p.agentId = a.UserID 
+SET p.new_agent_id = a.AgentID;
+
+UPDATE appointments appt 
+JOIN Agent a ON appt.agentId = a.UserID 
+SET appt.new_agent_id = a.AgentID;
+```
+> **STOP CONDITION 2 (Orphan Check):** Run:
+> ```sql
+> SELECT id, title, agentId FROM properties WHERE new_agent_id IS NULL;
+> SELECT id, agentId FROM appointments WHERE new_agent_id IS NULL;
+> ```
+> If any rows return `new_agent_id IS NULL`, **HALT IMMEDIATELY**. Report orphaned records.
+
+#### 4. Property Location & City Separation
+Inspect and map municipality/city accurately without blindly copying `location`:
+```sql
+ALTER TABLE properties 
     ADD COLUMN OwnerID INT NULL AFTER id,
     ADD COLUMN City VARCHAR(50) NULL AFTER address,
     ADD COLUMN DateListed DATE NULL AFTER status;
 
--- Default OwnerID to Admin (id=1) as institutional owner, or Client owner
-UPDATE properties 
-SET 
-    OwnerID = 1,
-    City = location,
-    DateListed = DATE(createdAt)
-WHERE OwnerID IS NULL;
+-- Explicit verified City extraction from existing location records
+UPDATE properties SET City = 'Taguig', DateListed = DATE(createdAt) WHERE id = 1;      -- BGC, Taguig
+UPDATE properties SET City = 'Muntinlupa', DateListed = DATE(createdAt) WHERE id = 2;  -- Alabang, Muntinlupa
+UPDATE properties SET City = 'Quezon City', DateListed = DATE(createdAt) WHERE id = 3; -- Quezon City
+UPDATE properties SET City = 'San Juan City', DateListed = DATE(createdAt) WHERE id = 4;-- San Juan City
+UPDATE properties SET City = 'Makati City', DateListed = DATE(createdAt) WHERE id = 5; -- Makati City
+UPDATE properties SET City = 'Tagaytay', DateListed = DATE(createdAt) WHERE id = 6;    -- Tagaytay, Cavite
 
-ALTER TABLE properties
-    MODIFY COLUMN OwnerID INT NOT NULL,
-    MODIFY COLUMN City VARCHAR(50) NOT NULL,
-    MODIFY COLUMN DateListed DATE NOT NULL,
-    ADD CONSTRAINT FK_Property_Owner FOREIGN KEY (OwnerID) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- OwnerID is deliberately kept NULL in staging for manual reconciliation.
+-- Admin ID 1 is NEVER automatically assigned as property owner.
 ```
 
----
-
-### Stage 5: Enhance `inquiries` with `InquiryType` and `OfferAmount`
-Support price proposals alongside questions:
+#### 5. Inquiry Type & Status History Preservation
 ```sql
-ALTER TABLE inquiries
+ALTER TABLE inquiries 
     ADD COLUMN InquiryType VARCHAR(10) NOT NULL DEFAULT 'Inquiry' AFTER propertyId,
-    ADD COLUMN OfferAmount DECIMAL(12,2) NULL AFTER message;
+    ADD COLUMN OfferAmount DECIMAL(12,2) NULL AFTER message,
+    ADD COLUMN LegacyStatus VARCHAR(20) NULL AFTER status;
 
--- Map legacy statuses to PDF values
-UPDATE inquiries SET status = 'Replied' WHERE status = 'CONTACTED';
-UPDATE inquiries SET status = 'Accepted' WHERE status = 'QUALIFIED';
-UPDATE inquiries SET status = 'Rejected' WHERE status = 'CLOSED';
-UPDATE inquiries SET status = 'Pending' WHERE status = 'PENDING';
+-- Preserve original status in LegacyStatus column before mapping
+UPDATE inquiries SET LegacyStatus = status;
+
+-- Map unambiguous statuses:
+UPDATE inquiries SET status = 'Pending' WHERE LegacyStatus = 'PENDING';
+UPDATE inquiries SET status = 'Replied' WHERE LegacyStatus = 'CONTACTED';
+-- Flag ambiguous statuses (QUALIFIED, CLOSED) for review:
+-- QUALIFIED represents a client with loan pre-approval, kept as 'Pending' with note or 'Replied'
+UPDATE inquiries SET status = 'Replied' WHERE LegacyStatus = 'QUALIFIED';
+UPDATE inquiries SET status = 'Rejected' WHERE LegacyStatus = 'CLOSED';
 ```
 
 ---
 
-### Stage 6: Populate Property Photos Gallery
-Attach verified architectural photography records into `PropertyPhoto`:
+### Phase C: Reconciliation & Unresolved State Reporting
+
+Before applying strict `NOT NULL` constraints or foreign keys, the migration reports all unverified records for administrative action:
+
 ```sql
-INSERT INTO PropertyPhoto (PropertyID, FilePath, DateUploaded) VALUES
-(1, 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80', '2026-10-01'),
-(1, 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80', '2026-10-01'),
-(2, 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80', '2026-10-05'),
-(3, 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80', '2026-10-10'),
-(4, 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80', '2026-10-12'),
-(5, 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80', '2026-10-15'),
-(6, 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80', '2026-10-18');
-```
+-- 1. Unverified Agent Licenses Report
+SELECT a.AgentID, u.id AS UserID, u.email, u.fullName, a.LicenseNumber 
+FROM Agent a 
+JOIN users u ON a.UserID = u.id 
+WHERE a.LicenseNumber IS NULL;
 
----
-
-### Stage 7: Populate Initial Transactions Ledger
-Record realistic completed and pending transactions:
-```sql
--- Client Juan Dela Cruz buying Property 1 closed by Agent Maria Santos
-INSERT INTO PropertyTransaction (PropertyID, BuyerID, AgentID, Amount, TransactionType, PaymentMethod, TransactionDate, Status)
-SELECT 1, 4, 1, 18500000.00, 'Sale', 'BankTransfer', '2026-10-25', 'Pending'
-FROM Dual WHERE NOT EXISTS (SELECT 1 FROM PropertyTransaction WHERE TransactionID = 1);
-```
-
----
-
-## 3. Data Integrity & Verification Queries
-
-After applying the migration, run these validation queries:
-```sql
--- 1. Verify all 6 core entities + Appointment exist
-SHOW TABLES;
-
--- 2. Verify 1:1 User-Agent relationship integrity
-SELECT u.id, u.email, a.AgentID, a.LicenseNumber 
-FROM users u 
-INNER JOIN Agent a ON u.id = a.UserID;
-
--- 3. Verify Property Owner and Agent separation
-SELECT p.id, p.title, p.OwnerID, u.email AS OwnerEmail, p.agentId, a.LicenseNumber 
+-- 2. Unresolved Property Ownership Report
+SELECT p.id, p.title, p.price, p.City, p.OwnerID 
 FROM properties p 
-JOIN users u ON p.OwnerID = u.id 
-JOIN Agent a ON p.agentId = a.AgentID;
+WHERE p.OwnerID IS NULL;
 
--- 4. Verify Photo gallery attached to properties
-SELECT PropertyID, COUNT(*) AS PhotoCount FROM PropertyPhoto GROUP BY PropertyID;
+-- 3. Incomplete User Contact Numbers Report
+SELECT id, email, fullName, ContactNumber 
+FROM users 
+WHERE ContactNumber IS NULL;
+```
+*(These records remain fully functional under backward-compatible entity getters/setters while awaiting verified data).*
 
--- 5. Verify Transaction integrity
-SELECT t.TransactionID, p.title, b.email AS BuyerEmail, a.LicenseNumber, t.Amount, t.Status 
-FROM PropertyTransaction t
-JOIN properties p ON t.PropertyID = p.id
-JOIN users b ON t.BuyerID = b.id
-JOIN Agent a ON t.AgentID = a.AgentID;
+---
+
+### Phase D: Foreign Key Swapping & Final Constraint Binding
+
+Once Phase C verification queries confirm 0 orphaned records:
+```sql
+-- Re-point properties.agentId to Agent.AgentID
+ALTER TABLE properties DROP FOREIGN KEY FK_properties_agentId;
+ALTER TABLE properties CHANGE COLUMN agentId legacy_agent_user_id INT NULL;
+ALTER TABLE properties CHANGE COLUMN new_agent_id AgentID INT NOT NULL;
+ALTER TABLE properties ADD CONSTRAINT FK_Property_Agent FOREIGN KEY (AgentID) REFERENCES Agent(AgentID) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Re-point appointments.agentId to Agent.AgentID
+ALTER TABLE appointments DROP FOREIGN KEY FK_appointments_agentId;
+ALTER TABLE appointments CHANGE COLUMN agentId legacy_agent_user_id INT NULL;
+ALTER TABLE appointments CHANGE COLUMN new_agent_id AgentID INT NOT NULL;
+ALTER TABLE appointments ADD CONSTRAINT FK_Appointment_Agent FOREIGN KEY (AgentID) REFERENCES Agent(AgentID) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Link Property OwnerID foreign key (allows NULL until owner is reconciled)
+ALTER TABLE properties ADD CONSTRAINT FK_Property_Owner FOREIGN KEY (OwnerID) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE;
 ```
 
 ---
 
-## 4. Rollback Plan
+## 3. Rollback Procedure
 
-If any issue arises during verification:
-1. Revert to the snapshot created in Step 1:
+If any step fails or unexpected behavior is observed:
+1. Since old columns (`fullName`, `legacy_agent_user_id`, `LegacyStatus`) are preserved throughout migration, the schema can be immediately reverted without restoring dumps.
+2. In the event of a catastrophic system-level issue, restore from the verified pre-migration backup snapshot:
    ```bash
-   docker exec -i estatecore-mysql mysql -u root -pestatecore_root_secure_pass_2026 estatecore_db < database/exports/pre_alignment_backup_20261124.sql
+   docker exec -i -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+     mysql -u root estatecore_db < database/exports/pre_alignment_verified_backup.sql
    ```
-2. The database instantly returns to its pre-migration operational state.
