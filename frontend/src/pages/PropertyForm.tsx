@@ -3,7 +3,8 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Property, PropertyType, ListingType, PropertyStatus, User } from '../types';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Building2, MapPin, DollarSign, Bed, Bath, Maximize2 } from 'lucide-react';
+import { Button } from '../components/ui/Button';
 
 export const PropertyForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +91,7 @@ export const PropertyForm: React.FC = () => {
         alert('Property listing updated successfully!');
       } else {
         await api.createProperty(payload);
-        alert('Property listing created successfully!');
+        alert('Property listing published successfully!');
       }
       navigate('/properties');
     } catch (err: any) {
@@ -102,76 +103,103 @@ export const PropertyForm: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="w-10 h-10 border-4 border-forest-700 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-stone-500 text-sm mt-3 font-medium">Loading property editor...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <Link
-          to="/properties"
-          className="inline-flex items-center space-x-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Properties</span>
-        </Link>
-        <h1 className="text-xl font-bold text-slate-900">
-          {isEdit ? 'Edit Property Listing' : 'Create New Property Listing'}
-        </h1>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Top back bar */}
+      <div className="flex items-center justify-between pb-6 border-b border-stone-200">
+        <div>
+          <Link
+            to="/properties"
+            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-stone-500 hover:text-stone-900 transition mb-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Property Catalog</span>
+          </Link>
+          <h1 className="text-2xl md:text-3xl font-serif font-bold text-stone-900">
+            {isEdit ? 'Edit Property Listing' : 'Publish New Property Listing'}
+          </h1>
+          <p className="text-xs md:text-sm text-stone-500 mt-1">
+            Fill in architectural specifications, pricing, and location details.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
-        <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Section 1: General Info */}
+        <div className="bg-white border border-stone-200/90 rounded-2xl p-6 md:p-8 shadow-card space-y-5">
+          <h2 className="text-base font-serif font-bold text-stone-900 pb-2 border-b border-stone-100">
+            1. Title & Narrative Description
+          </h2>
+
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Title</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+              Property Title *
+            </label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-600"
-              placeholder="e.g. Modern Two-Storey Residence with Garden"
+              placeholder="e.g. The Grand Botanica Penthouse"
+              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Description</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+              Property Description *
+            </label>
             <textarea
               required
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-600"
-              placeholder="Detailed description of features, materials, and community amenities..."
-            ></textarea>
+              placeholder="Describe architectural style, finishes, views, orientation, and building features..."
+              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 transition"
+            />
           </div>
+        </div>
+
+        {/* Section 2: Type, Pricing & Transaction */}
+        <div className="bg-white border border-stone-200/90 rounded-2xl p-6 md:p-8 shadow-card space-y-5">
+          <h2 className="text-base font-serif font-bold text-stone-900 pb-2 border-b border-stone-100">
+            2. Classification & Financials
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Property Type</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Property Type *
+              </label>
               <select
                 value={propertyType}
                 onChange={(e) => setPropertyType(e.target.value as PropertyType)}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-blue-600"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 font-medium"
               >
                 <option value="CONDOMINIUM">Condominium</option>
-                <option value="HOUSE">House</option>
+                <option value="HOUSE">House / Villa</option>
                 <option value="TOWNHOUSE">Townhouse</option>
                 <option value="APARTMENT">Apartment</option>
                 <option value="COMMERCIAL">Commercial</option>
-                <option value="LAND">Land</option>
+                <option value="LAND">Land / Plot</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Listing Type</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Transaction Type *
+              </label>
               <select
                 value={listingType}
                 onChange={(e) => setListingType(e.target.value as ListingType)}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-blue-600"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 font-medium"
               >
                 <option value="SALE">For Sale</option>
                 <option value="RENT">For Rent</option>
@@ -179,11 +207,13 @@ export const PropertyForm: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Status</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Listing Status *
+              </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as PropertyStatus)}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-blue-600"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 font-medium"
               >
                 <option value="AVAILABLE">Available</option>
                 <option value="RESERVED">Reserved</option>
@@ -193,103 +223,132 @@ export const PropertyForm: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Price (PHP)</label>
-              <input
-                type="number"
-                required
-                min={0}
-                step="1000"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">City / Location</label>
-              <input
-                type="text"
-                required
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-600"
-                placeholder="e.g. Makati City, Metro Manila"
-              />
-            </div>
-          </div>
-
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Full Street Address</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+              Price (PHP ₱) *
+            </label>
             <input
-              type="text"
+              type="number"
               required
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-600"
-              placeholder="e.g. Unit 1804 Grand Tower, Dela Rosa Street"
+              min={1}
+              value={price}
+              onChange={(e) => setPrice(Number(e.target.value))}
+              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 font-mono transition"
             />
           </div>
+        </div>
+
+        {/* Section 3: Physical Specifications & Dimensions */}
+        <div className="bg-white border border-stone-200/90 rounded-2xl p-6 md:p-8 shadow-card space-y-5">
+          <h2 className="text-base font-serif font-bold text-stone-900 pb-2 border-b border-stone-100">
+            3. Dimensions & Physical Metrics
+          </h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Bedrooms</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Bedrooms
+              </label>
               <input
                 type="number"
                 min={0}
                 value={bedrooms}
                 onChange={(e) => setBedrooms(Number(e.target.value))}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Bathrooms</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Bathrooms
+              </label>
               <input
                 type="number"
                 min={0}
                 value={bathrooms}
                 onChange={(e) => setBathrooms(Number(e.target.value))}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Floor Area (sqm)</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Floor Area (m²)
+              </label>
               <input
                 type="number"
                 min={0}
                 value={floorArea}
                 onChange={(e) => setFloorArea(Number(e.target.value))}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Lot Area (sqm)</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Lot Area (m²)
+              </label>
               <input
                 type="number"
                 min={0}
                 value={lotArea}
                 onChange={(e) => setLotArea(Number(e.target.value))}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Location & Address */}
+        <div className="bg-white border border-stone-200/90 rounded-2xl p-6 md:p-8 shadow-card space-y-5">
+          <h2 className="text-base font-serif font-bold text-stone-900 pb-2 border-b border-stone-100">
+            4. Location & Geographic Address
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                City / Municipality / Province *
+              </label>
+              <input
+                type="text"
+                required
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Bonifacio Global City, Taguig"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Street Address / Landmark
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. 5th Avenue corner 28th Street"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 transition"
               />
             </div>
           </div>
 
+          {/* Admin only: Agent assignment */}
           {user?.role === 'ADMIN' && (
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Assigned Agent</label>
+            <div className="pt-4 border-t border-stone-100">
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                Assign Listing Agent
+              </label>
               <select
                 value={agentId || ''}
                 onChange={(e) => setAgentId(e.target.value ? Number(e.target.value) : undefined)}
-                className="w-full text-sm border border-slate-300 rounded-lg p-2.5"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-forest-600 font-medium"
               >
-                <option value="">Unassigned / Admin</option>
-                {agents.map((ag) => (
-                  <option key={ag.id} value={ag.id}>
-                    {ag.fullName} ({ag.email})
+                <option value="">-- Unassigned (System Default) --</option>
+                {agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.fullName} ({agent.email})
                   </option>
                 ))}
               </select>
@@ -297,21 +356,17 @@ export const PropertyForm: React.FC = () => {
           )}
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
-          <Link
-            to="/properties"
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-          >
-            Cancel
+        {/* Submission Bar */}
+        <div className="flex items-center justify-end gap-3 pt-4">
+          <Link to="/properties">
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
           </Link>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="inline-flex items-center space-x-1.5 px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50 transition"
-          >
-            <Save className="w-4 h-4" />
-            <span>{submitting ? 'Saving...' : 'Save Property'}</span>
-          </button>
+          <Button type="submit" variant="primary" loading={submitting} className="px-8 shadow-md">
+            <Save className="w-4 h-4 mr-2" />
+            <span>{isEdit ? 'Save Changes' : 'Publish Property Listing'}</span>
+          </Button>
         </div>
       </form>
     </div>

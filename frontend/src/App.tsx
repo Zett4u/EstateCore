@@ -2,23 +2,32 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { PublicLayout } from './layouts/PublicLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 
-// Pages
+// Public Pages
+import { LandingPage } from './pages/LandingPage';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { PropertiesList } from './pages/PropertiesList';
+import { PropertyDetail } from './pages/PropertyDetail';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+
+// Authenticated Pages
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AgentDashboard } from './pages/AgentDashboard';
 import { ClientDashboard } from './pages/ClientDashboard';
-import { PropertiesList } from './pages/PropertiesList';
-import { PropertyDetail } from './pages/PropertyDetail';
 import { PropertyForm } from './pages/PropertyForm';
 import { InquiriesList } from './pages/InquiriesList';
 import { AppointmentsList } from './pages/AppointmentsList';
 import { UsersList } from './pages/UsersList';
 import { UserProfile } from './pages/UserProfile';
 
-const RootRedirect: React.FC = () => {
+/**
+ * Smart redirect helper for authenticated users hitting dashboard route
+ */
+const DashboardRedirect: React.FC = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
@@ -32,38 +41,39 @@ export const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public routes */}
+          {/* Public Website Routes (Wrapped in Haven Estate Public Layout) */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/properties" element={<PropertiesList />} />
+            <Route path="/properties/:id" element={<PropertyDetail />} />
+          </Route>
+
+          {/* Standalone Authentication Pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Root redirect */}
-          <Route path="/" element={<RootRedirect />} />
+          {/* Dashboard Smart Redirect */}
+          <Route path="/dashboard" element={<DashboardRedirect />} />
 
-          {/* Protected Routes inside Dashboard Layout */}
+          {/* Protected Business Operations (Wrapped in Dashboard Layout) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-              {/* Admin Dashboard */}
+              {/* Role Dashboards */}
               <Route path="/admin" element={<AdminDashboard />} />
-
-              {/* Agent Dashboard */}
               <Route path="/agent" element={<AgentDashboard />} />
-
-              {/* Client Dashboard */}
               <Route path="/client" element={<ClientDashboard />} />
 
-              {/* Properties */}
-              <Route path="/properties" element={<PropertiesList />} />
+              {/* Property Management */}
               <Route path="/properties/new" element={<PropertyForm />} />
-              <Route path="/properties/:id" element={<PropertyDetail />} />
               <Route path="/properties/:id/edit" element={<PropertyForm />} />
 
-              {/* Inquiries */}
+              {/* Inquiries & Appointments Management */}
               <Route path="/inquiries" element={<InquiriesList />} />
-
-              {/* Appointments */}
               <Route path="/appointments" element={<AppointmentsList />} />
 
-              {/* User Profile */}
+              {/* User Account Settings */}
               <Route path="/profile" element={<UserProfile />} />
 
               {/* Admin Only: Users Management */}
@@ -73,7 +83,7 @@ export const App: React.FC = () => {
             </Route>
           </Route>
 
-          {/* Fallback */}
+          {/* Fallback Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

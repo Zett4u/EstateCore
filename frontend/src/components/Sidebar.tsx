@@ -8,6 +8,8 @@ import {
   CalendarDays,
   Users,
   UserCheck,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -25,25 +27,25 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     {
       to: getDashboardPath(),
-      label: 'Dashboard',
+      label: 'Executive Overview',
       icon: LayoutDashboard,
       roles: ['ADMIN', 'AGENT', 'CLIENT'],
     },
     {
       to: '/properties',
-      label: 'Properties',
+      label: 'Property Catalog',
       icon: Building,
       roles: ['ADMIN', 'AGENT', 'CLIENT'],
     },
     {
       to: '/inquiries',
-      label: 'Inquiries',
+      label: 'Inquiry Center',
       icon: MessageSquareText,
       roles: ['ADMIN', 'AGENT', 'CLIENT'],
     },
     {
       to: '/appointments',
-      label: 'Appointments',
+      label: 'Viewing Tours',
       icon: CalendarDays,
       roles: ['ADMIN', 'AGENT', 'CLIENT'],
     },
@@ -55,7 +57,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       to: '/profile',
-      label: 'Account Profile',
+      label: 'Account Settings',
       icon: UserCheck,
       roles: ['ADMIN', 'AGENT', 'CLIENT'],
     },
@@ -64,11 +66,11 @@ export const Sidebar: React.FC = () => {
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between shrink-0">
+    <aside className="w-64 bg-[#14171A] text-stone-300 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between shrink-0 border-r border-stone-800">
       <div className="space-y-6">
         <div>
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-            Main Navigation
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest px-3 mb-2">
+            Navigation Menu
           </p>
           <nav className="space-y-1">
             {visibleItems.map((item) => {
@@ -78,10 +80,10 @@ export const Sidebar: React.FC = () => {
                   key={item.to}
                   to={item.to}
                   className={({ isActive }) =>
-                    `flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                    `flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        ? 'bg-forest-700 text-white shadow-sm'
+                        : 'text-stone-300 hover:bg-stone-800/80 hover:text-white'
                     }`
                   }
                 >
@@ -94,10 +96,18 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-3 bg-slate-800/80 rounded-lg border border-slate-700/60 text-xs space-y-1">
-        <p className="text-slate-400">Connected System:</p>
-        <p className="font-semibold text-white">EstateCore v1.0.0</p>
-        <p className="text-[10px] text-slate-400">MySQL 8.4 • NestJS • JWT</p>
+      <div className="space-y-3">
+        <div className="p-3.5 bg-stone-900/90 rounded-2xl border border-stone-800/80 text-xs space-y-1.5">
+          <div className="flex items-center gap-1.5 text-stone-200 font-semibold">
+            <ShieldCheck className="w-4 h-4 text-forest-400" />
+            <span>EstateCore Engine</span>
+          </div>
+          <p className="text-[11px] text-stone-400">Production REST API v1.0</p>
+          <div className="pt-1.5 border-t border-stone-800 flex items-center justify-between text-[10px] text-stone-400">
+            <span>MySQL 8.4</span>
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          </div>
+        </div>
       </div>
     </aside>
   );

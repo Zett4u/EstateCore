@@ -8,7 +8,7 @@
     "pass": true,
     "details": {
       "statusCode": 401,
-      "timestamp": "2026-11-24T06:46:16.306Z",
+      "timestamp": "2026-11-24T07:03:07.638Z",
       "path": "/api/auth/me",
       "method": "GET",
       "error": "Unauthorized",
@@ -100,7 +100,7 @@
     "pass": true,
     "details": {
       "statusCode": 403,
-      "timestamp": "2026-11-24T06:46:17.917Z",
+      "timestamp": "2026-11-24T07:03:08.283Z",
       "path": "/api/users",
       "method": "GET",
       "error": "Forbidden",

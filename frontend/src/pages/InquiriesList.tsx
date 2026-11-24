@@ -3,7 +3,8 @@ import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Inquiry, InquiryStatus } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { MessageSquare, Trash2, CheckCircle } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { MessageSquare, Trash2, CheckCircle, Phone, Mail, Building, Clock } from 'lucide-react';
 
 export const InquiriesList: React.FC = () => {
   const { user } = useAuth();
@@ -36,7 +37,7 @@ export const InquiriesList: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this inquiry?')) return;
+    if (!window.confirm('Are you sure you want to permanently delete this inquiry record?')) return;
     try {
       await api.deleteInquiry(id);
       setInquiries(inquiries.filter((inq) => inq.id !== id));
@@ -48,78 +49,107 @@ export const InquiriesList: React.FC = () => {
   const canUpdateStatus = user?.role === 'ADMIN' || user?.role === 'AGENT';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Property Inquiries</h1>
-        <p className="text-sm text-slate-500">Track and respond to client inquiries regarding real estate listings.</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-stone-200">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-forest-700">Communication Center</span>
+          <h1 className="text-3xl font-serif font-bold text-stone-900 tracking-tight mt-1">
+            Client Inquiries Management
+          </h1>
+          <p className="text-sm text-stone-600 mt-1">
+            Track, qualify, and respond to buyer and tenant inquiries across property listings.
+          </p>
+        </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-card">
         {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center justify-center h-48">
+            <div className="w-10 h-10 border-4 border-forest-700 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-stone-500 text-sm mt-3 font-medium">Loading inquiry records...</p>
           </div>
         ) : inquiries.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">
-            <MessageSquare className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-            <p className="font-medium">No inquiries recorded.</p>
+          <div className="p-12 text-center text-stone-500 space-y-3">
+            <div className="w-12 h-12 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center mx-auto">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif font-bold text-base text-stone-900">No Inquiries Found</h3>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto">
+              Client messages submitted through property listings will appear here.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+            <table className="w-full text-left text-sm text-stone-600">
+              <thead className="bg-stone-50 text-[11px] uppercase font-bold text-stone-500 border-b border-stone-200 tracking-wider">
                 <tr>
-                  <th className="px-6 py-3">Inquiry Subject & Details</th>
-                  <th className="px-6 py-3">Property</th>
-                  <th className="px-6 py-3">Client Contact</th>
-                  <th className="px-6 py-3">Assigned Agent</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
+                  <th className="px-6 py-4">Inquiry & Message</th>
+                  <th className="px-6 py-4">Property</th>
+                  <th className="px-6 py-4">Client Contact</th>
+                  <th className="px-6 py-4">Assigned Agent</th>
+                  <th className="px-6 py-4">Status & Action</th>
+                  <th className="px-6 py-4 text-right">Delete</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-stone-100">
                 {inquiries.map((inq) => (
-                  <tr key={inq.id} className="hover:bg-slate-50 transition">
+                  <tr key={inq.id} className="hover:bg-stone-50/70 transition">
                     <td className="px-6 py-4">
-                      <p className="font-semibold text-slate-900">{inq.subject}</p>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 max-w-xs">{inq.message}</p>
+                      <p className="font-semibold text-stone-900">{inq.subject}</p>
+                      <p className="text-xs text-stone-500 mt-1 line-clamp-2 max-w-xs">{inq.message}</p>
+                      <span className="text-[10px] text-stone-400 mt-1 block">
+                        Received: {new Date(inq.createdAt).toLocaleDateString()}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-slate-800">{inq.property?.title || `Property #${inq.propertyId}`}</p>
-                      <p className="text-xs text-slate-500">{inq.property?.location}</p>
+                      <p className="font-medium text-stone-800">{inq.property?.title || `Property #${inq.propertyId}`}</p>
+                      <p className="text-xs text-stone-500">{inq.property?.location}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-slate-800">{inq.client?.fullName}</p>
-                      <p className="text-xs text-slate-500">{inq.contactNumber}</p>
+                      <p className="font-medium text-stone-900">{inq.client?.fullName}</p>
+                      <p className="text-xs text-stone-500 flex items-center gap-1 mt-0.5">
+                        <Phone className="w-3 h-3 text-stone-400" />
+                        <span>{inq.contactNumber}</span>
+                      </p>
+                      <p className="text-xs text-stone-400 flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-stone-400" />
+                        <span>{inq.client?.email}</span>
+                      </p>
                     </td>
                     <td className="px-6 py-4 text-xs">
                       {inq.assignedAgent ? (
-                        <span className="font-medium text-slate-700">{inq.assignedAgent.fullName}</span>
+                        <div>
+                          <p className="font-semibold text-stone-900">{inq.assignedAgent.fullName}</p>
+                          <p className="text-stone-400">{inq.assignedAgent.email}</p>
+                        </div>
                       ) : (
-                        <span className="text-slate-400 italic">Unassigned</span>
+                        <span className="text-stone-400 italic">Unassigned</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={inq.status} />
+                      <div className="flex flex-col gap-1.5">
+                        <StatusBadge status={inq.status} />
+                        {canUpdateStatus && (
+                          <select
+                            value={inq.status}
+                            onChange={(e) => handleStatusChange(inq.id, e.target.value as InquiryStatus)}
+                            className="text-xs py-1 px-2 border border-stone-200 rounded-lg bg-stone-50 font-medium text-stone-700 focus:bg-white focus:ring-1 focus:ring-forest-600"
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="CONTACTED">CONTACTED</option>
+                            <option value="QUALIFIED">QUALIFIED</option>
+                            <option value="CLOSED">CLOSED</option>
+                          </select>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      {canUpdateStatus && (
-                        <select
-                          value={inq.status}
-                          onChange={(e) => handleStatusChange(inq.id, e.target.value as InquiryStatus)}
-                          className="text-xs py-1 px-2 border border-slate-300 rounded focus:ring-blue-600 bg-white"
-                        >
-                          <option value="PENDING">PENDING</option>
-                          <option value="CONTACTED">CONTACTED</option>
-                          <option value="QUALIFIED">QUALIFIED</option>
-                          <option value="CLOSED">CLOSED</option>
-                        </select>
-                      )}
+                    <td className="px-6 py-4 text-right">
                       {(user?.role === 'ADMIN' || inq.clientId === user?.id) && (
                         <button
                           onClick={() => handleDelete(inq.id)}
-                          className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition inline-block align-middle"
-                          title="Delete"
+                          className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
+                          title="Delete Inquiry"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

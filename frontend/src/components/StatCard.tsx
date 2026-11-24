@@ -1,5 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { Badge } from './ui/Badge';
 
 interface StatCardProps {
   title: string;
@@ -17,22 +18,22 @@ export const StatCard: React.FC<StatCardProps> = ({
   badge,
 }) => {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:border-slate-300 transition">
+    <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-subtle hover:shadow-card hover:border-stone-300 transition duration-200">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{title}</span>
-        <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+        <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">{title}</span>
+        <div className="w-9 h-9 rounded-xl bg-forest-50 text-forest-700 flex items-center justify-center">
           <Icon className="w-4 h-4" />
         </div>
       </div>
       <div className="flex items-baseline space-x-2">
-        <span className="text-2xl font-bold text-slate-900 tracking-tight">{value}</span>
+        <span className="text-2xl md:text-3xl font-serif font-bold text-stone-900 tracking-tight">{value}</span>
         {badge && (
-          <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <Badge variant="forest">
             {badge}
-          </span>
+          </Badge>
         )}
       </div>
-      {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-stone-500 mt-1.5">{subtitle}</p>}
     </div>
   );
 };
