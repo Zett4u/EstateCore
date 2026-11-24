@@ -25,7 +25,7 @@ import { UsersList } from './pages/UsersList';
 import { UserProfile } from './pages/UserProfile';
 
 /**
- * Smart redirect helper for authenticated users hitting dashboard route
+ * Smart redirect helper for authenticated users hitting /dashboard route
  */
 const DashboardRedirect: React.FC = () => {
   const { user, loading } = useAuth();
@@ -41,7 +41,7 @@ export const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Website Routes (Wrapped in Haven Estate Public Layout) */}
+          {/* Public Website Routes (Accessible without login) */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<AboutPage />} />
@@ -57,29 +57,35 @@ export const App: React.FC = () => {
           {/* Dashboard Smart Redirect */}
           <Route path="/dashboard" element={<DashboardRedirect />} />
 
-          {/* Protected Business Operations (Wrapped in Dashboard Layout) */}
+          {/* Protected Business Operations */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-              {/* Role Dashboards */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/agent" element={<AgentDashboard />} />
-              <Route path="/client" element={<ClientDashboard />} />
-
-              {/* Property Management */}
-              <Route path="/properties/new" element={<PropertyForm />} />
-              <Route path="/properties/:id/edit" element={<PropertyForm />} />
-
-              {/* Inquiries & Appointments Management */}
-              <Route path="/inquiries" element={<InquiriesList />} />
-              <Route path="/appointments" element={<AppointmentsList />} />
-
-              {/* User Account Settings */}
-              <Route path="/profile" element={<UserProfile />} />
-
-              {/* Admin Only: Users Management */}
+              {/* ADMIN ONLY ROUTES */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/users" element={<UsersList />} />
               </Route>
+
+              {/* AGENT ONLY ROUTES */}
+              <Route element={<ProtectedRoute allowedRoles={['AGENT']} />}>
+                <Route path="/agent" element={<AgentDashboard />} />
+              </Route>
+
+              {/* CLIENT ONLY ROUTES */}
+              <Route element={<ProtectedRoute allowedRoles={['CLIENT']} />}>
+                <Route path="/client" element={<ClientDashboard />} />
+              </Route>
+
+              {/* ADMIN & AGENT SHARED ROUTES (Property Management) */}
+              <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AGENT']} />}>
+                <Route path="/properties/new" element={<PropertyForm />} />
+                <Route path="/properties/:id/edit" element={<PropertyForm />} />
+              </Route>
+
+              {/* ALL AUTHENTICATED ROLES (Scoped by backend ownership) */}
+              <Route path="/inquiries" element={<InquiriesList />} />
+              <Route path="/appointments" element={<AppointmentsList />} />
+              <Route path="/profile" element={<UserProfile />} />
             </Route>
           </Route>
 

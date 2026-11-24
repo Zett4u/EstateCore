@@ -1,11 +1,17 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Building2, LogOut, User as UserIcon, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from './ui/Badge';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const getRoleBadgeVariant = (role?: string) => {
     switch (role) {
@@ -65,7 +71,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="flex items-center space-x-1 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 rounded-xl transition border border-stone-200 hover:border-red-200"
             title="Sign out of system"
           >

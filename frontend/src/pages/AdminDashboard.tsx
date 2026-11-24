@@ -3,9 +3,10 @@ import { api } from '../services/api';
 import { Property, Inquiry, Appointment, User } from '../types';
 import { StatCard } from '../components/StatCard';
 import { StatusBadge } from '../components/StatusBadge';
-import { Building, CheckCircle2, MessageSquare, Calendar, Users, ArrowUpRight, Plus, ExternalLink } from 'lucide-react';
+import { Building, CheckCircle2, MessageSquare, Calendar, Users, ArrowUpRight, Plus, ExternalLink, ShieldCheck, UserCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 
 export const AdminDashboard: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -40,6 +41,10 @@ export const AdminDashboard: React.FC = () => {
   const pendingAppointments = appointments.filter((a) => a.status === 'PENDING').length;
   const recentInquiries = inquiries.slice(0, 5);
   const recentAppointments = appointments.slice(0, 5);
+
+  const adminUsersCount = users.filter((u) => u.role === 'ADMIN').length;
+  const agentUsersCount = users.filter((u) => u.role === 'AGENT').length;
+  const clientUsersCount = users.filter((u) => u.role === 'CLIENT').length;
 
   if (loading) {
     return (
@@ -86,6 +91,33 @@ export const AdminDashboard: React.FC = () => {
         <StatCard title="Client Inquiries" value={inquiries.length} icon={MessageSquare} subtitle="Pipeline leads captured" />
         <StatCard title="Pending Tours" value={pendingAppointments} icon={Calendar} subtitle="Awaiting agent confirmation" />
         <StatCard title="Platform Users" value={users.length} icon={Users} subtitle="Admins, Agents & Clients" />
+      </div>
+
+      {/* Role Distribution Bar (Live DB metrics) */}
+      <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+          <div>
+            <h2 className="text-sm font-serif font-bold text-stone-900">System Role Distribution</h2>
+            <p className="text-xs text-stone-500">Live breakdown of active identities registered in MySQL</p>
+          </div>
+          <Link to="/users" className="text-xs font-semibold text-forest-700 hover:text-forest-800">
+            View user directory →
+          </Link>
+        </div>
+        <div className="grid grid-cols-3 gap-3 pt-4 text-center">
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+            <span className="text-[11px] font-bold uppercase text-stone-500 block">Administrators</span>
+            <span className="text-xl font-bold font-serif text-stone-900">{adminUsersCount}</span>
+          </div>
+          <div className="p-3 bg-forest-50/60 rounded-xl border border-forest-200/80">
+            <span className="text-[11px] font-bold uppercase text-forest-800 block">Licensed Agents</span>
+            <span className="text-xl font-bold font-serif text-forest-900">{agentUsersCount}</span>
+          </div>
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+            <span className="text-[11px] font-bold uppercase text-stone-500 block">Registered Clients</span>
+            <span className="text-xl font-bold font-serif text-stone-900">{clientUsersCount}</span>
+          </div>
+        </div>
       </div>
 
       {/* Tables Section */}

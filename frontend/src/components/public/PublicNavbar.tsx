@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Building2, Menu, X, ArrowRight, User as UserIcon } from 'lucide-react';
+import { Building2, Menu, X, ArrowRight, User as UserIcon, LogOut } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export const PublicNavbar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const getDashboardLink = () => {
     if (!user) return '/login';
@@ -64,13 +70,22 @@ export const PublicNavbar: React.FC = () => {
         {/* Right Action Buttons */}
         <div className="hidden md:flex items-center space-x-3">
           {user ? (
-            <Link to={getDashboardLink()}>
-              <Button size="sm" className="bg-forest-700 hover:bg-forest-800">
-                <UserIcon className="w-3.5 h-3.5 mr-1" />
-                <span>Dashboard ({user.role})</span>
-                <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </Link>
+            <div className="flex items-center space-x-2">
+              <Link to={getDashboardLink()}>
+                <Button size="sm" className="bg-forest-700 hover:bg-forest-800">
+                  <UserIcon className="w-3.5 h-3.5 mr-1" />
+                  <span>Dashboard ({user.role})</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="p-2 text-stone-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition border border-stone-200"
+                title="Sign out of system"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <>
               <Link to="/login">

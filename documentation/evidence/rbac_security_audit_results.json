@@ -1,0 +1,152 @@
+[
+  {
+    "testNum": 1,
+    "name": "Anonymous request to /api/auth/me is rejected",
+    "expectedStatus": 401,
+    "actualStatus": 401,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 2,
+    "name": "Tampered JWT token rejected",
+    "expectedStatus": 401,
+    "actualStatus": 401,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 3,
+    "name": "CLIENT accessing GET /api/users rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 4,
+    "name": "AGENT accessing GET /api/users rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 5,
+    "name": "CLIENT attempting POST /api/properties rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 6,
+    "name": "CLIENT attempting PATCH /api/properties/1 rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 7,
+    "name": "CLIENT attempting DELETE /api/properties/1 rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 8,
+    "name": "CLIENT inspecting another user profile (IDOR) rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 9,
+    "name": "CLIENT privilege escalation via PATCH stripped by server",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {
+      "finalRole": "CLIENT"
+    }
+  },
+  {
+    "testNum": 10,
+    "name": "AGENT updating property of another agent rejected (Ownership Guard)",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 11,
+    "name": "AGENT deleting property of another agent rejected (Ownership Guard)",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 12,
+    "name": "ADMIN assigning non-existent agentId rejected",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 13,
+    "name": "CLIENT inspecting another client inquiry (IDOR) rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 14,
+    "name": "CLIENT attempting to set appointment status to CONFIRMED rejected",
+    "expectedStatus": 403,
+    "actualStatus": 403,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 15,
+    "name": "CLIENT successfully cancelling their own appointment",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 16,
+    "name": "Creating appointment in the past rejected",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "pass": true,
+    "details": {}
+  },
+  {
+    "testNum": 17,
+    "name": "Inquiry verified persisting directly in MySQL database table",
+    "expectedStatus": "SQL ROW FOUND",
+    "actualStatus": "SQL ROW FOUND",
+    "pass": true,
+    "details": {
+      "output": "id\tsubject\tclientId\tstatus\n7\tClient Juan Private Inquiry\t4\tPENDING"
+    }
+  },
+  {
+    "testNum": 18,
+    "name": "Appointment cancellation status verified persisting in MySQL",
+    "expectedStatus": "CANCELLED IN DB",
+    "actualStatus": "CANCELLED IN DB",
+    "pass": true,
+    "details": {
+      "output": "id\tstatus\tappointmentDate\tclientId\n6\tCANCELLED\t2026-11-27\t4"
+    }
+  }
+]

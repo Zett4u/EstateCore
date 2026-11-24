@@ -18,12 +18,37 @@ export class PropertiesService {
   constructor(
     @InjectRepository(Property)
     private readonly propertyRepository: Repository<Property>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
+  private async validateAgent(agentId: number): Promise<User> {
+    const agent = await this.userRepository.findOne({ where: { id: agentId } });
+    if (!agent) {
+      throw new BadRequestException(`Assigned agent with ID ${agentId} does not exist.`);
+    }
+    if (agent.role !== UserRole.AGENT && agent.role !== UserRole.ADMIN) {
+      throw new BadRequestException(`User '${agent.fullName}' (ID ${agentId}) is a CLIENT and cannot be assigned as a property agent.`);
+    }
+    if (!agent.isActive) {
+      throw new BadRequestException(`Agent '${agent.fullName}' (ID ${agentId}) is deactivated.`);
+    }
+    return agent;
+  }
+
   async create(createPropertyDto: CreatePropertyDto, user: User): Promise<Property> {
+    let assignedAgentId = user.id;
+
+    if (user.role === UserRole.ADMIN && createPropertyDto.agentId) {
+      await this.validateAgent(createPropertyDto.agentId);
+      assignedAgentId = createPropertyDto.agentId;
+    } else if (user.role === UserRole.AGENT) {
+      assignedAgentId = user.id; // Strictly force agent's own ID
+    }
+
     const property = this.propertyRepository.create({
       ...createPropertyDto,
-      agentId: user.role === UserRole.AGENT ? user.id : createPropertyDto.agentId || user.id,
+      agentId: assignedAgentId,
     });
     return this.propertyRepository.save(property);
   }
@@ -121,6 +146,10 @@ export class PropertiesService {
 
     if (user.role !== UserRole.ADMIN && updatePropertyDto.agentId && updatePropertyDto.agentId !== property.agentId) {
       throw new ForbiddenException('Only administrators can reassign properties to a different agent.');
+    }
+
+    if (user.role === UserRole.ADMIN && updatePropertyDto.agentId && updatePropertyDto.agentId !== property.agentId) {
+      await this.validateAgent(updatePropertyDto.agentId);
     }
 
     Object.assign(property, updatePropertyDto);

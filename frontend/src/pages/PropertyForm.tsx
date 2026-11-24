@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Property, PropertyType, ListingType, PropertyStatus, User } from '../types';
-import { ArrowLeft, Save, Building2, MapPin, DollarSign, Bed, Bath, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Save, Building2, MapPin, DollarSign, Bed, Bath, Maximize2, ShieldAlert } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const PropertyForm: React.FC = () => {
@@ -15,6 +15,7 @@ export const PropertyForm: React.FC = () => {
   const [agents, setAgents] = useState<User[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Form Fields
   const [title, setTitle] = useState('');
@@ -41,6 +42,15 @@ export const PropertyForm: React.FC = () => {
 
         if (isEdit && id) {
           const prop = await api.getProperty(Number(id));
+
+          // Strict ownership check: AGENT cannot edit listings assigned to another agent
+          if (user?.role === 'AGENT' && prop.agentId !== user.id) {
+            setAuthError('You are not authorized to edit properties assigned to other agents.');
+            alert('Access Denied: You are not authorized to edit properties assigned to other agents.');
+            navigate('/properties', { replace: true });
+            return;
+          }
+
           setTitle(prop.title);
           setDescription(prop.description);
           setPropertyType(prop.propertyType);
@@ -106,6 +116,21 @@ export const PropertyForm: React.FC = () => {
       <div className="flex flex-col items-center justify-center h-64">
         <div className="w-10 h-10 border-4 border-forest-700 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-stone-500 text-sm mt-3 font-medium">Loading property editor...</p>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="max-w-md mx-auto p-8 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
+        <ShieldAlert className="w-10 h-10 text-red-600 mx-auto" />
+        <h3 className="font-serif font-bold text-red-900 text-lg">Unauthorized Access</h3>
+        <p className="text-xs text-red-700">{authError}</p>
+        <Link to="/properties">
+          <Button variant="outline" size="sm" className="mt-2">
+            Return to Properties
+          </Button>
+        </Link>
       </div>
     );
   }

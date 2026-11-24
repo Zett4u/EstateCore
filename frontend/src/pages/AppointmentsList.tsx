@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Appointment, AppointmentStatus } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { CalendarDays, Trash2, Check, X, Clock, MapPin, UserCheck } from 'lucide-react';
+import { CalendarDays, Trash2, Check, X, Clock, MapPin, UserCheck, AlertTriangle } from 'lucide-react';
 
 export const AppointmentsList: React.FC = () => {
   const { user } = useAuth();
@@ -37,8 +37,21 @@ export const AppointmentsList: React.FC = () => {
     }
   };
 
+  const handleCancelByClient = async (id: number) => {
+    if (!window.confirm('Are you sure you want to cancel this scheduled property tour?')) return;
+    try {
+      await api.updateAppointment(id, { status: 'CANCELLED' as AppointmentStatus });
+      setAppointments(
+        appointments.map((appt) => (appt.id === id ? { ...appt, status: 'CANCELLED' as AppointmentStatus } : appt))
+      );
+      alert('Viewing appointment cancelled successfully.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel appointment.');
+    }
+  };
+
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to cancel and delete this viewing appointment?')) return;
+    if (!window.confirm('Are you sure you want to permanently delete this appointment record?')) return;
     try {
       await api.deleteAppointment(id);
       setAppointments(appointments.filter((a) => a.id !== id));
@@ -89,8 +102,8 @@ export const AppointmentsList: React.FC = () => {
                   <th className="px-6 py-4">Property Location</th>
                   <th className="px-6 py-4">Client</th>
                   <th className="px-6 py-4">Assigned Agent</th>
-                  <th className="px-6 py-4">Status & Management</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">Status & Action</th>
+                  <th className="px-6 py-4 text-right">Delete</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
@@ -148,6 +161,16 @@ export const AppointmentsList: React.FC = () => {
                             <option value="CANCELLED">CANCELLED</option>
                           </select>
                         )}
+                        {/* Client cancellation button */}
+                        {user?.role === 'CLIENT' && appt.status !== 'CANCELLED' && appt.status !== 'COMPLETED' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelByClient(appt.id)}
+                            className="text-[11px] font-semibold text-red-600 hover:text-red-800 hover:underline text-left mt-1"
+                          >
+                            Cancel Tour
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -155,7 +178,7 @@ export const AppointmentsList: React.FC = () => {
                         <button
                           onClick={() => handleDelete(appt.id)}
                           className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
-                          title="Cancel and delete appointment"
+                          title="Permanently remove appointment record"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
