@@ -25,5 +25,8 @@
     "docker"
   ],
   "author": "ITEC 116 Student",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
 }

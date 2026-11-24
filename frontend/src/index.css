@@ -6,7 +6,12 @@
 
 @layer base {
   body {
-    @apply bg-stone-50 text-stone-900 font-sans antialiased selection:bg-forest-700 selection:text-white;
+    @apply bg-stone-50 text-stone-900 font-sans antialiased;
+  }
+
+  ::selection {
+    background-color: #1b4332;
+    color: #ffffff;
   }
 }
 

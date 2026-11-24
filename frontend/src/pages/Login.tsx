@@ -137,14 +137,14 @@ export const Login: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => fillQuick('agent.maria@estatecore.local')}
+                onClick={() => fillQuick('maria.santos@estatecore.local')}
                 className="py-1.5 px-2 text-center rounded-xl border border-stone-200 bg-stone-50 hover:bg-forest-50 hover:border-forest-300 hover:text-forest-900 text-stone-700 font-semibold transition"
               >
                 Agent
               </button>
               <button
                 type="button"
-                onClick={() => fillQuick('client.carlos@estatecore.local')}
+                onClick={() => fillQuick('juan.delacruz@client.local')}
                 className="py-1.5 px-2 text-center rounded-xl border border-stone-200 bg-stone-50 hover:bg-forest-50 hover:border-forest-300 hover:text-forest-900 text-stone-700 font-semibold transition"
               >
                 Client

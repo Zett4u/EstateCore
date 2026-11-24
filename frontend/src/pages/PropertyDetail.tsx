@@ -319,7 +319,7 @@ export const PropertyDetail: React.FC = () => {
                   {property.agent?.fullName || 'Senior Broker Maria Santos'}
                 </h4>
                 <p className="text-xs text-forest-700 font-semibold">Licensed Real Estate Specialist</p>
-                <p className="text-xs text-stone-500 mt-0.5">{property.agent?.email || 'agent.maria@estatecore.local'}</p>
+                <p className="text-xs text-stone-500 mt-0.5">{property.agent?.email || 'maria.santos@estatecore.local'}</p>
               </div>
             </div>
 
