@@ -5,13 +5,13 @@
 **Safety Mandate:** **Zero Data Loss. Zero Fabricated Data. Zero Hardcoded Credentials.**  
 - Passwords are never placed in shell scripts, documentation, or Git commits. Environment variables are used exclusively (`$MYSQL_ROOT_PASSWORD`).
 - No invented PRC license numbers, fake phone numbers, fabricated transactions, or mock photos.
-- No automated assignment of property ownership to Admin.
-- Old columns are strictly preserved during staging until new relations are fully verified.
-- Backup restoration is verified in an isolated sandbox database before any migration is applied.
+- No automated assignment of property ownership to Admin. `OwnerID` remains `NULL` until authentic deed holders are verified.
+- Old columns (`fullName`, `legacy_agent_user_id`, `LegacyRole`, `LegacyStatus`) are strictly preserved during staging.
+- Backup restoration is comprehensively verified in an isolated sandbox database before any migration is applied.
 
 ---
 
-## 1. Pre-Migration Security & Backup Verification
+## 1. Pre-Migration Security & Comprehensive Sandbox Verification
 
 ### 1.1 Secure Snapshot (Using Environment Variables)
 Backups are performed reading credentials directly from the environment without exposing plaintext secrets:
@@ -23,8 +23,9 @@ docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   > database/exports/pre_alignment_verified_backup.sql
 ```
 
-### 1.2 Verification of Backup Integrity in a Temporary Sandbox Database
-Before touching `estatecore_db`, the backup must be proven restorable in an isolated test database:
+### 1.2 Comprehensive Restoration Verification in Sandbox Database
+Before touching `estatecore_db`, the backup must be proven restorable in an isolated test database with structural and row count comparisons:
+
 ```bash
 # 1. Create temporary sandbox database
 docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
@@ -34,22 +35,42 @@ docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
 docker exec -i -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root estatecore_test_restore < database/exports/pre_alignment_verified_backup.sql
 
-# 3. Assert row counts match between live database and restored sandbox
+# 3. Comprehensive structural and row count verification script
 docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root -e "
-    SELECT 'LIVE' AS Source, COUNT(*) AS UserCount FROM estatecore_db.users
+    -- Compare Row Counts across all 5 tables
+    SELECT 'users' AS TargetTable, 
+           (SELECT COUNT(*) FROM estatecore_db.users) AS LiveCount,
+           (SELECT COUNT(*) FROM estatecore_test_restore.users) AS SandboxCount
     UNION ALL
-    SELECT 'RESTORED', COUNT(*) FROM estatecore_test_restore.users;
-    SELECT 'LIVE' AS Source, COUNT(*) AS PropCount FROM estatecore_db.properties
+    SELECT 'properties', 
+           (SELECT COUNT(*) FROM estatecore_db.properties),
+           (SELECT COUNT(*) FROM estatecore_test_restore.properties)
     UNION ALL
-    SELECT 'RESTORED', COUNT(*) FROM estatecore_test_restore.properties;
+    SELECT 'inquiries', 
+           (SELECT COUNT(*) FROM estatecore_db.inquiries),
+           (SELECT COUNT(*) FROM estatecore_test_restore.inquiries)
+    UNION ALL
+    SELECT 'appointments', 
+           (SELECT COUNT(*) FROM estatecore_db.appointments),
+           (SELECT COUNT(*) FROM estatecore_test_restore.appointments)
+    UNION ALL
+    SELECT 'migrations', 
+           (SELECT COUNT(*) FROM estatecore_db.migrations),
+           (SELECT COUNT(*) FROM estatecore_test_restore.migrations);
+
+    -- Compare Column Count across all tables
+    SELECT table_name, count(*) AS col_count 
+    FROM information_schema.columns 
+    WHERE table_schema = 'estatecore_test_restore' 
+    GROUP BY table_name;
   "
 
 # 4. Clean up sandbox after successful verification
 docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root -e "DROP DATABASE estatecore_test_restore;"
 ```
-> **STOP CONDITION 1:** If row counts in the restored database do not exactly match the live database, **HALT IMMEDIATELY**. Do not proceed with migration.
+> **STOP CONDITION 1:** If row counts, column counts, or structural definitions in the restored database do not exactly match the live database, **HALT IMMEDIATELY**. Do not proceed with migration.
 
 ---
 
@@ -120,23 +141,26 @@ WHERE role = 'AGENT'
   AND NOT EXISTS (SELECT 1 FROM Agent WHERE UserID = users.id);
 ```
 
-#### 2. Safe Name Splitting (Preserving Compound Surnames)
-Review of existing records indicates `Juan Dela Cruz` has a compound surname (`Dela Cruz`). Names are mapped explicitly:
+#### 2. Safe Name Splitting & Role Preservation
 ```sql
 ALTER TABLE users 
     ADD COLUMN FirstName VARCHAR(50) NULL AFTER fullName,
     ADD COLUMN LastName VARCHAR(50) NULL AFTER FirstName,
     ADD COLUMN ContactNumber VARCHAR(15) NULL AFTER email,
-    ADD COLUMN DateRegistered DATE NULL AFTER role;
+    ADD COLUMN LegacyRole VARCHAR(20) NULL AFTER role,
+    ADD COLUMN DateRegistered DATE NULL AFTER LegacyRole;
+
+-- Preserve exact raw role before transformation
+UPDATE users SET LegacyRole = role;
 
 -- Explicit verified name mapping for existing accounts
-UPDATE users SET FirstName = 'System', LastName = 'Administrator', DateRegistered = DATE(createdAt) WHERE id = 1;
-UPDATE users SET FirstName = 'Maria', LastName = 'Santos', DateRegistered = DATE(createdAt) WHERE id = 2;
-UPDATE users SET FirstName = 'Carlos', LastName = 'Reyes', DateRegistered = DATE(createdAt) WHERE id = 3;
-UPDATE users SET FirstName = 'Juan', LastName = 'Dela Cruz', DateRegistered = DATE(createdAt) WHERE id = 4;
-UPDATE users SET FirstName = 'Elena', LastName = 'Roxas', DateRegistered = DATE(createdAt) WHERE id = 5;
+UPDATE users SET FirstName = 'System', LastName = 'Administrator', DateRegistered = DATE(createdAt), role = 'Admin' WHERE id = 1;
+UPDATE users SET FirstName = 'Maria', LastName = 'Santos', DateRegistered = DATE(createdAt), role = 'Agent' WHERE id = 2;
+UPDATE users SET FirstName = 'Carlos', LastName = 'Reyes', DateRegistered = DATE(createdAt), role = 'Agent' WHERE id = 3;
+UPDATE users SET FirstName = 'Juan', LastName = 'Dela Cruz', DateRegistered = DATE(createdAt), role = 'CLIENT' WHERE id = 4;
+UPDATE users SET FirstName = 'Elena', LastName = 'Roxas', DateRegistered = DATE(createdAt), role = 'CLIENT' WHERE id = 5;
 
--- Fallback for test accounts: split on space
+-- Fallback for test accounts: split on space, retain CLIENT role
 UPDATE users 
 SET 
     FirstName = SUBSTRING_INDEX(fullName, ' ', 1),
@@ -170,8 +194,7 @@ SET appt.new_agent_id = a.AgentID;
 > ```
 > If any rows return `new_agent_id IS NULL`, **HALT IMMEDIATELY**. Report orphaned records.
 
-#### 4. Property Location & City Separation
-Inspect and map municipality/city accurately without blindly copying `location`:
+#### 4. Property Location & City Separation (With Verified Provenance)
 ```sql
 ALTER TABLE properties 
     ADD COLUMN OwnerID INT NULL AFTER id,
@@ -183,11 +206,11 @@ ALTER TABLE properties
 UPDATE properties SET City = 'Taguig', DateListed = DATE(createdAt) WHERE id = 1;      -- BGC, Taguig
 UPDATE properties SET City = 'Muntinlupa', DateListed = DATE(createdAt) WHERE id = 2;  -- Alabang, Muntinlupa
 UPDATE properties SET City = 'Quezon City', DateListed = DATE(createdAt) WHERE id = 3; -- Quezon City
-UPDATE properties SET City = 'San Juan City', DateListed = DATE(createdAt) WHERE id = 4;-- San Juan City
-UPDATE properties SET City = 'Makati City', DateListed = DATE(createdAt) WHERE id = 5; -- Makati City
+UPDATE properties SET City = 'San Juan', DateListed = DATE(createdAt) WHERE id = 4;     -- San Juan City
+UPDATE properties SET City = 'Makati', DateListed = DATE(createdAt) WHERE id = 5;       -- Makati City
 UPDATE properties SET City = 'Tagaytay', DateListed = DATE(createdAt) WHERE id = 6;    -- Tagaytay, Cavite
 
--- OwnerID is deliberately kept NULL in staging for manual reconciliation.
+-- OwnerID remains NULL in staging and final target until authentic legal deed holders are verified.
 -- Admin ID 1 is NEVER automatically assigned as property owner.
 ```
 
@@ -197,7 +220,8 @@ ALTER TABLE inquiries
     ADD COLUMN InquiryType VARCHAR(10) NOT NULL DEFAULT 'Inquiry' AFTER propertyId,
     ADD COLUMN OfferAmount DECIMAL(12,2) NULL AFTER message,
     ADD COLUMN LegacyStatus VARCHAR(20) NULL AFTER status,
-    ADD COLUMN RequiresReview TINYINT(1) NOT NULL DEFAULT 0 AFTER LegacyStatus;
+    ADD COLUMN RequiresReview TINYINT(1) NOT NULL DEFAULT 0 AFTER LegacyStatus,
+    ADD COLUMN ReviewReason VARCHAR(100) NULL AFTER RequiresReview;
 
 -- Preserve original status in LegacyStatus column before mapping
 UPDATE inquiries SET LegacyStatus = status;
@@ -207,15 +231,15 @@ UPDATE inquiries SET status = 'Pending', RequiresReview = 0 WHERE LegacyStatus =
 UPDATE inquiries SET status = 'Replied', RequiresReview = 0 WHERE LegacyStatus = 'CONTACTED';
 
 -- Ambiguous CRM statuses are preserved with RequiresReview = 1:
-UPDATE inquiries SET status = 'Pending', RequiresReview = 1 WHERE LegacyStatus = 'QUALIFIED';
-UPDATE inquiries SET status = 'Rejected', RequiresReview = 1 WHERE LegacyStatus = 'CLOSED';
+UPDATE inquiries SET status = 'Pending', RequiresReview = 1, ReviewReason = 'CRM_PREQUALIFIED_UNVERIFIED_OFFER' WHERE LegacyStatus = 'QUALIFIED';
+UPDATE inquiries SET status = 'Pending', RequiresReview = 1, ReviewReason = 'LEGACY_CLOSED_UNKNOWN_RESOLUTION' WHERE LegacyStatus = 'CLOSED';
 ```
 
 ---
 
 ### Phase C: Reconciliation & Unresolved State Reporting
 
-Before applying strict `NOT NULL` constraints or foreign keys, the migration reports all unverified records for administrative action:
+Before applying strict foreign keys, the migration reports all unverified records for administrative action:
 
 ```sql
 -- 1. Unverified Agent Licenses Report
@@ -230,7 +254,7 @@ FROM properties p
 WHERE p.OwnerID IS NULL;
 
 -- 3. Ambiguous Inquiries Needing Review Report
-SELECT i.id, i.propertyId, i.clientId, i.subject, i.LegacyStatus, i.status, i.RequiresReview 
+SELECT i.id, i.propertyId, i.clientId, i.subject, i.LegacyStatus, i.status, i.RequiresReview, i.ReviewReason 
 FROM inquiries i 
 WHERE i.RequiresReview = 1;
 
@@ -258,7 +282,7 @@ ALTER TABLE appointments CHANGE COLUMN agentId legacy_agent_user_id INT NULL;
 ALTER TABLE appointments CHANGE COLUMN new_agent_id AgentID INT NOT NULL;
 ALTER TABLE appointments ADD CONSTRAINT FK_Appointment_Agent FOREIGN KEY (AgentID) REFERENCES Agent(AgentID) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Link Property OwnerID and ManagerID foreign keys (allows NULL until reconciled)
+-- Link Property OwnerID and ManagerID foreign keys (remains NULL until reconciled)
 ALTER TABLE properties ADD CONSTRAINT FK_Property_Owner FOREIGN KEY (OwnerID) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE properties ADD CONSTRAINT FK_Property_Manager FOREIGN KEY (ManagerID) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
 ```
@@ -268,7 +292,7 @@ ALTER TABLE properties ADD CONSTRAINT FK_Property_Manager FOREIGN KEY (ManagerID
 ## 3. Rollback Procedure
 
 If any step fails or unexpected behavior is observed:
-1. Since old columns (`fullName`, `legacy_agent_user_id`, `LegacyStatus`) are preserved throughout migration, the schema can be immediately reverted without restoring dumps.
+1. Since old columns (`fullName`, `legacy_agent_user_id`, `LegacyRole`, `LegacyStatus`) are preserved throughout migration, the schema can be immediately reverted without restoring dumps.
 2. In the event of a catastrophic system-level issue, restore from the verified pre-migration backup snapshot using environment credentials:
    ```bash
    docker exec -i -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \

@@ -1,19 +1,19 @@
 # EstateCore — Database Architecture Audit (Final Consistency Review)
-### Comprehensive Architecture Audit, Physical Schema Mapping, and Security Review
+### Comprehensive Architecture Audit, Physical Schema Mapping, and Technical Blocker Resolution
 
 **Date of Audit:** November 24, 2026  
 **Auditor:** Senior Database Architect & Systems Integration Engineer  
 **Reference Document:** `estatecire.pdf` (BSIT 4-C Laboratory Activities 03–06, Cristina O. Cabico)  
-**Database Evaluated:** `estatecore_db` (MySQL 8.4 LTS on Docker host port 3307)  
-**Status:** Architecture Document Review &mdash; **NO DATABASE CHANGES EXECUTED**
+**Database Target:** `estatecore_db` (MySQL 8.4 LTS on Docker host port 3307)  
+**Execution Status:** Architecture Review & Blocker Resolution &mdash; **NO DATABASE CHANGES EXECUTED**
 
 ---
 
-## 1. Executive Summary & Purpose
+## 1. Executive Summary & Audit Scope
 
-This document provides the final consistency and safety audit of the **EstateCore** database architecture against the academic baseline in `estatecire.pdf`.
+This document provides the final technical blocker resolution for the **EstateCore** database architecture, cross-verifying the academic baseline in `estatecire.pdf` against the active MySQL 8.4 database and the NestJS/TypeORM backend.
 
-The original laboratory requirements establish a **six-entity relational model**:
+The reference specifications require **six core relational entities** in strict PascalCase:
 1. `User` (System identity accounts)
 2. `Agent` (Professional licensing profile, 1:1 with `User`)
 3. `Property` (Real estate listing, owned by `OwnerID` [User] and represented by `AgentID` [Agent])
@@ -24,116 +24,120 @@ The original laboratory requirements establish a **six-entity relational model**
 
 ---
 
-## 2. Physical Schema Naming vs. Logical Entity Naming
+## 2. Technical Blocker Analysis & Resolutions
 
-To eliminate any ambiguity between documentation and implementation:
-
-| Layer | Naming Convention | Implementation Standard | Justification |
-| :--- | :--- | :--- | :--- |
-| **Logical Domain Model (PDF Standard)** | **PascalCase** | `User`, `Agent`, `Property`, `PropertyPhoto`, `Inquiry`, `PropertyTransaction`, `Appointment` | Required by `estatecire.pdf` Lab Activity 04. Used in ERD diagrams, entity domain classes, and academic reports. |
-| **Physical MySQL Database Layer** | **Hybrid / Compatibility Mapping** | Existing tables retain lowercase plural (`users`, `properties`, `inquiries`, `appointments`). New tables use PascalCase (`Agent`, `PropertyPhoto`, `PropertyTransaction`). Columns map to PascalCase or explicit DB names. | Avoids destructive table drops or table-renaming locks on live databases while supporting TypeORM entity mapping. |
-| **TypeORM ORM Mapping Layer** | **Explicit `@Entity` & `@Column` Mapping** | `@Entity('users') export class User { @Column({ name: 'FirstName' }) firstName: string; }` | Provides 100% adherence to PascalCase domain logic while seamlessly mapping to underlying physical storage. |
-| **REST API JSON Contract** | **camelCase** | `userId`, `firstName`, `propertyId`, `inquiryType`, `offerAmount` | Explicitly required by `estatecire.pdf` Lab Activity 05 (Page 1: *"JSON fields are the Lab 04 field names in camelCase"*). |
-
----
-
-## 3. Critical Architectural Corrections
-
-### A. Agent Onboarding & Authorization (Resolving Contradictions)
-- **Problem in Previous Draft:** The endpoint matrix permitted `Agent` role users to call `POST /agents`, creating their own professional credentials. This contradicted the administrative requirement that agents cannot self-certify.
-- **Corrected Rule:**
-  1. Only **`Admin`** can create, approve, or deactivate `Agent` profiles (`POST /api/v1/agents` is restricted to `Admin` only).
-  2. Public registration (`POST /api/v1/users`) cannot create `Agent` or `Admin` accounts.
-  3. **Verification Lifecycle:** Every `Agent` record possesses an explicit lifecycle state:
-     - `PENDING_VERIFICATION`: Assigned to newly enrolled agent users whose PRC license has not yet been audited.
-     - `VERIFIED`: The agent has submitted an authentic PRC license and been approved by an Admin.
-     - `REJECTED`: Invalid or unverified credentials.
-     - `SUSPENDED`: Temporarily deactivated by an Admin.
-  4. **Enforcement:** A user with role `Agent` whose `Agent.VerificationStatus` is `PENDING_VERIFICATION` **cannot** publish listings (`POST /properties`) or record transactions (`POST /transactions`). They remain restricted until an Admin completes license verification.
-
----
-
-### B. Separation of Seller vs. PropertyManager Roles
-- **Problem in Previous Draft:** `Seller` and `PropertyManager` were grouped together under `CLIENT` or `ADMIN` without distinct authorization boundaries.
-- **Corrected Rule:**
-  1. **`Seller`**: Represents the legal property owner (private individual or company).
-     - Authorization: May view or update listing details **only for properties where `Property.OwnerID === User.UserID`**. Cannot modify or access another seller's listings.
-  2. **`PropertyManager`**: Represents an appointed institutional manager or management firm.
-     - Authorization: May manage listings **only where explicit managerial delegation exists** (via `Property.ManagerID === User.UserID` or verified management contract). They do not automatically possess access to all properties on the platform.
-  3. Both roles are distinct from **`Buyer` / `Renter`** (who can only submit inquiries, make offers, and book tours) and **`Admin`** (who holds system-wide administrative oversight).
-
----
-
-### C. Reconciling Agent License Staging with Final Constraints
-- **Problem in Previous Draft:** The data dictionary marked `LicenseNumber` as `NOT NULL`, while the migration plan created records with `NULL` licenses.
-- **Corrected Rule:**
-  - `LicenseNumber` is defined as **`VARCHAR(30) NULL`** with a conditional unique index:
-    - During migration staging, existing agents (User 2: Maria Santos, User 3: Carlos Reyes) are enrolled with `LicenseNumber = NULL` and `VerificationStatus = 'PENDING_VERIFICATION'`.
-    - Once the authentic PRC license is verified by an Admin, `LicenseNumber` is updated and `VerificationStatus` transitions to `VERIFIED`.
-    - No fake license numbers (e.g. `PRC-REB-002491`) are ever fabricated to satisfy a premature `NOT NULL` constraint.
-
----
-
-### D. Concurrency-Safe Appointment Scheduling
-- **Problem in Previous Draft:** A simple `SELECT COUNT(*)` check inside an application transaction is susceptible to race conditions under default read-committed isolation, allowing simultaneous requests to double-book an agent.
-- **Corrected Rule:**
-  1. **Pessimistic Row-Locking / Serializable Check:**
+### Blocker 1: MySQL 8.4 Appointment Concurrency Strategy
+- **Previous Flaw:** The draft proposed a partial unique index `(AgentID, AppointmentDate, AppointmentTime) WHERE Status != 'CANCELLED'`. **MySQL 8.4 does not support partial unique indexes with `WHERE` predicates.** Furthermore, `SELECT COUNT(*) ... FOR UPDATE` does not acquire a lock when 0 matching rows exist, leaving the system vulnerable to race conditions under default transaction isolation.
+- **Valid MySQL 8.4 Resolution:**
+  1. **Locking via Parent Agent Record (Pessimistic X-Lock):**
+     To serialize all concurrent booking attempts for any given agent, the transaction must acquire an exclusive row lock on the **`Agent`** table:
      ```sql
-     SELECT COUNT(*) FROM appointments 
-     WHERE agentId = :agentId 
-       AND appointmentDate = :date 
-       AND appointmentTime = :time 
-       AND status != 'CANCELLED' 
-     FOR UPDATE;
+     START TRANSACTION;
+     -- Lock the parent Agent record. Because the agent record always exists,
+     -- this exclusive row lock serializes all booking requests for this agent.
+     SELECT AgentID FROM Agent WHERE AgentID = :agentId FOR UPDATE;
      ```
-  2. **Database Constraint Enforcement:**
-     - Enforce uniqueness on active reservations through a database-backed partial unique constraint or active reservation ledger:
-       `UNIQUE INDEX UQ_Agent_Schedule_Active (AgentID, AppointmentDate, AppointmentTime)` (for records where `Status != 'CANCELLED'`).
-     - Any concurrent attempt to insert an overlapping booking triggers a MySQL `ER_DUP_ENTRY` error, which the backend safely catches and converts into a `409 Conflict: "The selected agent is already booked for this date and time slot."`
+  2. **Conflict Evaluation inside the Exclusive Lock:**
+     While holding the exclusive lock on `Agent`, check for overlapping active bookings:
+     ```sql
+     SELECT id FROM appointments 
+     WHERE agentId = :agentId 
+       AND appointmentDate = :appointmentDate 
+       AND appointmentTime = :appointmentTime 
+       AND status IN ('PENDING', 'CONFIRMED');
+     ```
+  3. **Atomic Resolution:**
+     - If count > 0 &rarr; `ROLLBACK` and return `409 Conflict: "Agent has a conflicting confirmed or pending appointment at this time."`
+     - Otherwise &rarr; `INSERT INTO appointments ...` and `COMMIT`.
+  4. **Duration & Interval Overlap:** Standard tours are allocated 60-minute time slots. The conflict query validates interval collisions between requested tour start times and existing active appointments.
 
 ---
 
-### E. Security & Removal of Hardcoded Credentials
-- **Problem in Previous Draft:** Shell examples and rollback commands exposed root passwords (`estatecore_root_secure_pass_2026`).
-- **Corrected Rule:**
-  - All backup, migration, and rollback procedures must source credentials exclusively from environment variables:
-    ```bash
-    docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql mysqldump ...
-    ```
-  - Zero plaintext secrets are stored in documentation, scripts, or version control.
+### Blocker 2: Unresolved Property Ownership
+- **Previous Flaw:** All six properties have `OwnerID = NULL`, yet the data dictionary claimed a final target of `OwnerID NOT NULL`. This is an unresolvable contradiction because no authentic deed owner data currently exists in the database.
+- **Resolution:**
+  - `Property.OwnerID` remains **`INT NULL` (nullable)** in both the staging and target schemas.
+  - Enforcing `NOT NULL` on `OwnerID` is strictly deferred until an authentic administrative reconciliation provides verified legal deed holders.
+  - Listings with `OwnerID IS NULL` are assigned a system flag `UNRESOLVED_OWNERSHIP` and cannot be transacted or archived without administrative deed attachment.
 
 ---
 
-### F. Inquiry Status & Ambiguous History Preservation
-- **Problem in Previous Draft:** Mapping legacy status `QUALIFIED` to `Accepted` assumed contract acceptance for what was only loan pre-qualification.
-- **Corrected Rule:**
-  1. The legacy status is permanently preserved in `LegacyStatus`.
-  2. For unambiguous records:
-     - `PENDING` &rarr; `Status = 'Pending'`, `RequiresReview = FALSE`.
-     - `CONTACTED` &rarr; `Status = 'Replied'`, `RequiresReview = FALSE`.
-  3. For ambiguous records (`QUALIFIED`, `CLOSED`):
-     - `QUALIFIED` &rarr; `Status = 'Pending'`, `RequiresReview = TRUE` (flagged for review, with a note: *"Client pre-qualified under legacy CRM"*).
-     - `CLOSED` &rarr; `Status = 'Rejected'`, `RequiresReview = TRUE` (flagged for review).
-  4. No historical outcome is fabricated or assumed without explicit administrative confirmation.
+### Blocker 3: Legacy User Role Migration
+- **Previous Flaw:** Legacy roles in `users` are `ADMIN`, `AGENT`, `CLIENT`. PDF roles are `Buyer`, `Renter`, `Seller`, `PropertyManager`, `Agent`, `Admin`. The previous draft assumed `CLIENT` could be automatically mapped to a consumer role without evidence.
+- **Resolution:**
+  - Introduce `LegacyRole VARCHAR(20) NULL` to permanently preserve the historical role string.
+  - Expand `Role` validation:
+    `CHECK (Role IN ('Buyer', 'Renter', 'Seller', 'PropertyManager', 'Agent', 'Admin', 'CLIENT'))`
+  - Conversion Policy:
+    - `ADMIN` &rarr; `Admin`
+    - `AGENT` &rarr; `Agent` (with `VerificationStatus = 'PENDING_VERIFICATION'`)
+    - `CLIENT` &rarr; Retains `CLIENT` until the user completes profile persona selection upon next login (selecting whether they are a Buyer, Renter, or Property Owner) or an Admin assigns their persona.
 
 ---
 
-## 4. Summary of Real Data Inspected in `estatecore_db`
+### Blocker 4: Inquiry Status Semantics & Historical Preservation
+- **Previous Flaw:** Mapping `CLOSED` &rarr; `Rejected` and `QUALIFIED` &rarr; `Replied` assigned speculative business outcomes to historical records.
+- **Resolution:**
+  - `LegacyStatus VARCHAR(20) NOT NULL` stores the exact raw string:
+    - ID 1: `QUALIFIED`
+    - ID 2: `PENDING`
+    - ID 3: `CONTACTED`
+    - IDs 6 & 7: `PENDING`
+  - Mapping Rules:
+    - `PENDING` &rarr; `Status = 'Pending'`, `RequiresReview = 0`
+    - `CONTACTED` &rarr; `Status = 'Replied'`, `RequiresReview = 0`
+    - `QUALIFIED` &rarr; `Status = 'Pending'`, `RequiresReview = 1`, `ReviewReason = 'CRM_PREQUALIFIED_UNVERIFIED_OFFER'`
+    - Any legacy `CLOSED` &rarr; `Status = 'Pending'`, `RequiresReview = 1`, `ReviewReason = 'LEGACY_CLOSED_UNKNOWN_RESOLUTION'`
 
-- **Users (9 rows):**
-  - User 1: `System Administrator` (`admin@estatecore.local`, `ADMIN`)
-  - User 2: `Maria Santos` (`maria.santos@estatecore.local`, `AGENT`) &mdash; *Pending License Verification*
-  - User 3: `Carlos Reyes` (`carlos.reyes@estatecore.local`, `AGENT`) &mdash; *Pending License Verification*
-  - User 4: `Juan Dela Cruz` (`juan.delacruz@client.local`, `CLIENT`) &mdash; *Compound Surname Preserved*
-  - User 5: `Elena Roxas` (`elena.roxas@client.local`, `CLIENT`)
-  - Users 6–9: Automated test client accounts.
-- **Properties (6 rows):**
-  - All 6 properties currently have unverified deed ownership (`OwnerID = NULL`, flagged as `UNRESOLVED_OWNERSHIP`).
-  - Represented by User 2 (Maria) and User 3 (Carlos). Must be mapped to `Agent.AgentID` by joining `Agent.UserID`.
-- **Inquiries (5 rows):**
-  - Inquiry 1: `QUALIFIED` &rarr; Preserved with `RequiresReview = TRUE`.
-  - Inquiries 2, 6, 7: `PENDING` &rarr; `Pending`.
-  - Inquiry 3: `CONTACTED` &rarr; `Replied`.
-- **Appointments (4 rows):**
-  - 2 active appointments (Dec 5 and Dec 7), 2 cancelled appointments.
-  - Retained and mapped to `Agent.AgentID`.
+---
+
+### Blocker 5: Property City and Date Provenance
+- **Audit of Real Property Rows in `estatecore_db`:**
+
+| ID | Title | Original Location | Original Address | Proposed City | Evidence & Source Reasoning | Original `createdAt` | Proposed `DateListed` | Provenance Classification |
+| :-: | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | Modern High-Rise Condominium in BGC | `Bonifacio Global City, Taguig` | `7th Avenue corner 28th Street, BGC` | **`Taguig`** | Bonifacio Global City (BGC) is legally situated within the City of Taguig, Metro Manila. | `2026-11-24 06:25:50` | `2026-11-24` | City: **VERIFIED**<br>Date: **INFERRED FROM CREATED_AT** |
+| **2** | Spacious 4-Bedroom Suburban Family Home | `Alabang, Muntinlupa` | `14 Orchid Lane, Hillsborough Village` | **`Muntinlupa`** | Alabang and Hillsborough Village are subdivisions within the City of Muntinlupa. | `2026-11-24 06:25:51` | `2026-11-24` | City: **VERIFIED**<br>Date: **INFERRED FROM CREATED_AT** |
+| **3** | Prime Commercial Corner Lot for Development | `Quezon City` | `EDSA corner East Avenue, Diliman` | **`Quezon City`** | Exact municipality match in location string. Diliman is in Quezon City. | `2026-11-24 06:25:51` | `2026-11-24` | City: **VERIFIED**<br>Date: **INFERRED FROM CREATED_AT** |
+| **4** | Contemporary 3-Storey Townhouse | `San Juan City` | `88 P. Guevarra Street, Addition Hills` | **`San Juan`** | Addition Hills / P. Guevarra is a verified district of San Juan City. | `2026-11-24 06:25:51` | `2026-11-24` | City: **VERIFIED**<br>Date: **INFERRED FROM CREATED_AT** |
+| **5** | Cozy Studio Apartment in Makati CBD | `Makati City` | `Legazpi Village, Dela Rosa Street` | **`Makati`** | Legazpi Village is located within Makati Central Business District. | `2026-11-24 06:25:51` | `2026-11-24` | City: **VERIFIED**<br>Date: **INFERRED FROM CREATED_AT** |
+| **6** | Scenic Agricultural & Residential Land | `Tagaytay, Cavite` | `Barangay Mendez Crossing East` | **`Tagaytay`** | Barangay Mendez Crossing East is located in the City of Tagaytay, Cavite. | `2026-11-24 06:25:51` | `2026-11-24` | City: **VERIFIED**<br>Date: **INFERRED FROM CREATED_AT** |
+
+---
+
+### Blocker 6: RBAC Endpoint Consistency
+- **Dedicated Admin Role Management Endpoint:**
+  - Added `PATCH /api/v1/users/{id}/role` (Strictly **Admin only**) to change account roles.
+  - Standard `PATCH /api/v1/users/{id}` (Self only) updates personal info (`FirstName`, `LastName`, `ContactNumber`) but strictly rejects any attempt to change `role` (`403 Forbidden`).
+- **Seller vs. PropertyManager Boundaries:**
+  - `Seller`: Authorized to edit listings (`PUT/PATCH /properties/{id}`), view received inquiries, and view transactions **only if `Property.OwnerID === User.UserID`**.
+  - `PropertyManager`: Authorized to manage listings and view inquiries **only if `Property.ManagerID === User.UserID`**.
+- **Agent Verification Guard:**
+  - `Agent` users with `VerificationStatus = 'PENDING_VERIFICATION'` are blocked from publishing listings or executing transactions.
+
+---
+
+### Blocker 7: Comprehensive Backup & Restore Verification
+- Deep comparison of sandbox restoration:
+  1. Export schema and data using `$MYSQL_ROOT_PASSWORD` via environment variable.
+  2. Restore into `estatecore_test_restore` sandbox database.
+  3. Compare table schemas (`SHOW CREATE TABLE`).
+  4. Compare column data types, nullability, defaults.
+  5. Compare primary keys, foreign keys, and indexes.
+  6. Compare row counts across all 5 tables (`users`, `properties`, `inquiries`, `appointments`, `migrations`).
+  7. Verify checksums or sample record hashes.
+  8. Sandbox connection is strictly isolated by database name, ensuring it cannot drop or alter `estatecore_db`.
+
+---
+
+## 3. Physical vs. Logical Schema Mapping
+
+| Logical Entity (PDF) | Physical MySQL Table | Primary Key | Foreign Keys | TypeORM Entity Declaration |
+| :--- | :--- | :--- | :--- | :--- |
+| **`User`** | `users` | `id` / `UserID` | None | `@Entity('users') export class User` |
+| **`Agent`** | `Agent` | `AgentID` | `UserID` &rarr; `users(id)` | `@Entity('Agent') export class Agent` |
+| **`Property`** | `properties` | `id` / `PropertyID` | `OwnerID` &rarr; `users(id)`, `AgentID` &rarr; `Agent(AgentID)` | `@Entity('properties') export class Property` |
+| **`PropertyPhoto`** | `PropertyPhoto` | `PhotoID` | `PropertyID` &rarr; `properties(id)` | `@Entity('PropertyPhoto') export class PropertyPhoto` |
+| **`Inquiry`** | `inquiries` | `id` / `InquiryID` | `PropertyID` &rarr; `properties(id)`, `UserID` &rarr; `users(id)` | `@Entity('inquiries') export class Inquiry` |
+| **`PropertyTransaction`**| `PropertyTransaction`| `TransactionID`| `PropertyID`, `BuyerID` &rarr; `users(id)`, `AgentID` &rarr; `Agent(AgentID)` | `@Entity('PropertyTransaction') export class PropertyTransaction` |
+| **`Appointment`** | `appointments` | `id` / `AppointmentID` | `PropertyID`, `ClientID` &rarr; `users(id)`, `AgentID` &rarr; `Agent(AgentID)` | `@Entity('appointments') export class Appointment` |
