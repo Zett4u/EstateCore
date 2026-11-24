@@ -1,24 +1,24 @@
-# EstateCore — Database Migration & Integrity Plan (Revised)
+# EstateCore — Database Migration & Integrity Plan (Final Consistency Version)
 ### Verified, Safe, Zero-Data-Loss Migration Architecture
 
-**Status:** Proposed Staged Migration Plan (Pending Explicit User Approval)  
-**Safety Mandate:** **Zero Data Loss. Zero Fabricated Data.**  
-- No hardcoded passwords in scripts.
+**Status:** Proposed Staged Migration Plan (Pending Explicit Human Approval)  
+**Safety Mandate:** **Zero Data Loss. Zero Fabricated Data. Zero Hardcoded Credentials.**  
+- Passwords are never placed in shell scripts, documentation, or Git commits. Environment variables are used exclusively (`$MYSQL_ROOT_PASSWORD`).
 - No invented PRC license numbers, fake phone numbers, fabricated transactions, or mock photos.
 - No automated assignment of property ownership to Admin.
 - Old columns are strictly preserved during staging until new relations are fully verified.
-- Backup restoration is verified in a separate test database before any migration is applied.
+- Backup restoration is verified in an isolated sandbox database before any migration is applied.
 
 ---
 
 ## 1. Pre-Migration Security & Backup Verification
 
 ### 1.1 Secure Snapshot (Using Environment Variables)
-Backups are performed reading credentials directly from the environment without exposing plaintext secrets in command lines or log files:
+Backups are performed reading credentials directly from the environment without exposing plaintext secrets:
 
 ```bash
-# Secure backup using container environment credentials
-docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+# Secure backup using environment variable
+docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysqldump -u root estatecore_db --single-transaction --quick \
   > database/exports/pre_alignment_verified_backup.sql
 ```
@@ -27,15 +27,15 @@ docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
 Before touching `estatecore_db`, the backup must be proven restorable in an isolated test database:
 ```bash
 # 1. Create temporary sandbox database
-docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root -e "DROP DATABASE IF EXISTS estatecore_test_restore; CREATE DATABASE estatecore_test_restore;"
 
 # 2. Test restore into sandbox
-docker exec -i -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+docker exec -i -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root estatecore_test_restore < database/exports/pre_alignment_verified_backup.sql
 
 # 3. Assert row counts match between live database and restored sandbox
-docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root -e "
     SELECT 'LIVE' AS Source, COUNT(*) AS UserCount FROM estatecore_db.users
     UNION ALL
@@ -46,7 +46,7 @@ docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
   "
 
 # 4. Clean up sandbox after successful verification
-docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
   mysql -u root -e "DROP DATABASE estatecore_test_restore;"
 ```
 > **STOP CONDITION 1:** If row counts in the restored database do not exactly match the live database, **HALT IMMEDIATELY**. Do not proceed with migration.
@@ -55,18 +55,19 @@ docker exec -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
 
 ## 2. Staged Migration Execution (Additive & Reversible)
 
-### Phase A: Additive Schema Creation (New Entities & Nullable Staging Fields)
+### Phase A: Additive Schema Creation (New Entities & Staging Fields)
 
-No existing tables or columns are dropped or renamed in this phase.
+No existing tables or columns are dropped or renamed in this phase. Existing tables retain physical names (`users`, `properties`, `inquiries`, `appointments`) to preserve zero-downtime application compatibility.
 
 ```sql
 -- Step 1: Create Agent table (1:1 with User)
--- LicenseNumber is declared NULL in staging to prevent fabricating PRC credentials
+-- LicenseNumber is NULL in staging; VerificationStatus is PENDING_VERIFICATION
 CREATE TABLE IF NOT EXISTS Agent (
     AgentID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL UNIQUE,
     LicenseNumber VARCHAR(30) NULL UNIQUE,
     AgencyName VARCHAR(100) NULL,
+    VerificationStatus ENUM('PENDING_VERIFICATION','VERIFIED','REJECTED','SUSPENDED') NOT NULL DEFAULT 'PENDING_VERIFICATION',
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT FK_Agent_User FOREIGN KEY (UserID) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -110,18 +111,17 @@ CREATE TABLE IF NOT EXISTS PropertyTransaction (
 ### Phase B: Verified ID Resolution & Data Transformation
 
 #### 1. Populate Agent Profiles for Verified Agents Only
-Only existing accounts with `role = 'AGENT'` are enrolled. `LicenseNumber` is recorded as `NULL` pending administrative verification:
+Existing accounts with `role = 'AGENT'` (User 2: Maria Santos, User 3: Carlos Reyes) are enrolled with `VerificationStatus = 'PENDING_VERIFICATION'` and `LicenseNumber = NULL`:
 ```sql
--- Create Agent profiles for verified agent accounts (User 2: Maria Santos; User 3: Carlos Reyes)
-INSERT INTO Agent (UserID, LicenseNumber, AgencyName)
-SELECT id, NULL, NULL 
+INSERT INTO Agent (UserID, LicenseNumber, AgencyName, VerificationStatus)
+SELECT id, NULL, NULL, 'PENDING_VERIFICATION' 
 FROM users 
 WHERE role = 'AGENT' 
   AND NOT EXISTS (SELECT 1 FROM Agent WHERE UserID = users.id);
 ```
 
 #### 2. Safe Name Splitting (Preserving Compound Surnames)
-Review of existing records indicates `Juan Dela Cruz` has a compound surname. Names are mapped explicitly:
+Review of existing records indicates `Juan Dela Cruz` has a compound surname (`Dela Cruz`). Names are mapped explicitly:
 ```sql
 ALTER TABLE users 
     ADD COLUMN FirstName VARCHAR(50) NULL AFTER fullName,
@@ -175,6 +175,7 @@ Inspect and map municipality/city accurately without blindly copying `location`:
 ```sql
 ALTER TABLE properties 
     ADD COLUMN OwnerID INT NULL AFTER id,
+    ADD COLUMN ManagerID INT NULL AFTER OwnerID,
     ADD COLUMN City VARCHAR(50) NULL AFTER address,
     ADD COLUMN DateListed DATE NULL AFTER status;
 
@@ -195,18 +196,19 @@ UPDATE properties SET City = 'Tagaytay', DateListed = DATE(createdAt) WHERE id =
 ALTER TABLE inquiries 
     ADD COLUMN InquiryType VARCHAR(10) NOT NULL DEFAULT 'Inquiry' AFTER propertyId,
     ADD COLUMN OfferAmount DECIMAL(12,2) NULL AFTER message,
-    ADD COLUMN LegacyStatus VARCHAR(20) NULL AFTER status;
+    ADD COLUMN LegacyStatus VARCHAR(20) NULL AFTER status,
+    ADD COLUMN RequiresReview TINYINT(1) NOT NULL DEFAULT 0 AFTER LegacyStatus;
 
 -- Preserve original status in LegacyStatus column before mapping
 UPDATE inquiries SET LegacyStatus = status;
 
 -- Map unambiguous statuses:
-UPDATE inquiries SET status = 'Pending' WHERE LegacyStatus = 'PENDING';
-UPDATE inquiries SET status = 'Replied' WHERE LegacyStatus = 'CONTACTED';
--- Flag ambiguous statuses (QUALIFIED, CLOSED) for review:
--- QUALIFIED represents a client with loan pre-approval, kept as 'Pending' with note or 'Replied'
-UPDATE inquiries SET status = 'Replied' WHERE LegacyStatus = 'QUALIFIED';
-UPDATE inquiries SET status = 'Rejected' WHERE LegacyStatus = 'CLOSED';
+UPDATE inquiries SET status = 'Pending', RequiresReview = 0 WHERE LegacyStatus = 'PENDING';
+UPDATE inquiries SET status = 'Replied', RequiresReview = 0 WHERE LegacyStatus = 'CONTACTED';
+
+-- Ambiguous CRM statuses are preserved with RequiresReview = 1:
+UPDATE inquiries SET status = 'Pending', RequiresReview = 1 WHERE LegacyStatus = 'QUALIFIED';
+UPDATE inquiries SET status = 'Rejected', RequiresReview = 1 WHERE LegacyStatus = 'CLOSED';
 ```
 
 ---
@@ -217,22 +219,26 @@ Before applying strict `NOT NULL` constraints or foreign keys, the migration rep
 
 ```sql
 -- 1. Unverified Agent Licenses Report
-SELECT a.AgentID, u.id AS UserID, u.email, u.fullName, a.LicenseNumber 
+SELECT a.AgentID, u.id AS UserID, u.email, u.fullName, a.LicenseNumber, a.VerificationStatus 
 FROM Agent a 
 JOIN users u ON a.UserID = u.id 
-WHERE a.LicenseNumber IS NULL;
+WHERE a.VerificationStatus = 'PENDING_VERIFICATION';
 
 -- 2. Unresolved Property Ownership Report
 SELECT p.id, p.title, p.price, p.City, p.OwnerID 
 FROM properties p 
 WHERE p.OwnerID IS NULL;
 
--- 3. Incomplete User Contact Numbers Report
+-- 3. Ambiguous Inquiries Needing Review Report
+SELECT i.id, i.propertyId, i.clientId, i.subject, i.LegacyStatus, i.status, i.RequiresReview 
+FROM inquiries i 
+WHERE i.RequiresReview = 1;
+
+-- 4. Incomplete User Contact Numbers Report
 SELECT id, email, fullName, ContactNumber 
 FROM users 
 WHERE ContactNumber IS NULL;
 ```
-*(These records remain fully functional under backward-compatible entity getters/setters while awaiting verified data).*
 
 ---
 
@@ -252,8 +258,9 @@ ALTER TABLE appointments CHANGE COLUMN agentId legacy_agent_user_id INT NULL;
 ALTER TABLE appointments CHANGE COLUMN new_agent_id AgentID INT NOT NULL;
 ALTER TABLE appointments ADD CONSTRAINT FK_Appointment_Agent FOREIGN KEY (AgentID) REFERENCES Agent(AgentID) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Link Property OwnerID foreign key (allows NULL until owner is reconciled)
+-- Link Property OwnerID and ManagerID foreign keys (allows NULL until reconciled)
 ALTER TABLE properties ADD CONSTRAINT FK_Property_Owner FOREIGN KEY (OwnerID) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE properties ADD CONSTRAINT FK_Property_Manager FOREIGN KEY (ManagerID) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
 ```
 
 ---
@@ -262,8 +269,8 @@ ALTER TABLE properties ADD CONSTRAINT FK_Property_Owner FOREIGN KEY (OwnerID) RE
 
 If any step fails or unexpected behavior is observed:
 1. Since old columns (`fullName`, `legacy_agent_user_id`, `LegacyStatus`) are preserved throughout migration, the schema can be immediately reverted without restoring dumps.
-2. In the event of a catastrophic system-level issue, restore from the verified pre-migration backup snapshot:
+2. In the event of a catastrophic system-level issue, restore from the verified pre-migration backup snapshot using environment credentials:
    ```bash
-   docker exec -i -e MYSQL_PWD=estatecore_root_secure_pass_2026 estatecore-mysql \
+   docker exec -i -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" estatecore-mysql \
      mysql -u root estatecore_db < database/exports/pre_alignment_verified_backup.sql
    ```

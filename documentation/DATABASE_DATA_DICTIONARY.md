@@ -1,20 +1,34 @@
-# EstateCore — Database Data Dictionary (Revised)
+# EstateCore — Database Data Dictionary (Final Consistency Version)
 ### Complete Technical Schema Specifications (Laboratory Activity 04 & Enterprise Implementation)
 
 **Database Management System:** MySQL 8.4 LTS  
 **Storage Engine:** InnoDB  
 **Character Set:** `utf8mb4`  
 **Collation:** `utf8mb4_unicode_ci`  
-**Naming Standard:** Strict PascalCase for all tables and column identifiers
+**Naming Standard:** Strict PascalCase for logical entity definitions; physical mappings clearly documented.
 
 ---
 
-## 1. Table: `User`
+## Physical vs. Logical Mapping Overview
+
+| Logical Entity (PDF) | Physical MySQL Table | Primary Key | Foreign Keys | TypeORM Entity Declaration |
+| :--- | :--- | :--- | :--- | :--- |
+| **`User`** | `users` | `id` / `UserID` | None | `@Entity('users') export class User` |
+| **`Agent`** | `Agent` | `AgentID` | `UserID` &rarr; `users(id)` | `@Entity('Agent') export class Agent` |
+| **`Property`** | `properties` | `id` / `PropertyID` | `OwnerID` &rarr; `users(id)`, `AgentID` &rarr; `Agent(AgentID)` | `@Entity('properties') export class Property` |
+| **`PropertyPhoto`** | `PropertyPhoto` | `PhotoID` | `PropertyID` &rarr; `properties(id)` | `@Entity('PropertyPhoto') export class PropertyPhoto` |
+| **`Inquiry`** | `inquiries` | `id` / `InquiryID` | `PropertyID` &rarr; `properties(id)`, `UserID` &rarr; `users(id)` | `@Entity('inquiries') export class Inquiry` |
+| **`PropertyTransaction`**| `PropertyTransaction`| `TransactionID`| `PropertyID`, `BuyerID` &rarr; `users(id)`, `AgentID` &rarr; `Agent(AgentID)` | `@Entity('PropertyTransaction') export class PropertyTransaction` |
+| **`Appointment`** | `appointments` | `id` / `AppointmentID` | `PropertyID`, `ClientID` &rarr; `users(id)`, `AgentID` &rarr; `Agent(AgentID)` | `@Entity('appointments') export class Appointment` |
+
+---
+
+## 1. Table: `User` (Physical Table: `users`)
 Stores system accounts for all participants: buyers, renters, sellers, property managers, licensed agents, and administrators.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| `UserID` | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique identity identifier across the entire platform |
+| `UserID` (`id`) | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique identity identifier across the entire platform |
 | `FirstName` | `VARCHAR` | 50 | **NO** | **NO** | Length: 1–50 | First / given name of the account holder |
 | `LastName` | `VARCHAR` | 50 | **NO** | **NO** | Length: 1–50 | Last / family surname (supports compound surnames e.g. "Dela Cruz") |
 | `Email` | `VARCHAR` | 100 | **NO** | **NO** | `UNIQUE`, Email format | Login identifier and notification email address |
@@ -27,40 +41,43 @@ Stores system accounts for all participants: buyers, renters, sellers, property 
 | `UpdatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` | Audit modification timestamp |
 
 **Indexes & Keys:**
-- `PRIMARY KEY (UserID)`
-- `UNIQUE INDEX UQ_User_Email (Email)`
-- `INDEX IDX_User_Role (Role)`
+- `PRIMARY KEY (id)`
+- `UNIQUE INDEX UQ_User_Email (email)`
+- `INDEX IDX_User_Role (role)`
 
 ---
 
-## 2. Table: `Agent`
+## 2. Table: `Agent` (Physical Table: `Agent`)
 Stores professional credentials and licensing records for real estate agents in 1:1 relationship with `User`.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | `AgentID` | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique agent record identifier |
-| `UserID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `User(UserID)`, `UNIQUE` | 1:1 link to User. User must hold `Agent` role |
-| `LicenseNumber`| `VARCHAR` | 30 | **YES** | **NO** | `UNIQUE` when non-null | Professional Regulation Commission (PRC) license number. **Nullable during staging** until verified; no fake numbers are fabricated. |
+| `UserID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `users(id)`, `UNIQUE` | 1:1 link to User. User must hold `Agent` role |
+| `LicenseNumber`| `VARCHAR` | 30 | **YES** | **NO** | `UNIQUE` when non-null | Professional Regulation Commission (PRC) license number. **Nullable during staging** while in `PENDING_VERIFICATION`. |
 | `AgencyName` | `VARCHAR` | 100 | **YES** | **YES** | Length: 1–100 | Brokerage, realty firm, or agency affiliation |
+| `VerificationStatus`| `ENUM` | - | **NO** | **NO** | `'PENDING_VERIFICATION'`, `'VERIFIED'`, `'REJECTED'`, `'SUSPENDED'` | Administrative license verification state. Default: `'PENDING_VERIFICATION'`. |
 | `CreatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP` | Audit creation timestamp |
 | `UpdatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` | Audit modification timestamp |
 
 **Foreign Key Rules:**
-- `FK_Agent_User`: `UserID` references `User(UserID)` ON DELETE RESTRICT ON UPDATE CASCADE.
+- `FK_Agent_User`: `UserID` references `users(id)` ON DELETE RESTRICT ON UPDATE CASCADE.
 **Indexes & Keys:**
 - `PRIMARY KEY (AgentID)`
 - `UNIQUE INDEX UQ_Agent_UserID (UserID)`
 - `UNIQUE INDEX UQ_Agent_LicenseNumber (LicenseNumber)`
+- `INDEX IDX_Agent_Status (VerificationStatus)`
 
 ---
 
-## 3. Table: `Property`
+## 3. Table: `Property` (Physical Table: `properties`)
 Represents real estate inventory cataloged for sale or lease.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| `PropertyID` | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique property listing identifier |
-| `OwnerID` | `INT` | 11 | **YES** | **NO** | `FOREIGN KEY` &rarr; `User(UserID)` | Seller or property manager who legally owns the asset. **Nullable during staging** until ownership is verified; not defaulted to Admin. |
+| `PropertyID` (`id`) | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique property listing identifier |
+| `OwnerID` | `INT` | 11 | **YES** | **NO** | `FOREIGN KEY` &rarr; `users(id)` | Seller who legally owns the asset. **Nullable during staging** until ownership is verified; not defaulted to Admin. |
+| `ManagerID` | `INT` | 11 | **YES** | **YES** | `FOREIGN KEY` &rarr; `users(id)` | Delegated property manager (optional). Allowed only for users holding `PropertyManager` role. |
 | `AgentID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Agent(AgentID)` | Licensed agent representing the listing. Resolved via `Agent.UserID` join. |
 | `Title` | `VARCHAR` | 150 | **NO** | **NO** | Length: 5–150 | Headline title of listing |
 | `PropertyType` | `VARCHAR` | 30 | **NO** | **NO** | `House`, `Condo`, `Townhouse`, `Apartment`, `Commercial`, `Land` | Architectural property classification |
@@ -79,73 +96,78 @@ Represents real estate inventory cataloged for sale or lease.
 | `UpdatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` | Record modification timestamp |
 
 **Foreign Key Rules:**
-- `FK_Property_Owner`: `OwnerID` references `User(UserID)` ON DELETE RESTRICT ON UPDATE CASCADE.
+- `FK_Property_Owner`: `OwnerID` references `users(id)` ON DELETE RESTRICT ON UPDATE CASCADE.
+- `FK_Property_Manager`: `ManagerID` references `users(id)` ON DELETE SET NULL ON UPDATE CASCADE.
 - `FK_Property_Agent`: `AgentID` references `Agent(AgentID)` ON DELETE RESTRICT ON UPDATE CASCADE.
 **Indexes & Keys:**
-- `PRIMARY KEY (PropertyID)`
+- `PRIMARY KEY (id)`
 - `INDEX IDX_Property_OwnerID (OwnerID)`
+- `INDEX IDX_Property_ManagerID (ManagerID)`
 - `INDEX IDX_Property_AgentID (AgentID)`
-- `INDEX IDX_Property_Status (Status)`
-- `INDEX IDX_Property_ListingType (ListingType)`
+- `INDEX IDX_Property_Status (status)`
+- `INDEX IDX_Property_ListingType (listingType)`
 - `INDEX IDX_Property_City (City)`
-- `INDEX IDX_Property_Price (Price)`
+- `INDEX IDX_Property_Price (price)`
 
 ---
 
-## 4. Table: `PropertyPhoto`
+## 4. Table: `PropertyPhoto` (Physical Table: `PropertyPhoto`)
 Stores photographic media galleries attached to property listings.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | `PhotoID` | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique photograph identifier |
-| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Property(PropertyID)` | Property shown in the photo |
+| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `properties(id)` | Property shown in the photo |
 | `FilePath` | `VARCHAR` | 255 | **NO** | **NO** | Length: 5–255 | Relative file storage path or CDN URI |
 | `DateUploaded`| `DATE` | - | **NO** | **NO** | Default current date | Calendar date photo was uploaded |
 | `CreatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP` | Row creation timestamp |
 
 **Foreign Key Rules:**
-- `FK_PropertyPhoto_Property`: `PropertyID` references `Property(PropertyID)` ON DELETE CASCADE ON UPDATE CASCADE.
+- `FK_PropertyPhoto_Property`: `PropertyID` references `properties(id)` ON DELETE CASCADE ON UPDATE CASCADE.
 **Indexes & Keys:**
 - `PRIMARY KEY (PhotoID)`
 - `INDEX IDX_PropertyPhoto_PropertyID (PropertyID)`
 
 ---
 
-## 5. Table: `Inquiry`
+## 5. Table: `Inquiry` (Physical Table: `inquiries`)
 Records prospect inquiries and purchase/lease price offers.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| `InquiryID` | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique inquiry identifier |
-| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Property(PropertyID)` | Property inquired about |
-| `UserID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `User(UserID)` | Prospective buyer or renter sender |
-| `InquiryType` | `VARCHAR` | 10 | **NO** | **NO** | `CHECK (InquiryType IN ('Inquiry', 'Offer'))` | Message classification |
+| `InquiryID` (`id`) | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique inquiry identifier |
+| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `properties(id)` | Property inquired about |
+| `UserID` (`clientId`) | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `users(id)` | Prospective buyer or renter sender |
+| `InquiryType` | `VARCHAR` | 10 | **NO** | **NO** | `CHECK (InquiryType IN ('Inquiry', 'Offer'))` | Message classification. Default: `'Inquiry'`. |
 | `Message` | `TEXT` | - | **NO** | **NO** | Length: 5–2000 | Inquirer's message or proposal details |
 | `OfferAmount` | `DECIMAL` | 12,2 | **YES** | **YES** | `CHECK (OfferAmount IS NULL OR OfferAmount > 0)` | Proposed financial offer; required only when `InquiryType = 'Offer'` |
 | `Status` | `VARCHAR` | 15 | **NO** | **NO** | `CHECK (Status IN ('Pending', 'Accepted', 'Rejected', 'Replied'))` | Current lifecycle state of inquiry |
+| `LegacyStatus` | `VARCHAR` | 20 | **YES** | **YES** | Permanent audit string | Preserves raw legacy status (`QUALIFIED`, `CONTACTED`, etc.) |
+| `RequiresReview`| `TINYINT` | 1 | **NO** | **NO** | Default `0` | Flag for ambiguous historical records needing agent review |
 | `DateSent` | `DATETIME` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP` | Date and time inquiry was submitted |
 | `CreatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP` | Record creation timestamp |
 | `UpdatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` | Status change timestamp |
 
 **Foreign Key Rules:**
-- `FK_Inquiry_Property`: `PropertyID` references `Property(PropertyID)` ON DELETE CASCADE ON UPDATE CASCADE.
-- `FK_Inquiry_User`: `UserID` references `User(UserID)` ON DELETE RESTRICT ON UPDATE CASCADE.
+- `FK_Inquiry_Property`: `PropertyID` references `properties(id)` ON DELETE CASCADE ON UPDATE CASCADE.
+- `FK_Inquiry_User`: `UserID` references `users(id)` ON DELETE RESTRICT ON UPDATE CASCADE.
 **Indexes & Keys:**
-- `PRIMARY KEY (InquiryID)`
-- `INDEX IDX_Inquiry_PropertyID (PropertyID)`
-- `INDEX IDX_Inquiry_UserID (UserID)`
-- `INDEX IDX_Inquiry_Status (Status)`
+- `PRIMARY KEY (id)`
+- `INDEX IDX_Inquiry_PropertyID (propertyId)`
+- `INDEX IDX_Inquiry_UserID (clientId)`
+- `INDEX IDX_Inquiry_Status (status)`
+- `INDEX IDX_Inquiry_Review (RequiresReview)`
 
 ---
 
-## 6. Table: `PropertyTransaction`
+## 6. Table: `PropertyTransaction` (Physical Table: `PropertyTransaction`)
 Auditable immutable deal ledger recording completed and pending sales and rentals.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | `TransactionID`| `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique transaction deal identifier |
-| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Property(PropertyID)` | Property involved in deal |
-| `BuyerID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `User(UserID)` | Buyer or tenant party entering deal |
+| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `properties(id)` | Property involved in deal |
+| `BuyerID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `users(id)` | Buyer or tenant party entering deal |
 | `AgentID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Agent(AgentID)` | Closing broker handling transaction |
 | `Amount` | `DECIMAL` | 12,2 | **NO** | **NO** | `CHECK (Amount > 0)` | Final transacted monetary amount in PHP |
 | `TransactionType`| `VARCHAR`| 10 | **NO** | **NO** | `CHECK (TransactionType IN ('Sale', 'Rent'))` | Deal classification |
@@ -156,8 +178,8 @@ Auditable immutable deal ledger recording completed and pending sales and rental
 | `UpdatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` | Status change timestamp |
 
 **Foreign Key Rules:**
-- `FK_Transaction_Property`: `PropertyID` references `Property(PropertyID)` ON DELETE RESTRICT ON UPDATE CASCADE.
-- `FK_Transaction_Buyer`: `BuyerID` references `User(UserID)` ON DELETE RESTRICT ON UPDATE CASCADE.
+- `FK_Transaction_Property`: `PropertyID` references `properties(id)` ON DELETE RESTRICT ON UPDATE CASCADE.
+- `FK_Transaction_Buyer`: `BuyerID` references `users(id)` ON DELETE RESTRICT ON UPDATE CASCADE.
 - `FK_Transaction_Agent`: `AgentID` references `Agent(AgentID)` ON DELETE RESTRICT ON UPDATE CASCADE.
 **Indexes & Keys:**
 - `PRIMARY KEY (TransactionID)`
@@ -168,14 +190,14 @@ Auditable immutable deal ledger recording completed and pending sales and rental
 
 ---
 
-## 7. Supporting Table: `Appointment`
-Preserves tour scheduling and on-site inspection workflows.
+## 7. Supporting Table: `Appointment` (Physical Table: `appointments`)
+Preserves tour scheduling and on-site inspection workflows with concurrency-safe conflict guards.
 
 | Column Name | SQL Data Type | Size / Precision | Nullable (Staging) | Nullable (Final Target) | Constraints / Defaults | Description & Domain Rules |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| `AppointmentID`| `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique viewing tour identifier |
-| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Property(PropertyID)` | Property scheduled for viewing |
-| `ClientID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `User(UserID)` | Prospective client attending tour |
+| `AppointmentID` (`id`) | `INT` | 11 | **NO** | **NO** | `PRIMARY KEY`, `AUTO_INCREMENT` | Unique viewing tour identifier |
+| `PropertyID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `properties(id)` | Property scheduled for viewing |
+| `ClientID` (`clientId`) | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `users(id)` | Prospective client attending tour |
 | `AgentID` | `INT` | 11 | **NO** | **NO** | `FOREIGN KEY` &rarr; `Agent(AgentID)` | Conducting agent (resolved via `Agent.UserID`) |
 | `AppointmentDate`| `DATE` | - | **NO** | **NO** | Valid calendar date | Date of physical visit |
 | `AppointmentTime`| `VARCHAR`| 20 | **NO** | **NO** | Valid time format (e.g. `10:00`, `14:30`) | Scheduled time of tour |
@@ -185,12 +207,12 @@ Preserves tour scheduling and on-site inspection workflows.
 | `UpdatedAt` | `TIMESTAMP` | - | **NO** | **NO** | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP` | Status change timestamp |
 
 **Foreign Key Rules:**
-- `FK_Appointment_Property`: `PropertyID` references `Property(PropertyID)` ON DELETE CASCADE.
-- `FK_Appointment_Client`: `ClientID` references `User(UserID)` ON DELETE RESTRICT.
+- `FK_Appointment_Property`: `PropertyID` references `properties(id)` ON DELETE CASCADE.
+- `FK_Appointment_Client`: `ClientID` references `users(id)` ON DELETE RESTRICT.
 - `FK_Appointment_Agent`: `AgentID` references `Agent(AgentID)` ON DELETE RESTRICT.
 **Indexes & Keys:**
-- `PRIMARY KEY (AppointmentID)`
-- `INDEX IDX_Appointment_PropertyID (PropertyID)`
-- `INDEX IDX_Appointment_ClientID (ClientID)`
+- `PRIMARY KEY (id)`
+- `INDEX IDX_Appointment_PropertyID (propertyId)`
+- `INDEX IDX_Appointment_ClientID (clientId)`
 - `INDEX IDX_Appointment_AgentID (AgentID)`
-- `INDEX IDX_Appointment_Schedule (AppointmentDate, AppointmentTime)`
+- `INDEX IDX_Appointment_Schedule (appointmentDate, appointmentTime)`
