@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstateCore — Final Project Defense Slides (ITEC 116)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #090d16; color: #f8fafc; }
+    .slide { display: none; min-height: 100vh; padding: 48px; box-sizing: border-box; }
+    .slide.active { display: flex; flex-direction: column; justify-content: space-between; }
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; }
+  </style>
+</head>
+<body class="overflow-hidden select-none">
+  <!-- Top Progress Bar -->
+  <div class="fixed top-0 left-0 right-0 h-1.5 bg-slate-800 z-50">
+    <div id="progress" class="h-full bg-blue-500 transition-all duration-300" style="width: 9%;"></div>
+  </div>
+
+  <!-- Main Presentation Slides Container -->
+  <main id="slides-container" class="relative w-full h-screen">
+
+    <!-- SLIDE 1: Title Slide -->
+    <div class="slide active" data-slide="1">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono tracking-wider">
+        <span>ITEC 116 — FINAL PROJECT PROTOTYPE</span>
+        <span>ACADEMIC YEAR 2026</span>
+      </div>
+      <div class="max-w-4xl mx-auto text-center space-y-6">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-900/50 border border-blue-700/50 text-blue-300 text-xs font-semibold">
+          <i class="fa-solid fa-building"></i>
+          <span>Systems Integration and Architecture 2</span>
+        </div>
+        <h1 class="text-6xl font-extrabold tracking-tight text-white leading-tight">
+          Estate<span class="text-blue-500">Core</span>
+        </h1>
+        <p class="text-2xl text-slate-300 font-light max-w-2xl mx-auto">
+          Full-Stack Real Estate Management Information System
+        </p>
+        <div class="pt-8 flex justify-center items-center gap-8 text-sm text-slate-400">
+          <div>
+            <span class="block text-xs uppercase text-slate-500 font-semibold">Course Instructor</span>
+            <span class="font-semibold text-slate-200">John Vincent A. Dallego, MIT</span>
+          </div>
+          <div class="w-px h-8 bg-slate-700"></div>
+          <div>
+            <span class="block text-xs uppercase text-slate-500 font-semibold">Project Type</span>
+            <span class="font-semibold text-slate-200">Individual Prototype & Defense</span>
+          </div>
+          <div class="w-px h-8 bg-slate-700"></div>
+          <div>
+            <span class="block text-xs uppercase text-slate-500 font-semibold">Technology Core</span>
+            <span class="font-semibold text-slate-200">NestJS • TypeORM • MySQL 8.4 • React</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-between items-center text-xs text-slate-500">
+        <span>Press <kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">Space</kbd> or <kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">→</kbd> to navigate</span>
+        <span class="slide-indicator font-mono">Slide 1 / 11</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Business Problem & Purpose -->
+    <div class="slide" data-slide="2">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>01 / EXECUTIVE PROBLEM STATEMENT</span>
+        <span class="slide-indicator">Slide 2 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Why EstateCore?</h2>
+          <p class="text-slate-400 text-sm mt-1">Solving structural communication gaps in modern real estate management.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-6">
+          <div class="glass-card p-6 space-y-3 border-l-4 border-red-500">
+            <i class="fa-solid fa-triangle-exclamation text-2xl text-red-400"></i>
+            <h3 class="text-lg font-semibold text-white">Operational Bottlenecks</h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Real estate brokerages struggle with fragmented inquiry tracking across informal messaging channels, resulting in lost deals and slow response times.
+            </p>
+          </div>
+          <div class="glass-card p-6 space-y-3 border-l-4 border-amber-500">
+            <i class="fa-solid fa-calendar-xmark text-2xl text-amber-400"></i>
+            <h3 class="text-lg font-semibold text-white">Viewing Schedule Conflicts</h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Without a synchronized scheduling engine, agents suffer double-booked property viewings, missed client appointments, and unverified past dates.
+            </p>
+          </div>
+          <div class="glass-card p-6 space-y-3 border-l-4 border-emerald-500">
+            <i class="fa-solid fa-shield-halved text-2xl text-emerald-400"></i>
+            <h3 class="text-lg font-semibold text-white">Security & Access Control</h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Public user registration must never compromise administrative or agent records. Server-side RBAC ensures strict isolation of privileges.
+            </p>
+          </div>
+        </div>
+        <div class="glass-card p-4 bg-blue-950/40 border-blue-800/60 text-sm text-blue-200 flex items-center gap-3">
+          <i class="fa-solid fa-bullseye text-blue-400 text-lg"></i>
+          <span><strong>Objective:</strong> Deliver a production-grade RESTful prototype with 22 endpoints, relational persistence in Docker, and a live React management dashboard.</span>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Systems Integration Prototype</div>
+    </div>
+
+    <!-- SLIDE 3: System Architecture -->
+    <div class="slide" data-slide="3">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>02 / SYSTEM ARCHITECTURE</span>
+        <span class="slide-indicator">Slide 3 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">3-Tier Multi-Layered Architecture</h2>
+          <p class="text-slate-400 text-sm mt-1">Decoupled client, enterprise backend, and containerized persistence.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-6">
+          <div class="glass-card p-6 space-y-4">
+            <span class="px-2 py-1 rounded bg-slate-800 text-xs font-mono text-cyan-400">Tier 1: Client Layer</span>
+            <h3 class="text-lg font-bold text-white">React 18 + Vite</h3>
+            <ul class="text-xs text-slate-300 space-y-2">
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Tailwind CSS Enterprise UI</li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Context API Auth & Token Storage</li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Postman API Test Suite (26 Tests)</li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Role-Guarded Dynamic Routing</li>
+            </ul>
+          </div>
+          <div class="glass-card p-6 space-y-4 border-t-2 border-blue-500">
+            <span class="px-2 py-1 rounded bg-slate-800 text-xs font-mono text-blue-400">Tier 2: Application Layer</span>
+            <h3 class="text-lg font-bold text-white">NestJS 10 (TypeScript)</h3>
+            <ul class="text-xs text-slate-300 space-y-2">
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Modular Dependency Injection</li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Passport JWT Authentication Strategy</li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>TypeORM Object-Relational Mapper</li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Global Whitelist ValidationPipe</li>
+            </ul>
+          </div>
+          <div class="glass-card p-6 space-y-4">
+            <span class="px-2 py-1 rounded bg-slate-800 text-xs font-mono text-purple-400">Tier 3: Persistence Layer</span>
+            <h3 class="text-lg font-bold text-white">MySQL 8.4 (Docker)</h3>
+            <ul class="text-xs text-slate-300 space-y-2">
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Docker Container: <code class="text-slate-200">estatecore-mysql</code></li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Host Port: <code class="text-slate-200">3307 -> 3306</code></li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Persistent Volume: <code class="text-slate-200">estatecore_mysql_data</code></li>
+              <li><i class="fa-solid fa-check text-blue-400 mr-2"></i>Database Health Check Monitored</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — High-Level Architecture</div>
+    </div>
+
+    <!-- SLIDE 4: Database Design & ERD -->
+    <div class="slide" data-slide="4">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>03 / DATABASE DESIGN & ERD</span>
+        <span class="slide-indicator">Slide 4 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Relational Data Architecture</h2>
+          <p class="text-slate-400 text-sm mt-1">Four core normalized tables with explicit foreign keys and cascade rules.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="glass-card p-5 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-white"><i class="fa-solid fa-users text-blue-400 mr-2"></i>users Table</h3>
+              <span class="text-xs text-slate-400 font-mono">Primary Table</span>
+            </div>
+            <p class="text-xs text-slate-300">Fields: <code class="text-blue-300">id, fullName, email, password, role, isActive, createdAt, updatedAt</code></p>
+            <p class="text-xs text-slate-400">Roles: <code class="text-slate-200">ADMIN, AGENT, CLIENT</code>. Passwords hashed using bcrypt (10 rounds) and hidden via <code class="text-slate-200">select: false</code>.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-white"><i class="fa-solid fa-building text-emerald-400 mr-2"></i>properties Table</h3>
+              <span class="text-xs text-slate-400 font-mono">Listing Portfolio</span>
+            </div>
+            <p class="text-xs text-slate-300">Fields: <code class="text-emerald-300">id, title, description, propertyType, listingType, price, location, address, agentId...</code></p>
+            <p class="text-xs text-slate-400">Indexed by location, price, and status. Foreign key <code class="text-slate-200">agentId -> users(id) ON DELETE SET NULL</code>.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-white"><i class="fa-solid fa-comments text-amber-400 mr-2"></i>inquiries Table</h3>
+              <span class="text-xs text-slate-400 font-mono">Communication Pipeline</span>
+            </div>
+            <p class="text-xs text-slate-300">Fields: <code class="text-amber-300">id, clientId, propertyId, assignedAgentId, subject, message, contactNumber, status...</code></p>
+            <p class="text-xs text-slate-400">Status lifecycle: <code class="text-slate-200">PENDING -> CONTACTED -> QUALIFIED -> CLOSED</code>.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-white"><i class="fa-solid fa-calendar-check text-purple-400 mr-2"></i>appointments Table</h3>
+              <span class="text-xs text-slate-400 font-mono">Viewing Scheduler</span>
+            </div>
+            <p class="text-xs text-slate-300">Fields: <code class="text-purple-300">id, propertyId, clientId, agentId, appointmentDate, appointmentTime, status, notes...</code></p>
+            <p class="text-xs text-slate-400">Enforces schedule conflict prevention and validates that appointments cannot be booked in the past.</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Database Schema</div>
+    </div>
+
+    <!-- SLIDE 5: Relational Normalization -->
+    <div class="slide" data-slide="5">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>04 / DATABASE NORMALIZATION (3NF)</span>
+        <span class="slide-indicator">Slide 5 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Relational Normalization Proof</h2>
+          <p class="text-slate-400 text-sm mt-1">Defensible academic structure eliminating anomalies and redundancy.</p>
+        </div>
+        <div class="space-y-4">
+          <div class="glass-card p-5 border-l-4 border-blue-500">
+            <h3 class="text-base font-bold text-white">First Normal Form (1NF) — Atomicity</h3>
+            <p class="text-xs text-slate-300 mt-1">Every column holds strictly atomic (indivisible) values. No repeating groups or serialized multi-value strings exist. Surrogate primary keys (<code class="text-blue-300">id</code>) uniquely identify each record.</p>
+          </div>
+          <div class="glass-card p-5 border-l-4 border-emerald-500">
+            <h3 class="text-base font-bold text-white">Second Normal Form (2NF) — Full Functional Dependency</h3>
+            <p class="text-xs text-slate-300 mt-1">All tables are in 1NF. Because all tables use single-attribute surrogate keys (<code class="text-emerald-300">id</code>), no partial functional dependencies can mathematically exist. Every non-key attribute depends entirely on the whole key.</p>
+          </div>
+          <div class="glass-card p-5 border-l-4 border-purple-500">
+            <h3 class="text-base font-bold text-white">Third Normal Form (3NF) — No Transitive Dependencies</h3>
+            <p class="text-xs text-slate-300 mt-1">All tables are in 2NF. No non-key attribute depends on another non-key attribute ($X \to Y$ and $Y \to Z$). Client names, agent contacts, and property locations are never duplicated inside <code class="text-purple-300">appointments</code> or <code class="text-purple-300">inquiries</code>; they are dynamically resolved through foreign key joins.</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Normalization Defense</div>
+    </div>
+
+    <!-- SLIDE 6: REST API Design -->
+    <div class="slide" data-slide="6">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>05 / REST API SPECIFICATION</span>
+        <span class="slide-indicator">Slide 6 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-4">
+        <div>
+          <h2 class="text-3xl font-bold text-white">22 Implemented REST Endpoints</h2>
+          <p class="text-slate-400 text-sm mt-0.5">Exceeding the mandatory minimum 20 endpoints required by ITEC 116.</p>
+        </div>
+        <div class="grid grid-cols-5 gap-3 text-xs">
+          <div class="glass-card p-3 space-y-2">
+            <span class="font-bold text-blue-400 block border-b border-slate-700 pb-1">Auth (3)</span>
+            <p><span class="text-green-400 font-bold">POST</span> /auth/register</p>
+            <p><span class="text-green-400 font-bold">POST</span> /auth/login</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /auth/me</p>
+          </div>
+          <div class="glass-card p-3 space-y-2">
+            <span class="font-bold text-cyan-400 block border-b border-slate-700 pb-1">Users (4)</span>
+            <p><span class="text-blue-400 font-bold">GET</span> /users</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /users/:id</p>
+            <p><span class="text-yellow-400 font-bold">PATCH</span> /users/:id</p>
+            <p><span class="text-red-400 font-bold">DEL</span> /users/:id</p>
+          </div>
+          <div class="glass-card p-3 space-y-2">
+            <span class="font-bold text-emerald-400 block border-b border-slate-700 pb-1">Properties (5)</span>
+            <p><span class="text-green-400 font-bold">POST</span> /properties</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /properties</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /properties/:id</p>
+            <p><span class="text-yellow-400 font-bold">PATCH</span> /properties/:id</p>
+            <p><span class="text-red-400 font-bold">DEL</span> /properties/:id</p>
+          </div>
+          <div class="glass-card p-3 space-y-2">
+            <span class="font-bold text-amber-400 block border-b border-slate-700 pb-1">Inquiries (5)</span>
+            <p><span class="text-green-400 font-bold">POST</span> /inquiries</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /inquiries</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /inquiries/:id</p>
+            <p><span class="text-yellow-400 font-bold">PATCH</span> /inquiries/:id</p>
+            <p><span class="text-red-400 font-bold">DEL</span> /inquiries/:id</p>
+          </div>
+          <div class="glass-card p-3 space-y-2">
+            <span class="font-bold text-purple-400 block border-b border-slate-700 pb-1">Appointments (5)</span>
+            <p><span class="text-green-400 font-bold">POST</span> /appointments</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /appointments</p>
+            <p><span class="text-blue-400 font-bold">GET</span> /appointments/:id</p>
+            <p><span class="text-yellow-400 font-bold">PATCH</span> /appointments/:id</p>
+            <p><span class="text-red-400 font-bold">DEL</span> /appointments/:id</p>
+          </div>
+        </div>
+        <div class="glass-card p-3 text-xs flex justify-between items-center text-slate-300">
+          <span>Supported HTTP Status Codes: <strong class="text-white">200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict</strong></span>
+          <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>26/26 Automated Tests Passed</span>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — REST Endpoints</div>
+    </div>
+
+    <!-- SLIDE 7: Authentication & Security -->
+    <div class="slide" data-slide="7">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>06 / AUTHENTICATION & SECURITY</span>
+        <span class="slide-indicator">Slide 7 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Stateless JWT & Role-Based Guards</h2>
+          <p class="text-slate-400 text-sm mt-1">Multi-layered security protecting administrative and business routes.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="glass-card p-6 space-y-3">
+            <h3 class="text-base font-bold text-blue-400"><i class="fa-solid fa-key mr-2"></i>JWT Authentication Workflow</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Upon successful login at <code class="text-blue-300">POST /api/auth/login</code>, the backend issues a cryptographically signed JWT containing claims (<code class="text-slate-300">sub: userId, email, role</code>). Clients present this in the <code class="text-slate-300">Authorization: Bearer &lt;token&gt;</code> header on all protected requests.
+            </p>
+            <div class="p-3 bg-slate-900 rounded font-mono text-xs text-slate-400 border border-slate-800">
+              Payload: { sub: 1, email: "admin@estatecore.local", role: "ADMIN" }
+            </div>
+          </div>
+          <div class="glass-card p-6 space-y-3">
+            <h3 class="text-base font-bold text-purple-400"><i class="fa-solid fa-user-shield mr-2"></i>Role-Based Access Control (RBAC)</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Enforced by <code class="text-purple-300">RolesGuard</code> and custom <code class="text-purple-300">@Roles()</code> decorator. Public registration strictly forces the user to the <code class="text-purple-300">CLIENT</code> role; administrative privilege assignment is restricted to verified administrators.
+            </p>
+            <div class="p-3 bg-slate-900 rounded font-mono text-xs text-slate-400 border border-slate-800">
+              @Roles(UserRole.ADMIN, UserRole.AGENT)<br>
+              async createProperty(@Body() dto, @CurrentUser() user)
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Security Architecture</div>
+    </div>
+
+    <!-- SLIDE 8: Live Backend Demonstration -->
+    <div class="slide" data-slide="8">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>07 / BACKEND DEMONSTRATION</span>
+        <span class="slide-indicator">Slide 8 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Live Execution Flow</h2>
+          <p class="text-slate-400 text-sm mt-1">Live demo sequence required for the video recording and oral presentation.</p>
+        </div>
+        <div class="grid grid-cols-4 gap-4 text-xs">
+          <div class="glass-card p-5 space-y-3 text-center">
+            <div class="w-10 h-10 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center mx-auto text-lg font-bold">1</div>
+            <h3 class="font-bold text-white">Startup Verification</h3>
+            <p class="text-slate-300"><code class="text-blue-300">npm run start:dev</code> launches NestJS on port 3000 with TypeORM connecting to Docker MySQL on port 3307.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3 text-center">
+            <div class="w-10 h-10 rounded-full bg-emerald-600/30 text-emerald-400 flex items-center justify-center mx-auto text-lg font-bold">2</div>
+            <h3 class="font-bold text-white">Authentication</h3>
+            <p class="text-slate-300"><code class="text-emerald-300">POST /api/auth/login</code> returns 200 OK and JWT access token. Stored into Postman variables.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3 text-center">
+            <div class="w-10 h-10 rounded-full bg-amber-600/30 text-amber-400 flex items-center justify-center mx-auto text-lg font-bold">3</div>
+            <h3 class="font-bold text-white">CRUD Testing</h3>
+            <p class="text-slate-300">Full Create, Read, Update, Delete live sequence tested across Properties and Inquiries with 200/201 responses.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3 text-center">
+            <div class="w-10 h-10 rounded-full bg-purple-600/30 text-purple-400 flex items-center justify-center mx-auto text-lg font-bold">4</div>
+            <h3 class="font-bold text-white">Security Validation</h3>
+            <p class="text-slate-300">Hitting <code class="text-purple-300">/api/auth/me</code> without a token yields <strong class="text-red-400">401 Unauthorized</strong>. Non-admin accessing users yields <strong class="text-red-400">403 Forbidden</strong>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Execution Verification</div>
+    </div>
+
+    <!-- SLIDE 9: Architectural Code Tracing -->
+    <div class="slide" data-slide="9">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>08 / ARCHITECTURAL CODE TRACING</span>
+        <span class="slide-indicator">Slide 9 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Data Flow Across System Layers</h2>
+          <p class="text-slate-400 text-sm mt-1">Tracing <code class="text-blue-400">POST /api/properties</code> through every architectural layer.</p>
+        </div>
+        <div class="glass-card p-6 space-y-4">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-slate-700 pb-3">
+            <span class="text-blue-400 font-bold">1. Postman / Client</span>
+            <span class="text-slate-500">→</span>
+            <span class="text-cyan-400 font-bold">2. PropertiesController</span>
+            <span class="text-slate-500">→</span>
+            <span class="text-emerald-400 font-bold">3. PropertiesService</span>
+            <span class="text-slate-500">→</span>
+            <span class="text-amber-400 font-bold">4. TypeORM Repository</span>
+            <span class="text-slate-500">→</span>
+            <span class="text-purple-400 font-bold">5. MySQL 8.4 Database</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-xs text-slate-300">
+            <div>
+              <p class="font-semibold text-white mb-1"><i class="fa-solid fa-code text-blue-400 mr-1.5"></i>Controller Handling:</p>
+              <p class="text-slate-400">Interprets HTTP request, verifies <code class="text-slate-200">JwtAuthGuard</code> and <code class="text-slate-200">RolesGuard</code>, runs DTO validation pipe, and passes typed data to the service.</p>
+            </div>
+            <div>
+              <p class="font-semibold text-white mb-1"><i class="fa-solid fa-gears text-emerald-400 mr-1.5"></i>Business Logic Service:</p>
+              <p class="text-slate-400">Enforces ownership rules: forces <code class="text-slate-200">agentId = user.id</code> if the creator is an AGENT. Prevents unauthorized assignment.</p>
+            </div>
+            <div>
+              <p class="font-semibold text-white mb-1"><i class="fa-solid fa-database text-amber-400 mr-1.5"></i>Repository Mapping:</p>
+              <p class="text-slate-400">TypeORM converts TypeScript entity to parameterized SQL <code class="text-slate-200">INSERT INTO properties (...) VALUES (...)</code>.</p>
+            </div>
+            <div>
+              <p class="font-semibold text-white mb-1"><i class="fa-solid fa-server text-purple-400 mr-1.5"></i>ACID Database Execution:</p>
+              <p class="text-slate-400">MySQL commits transaction to disk volume and returns auto-generated surrogate key <code class="text-slate-200">id</code> back out to the response.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Layer Walkthrough</div>
+    </div>
+
+    <!-- SLIDE 10: Frontend Management Dashboard -->
+    <div class="slide" data-slide="10">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>09 / FRONTEND PROTOTYPE OVERVIEW</span>
+        <span class="slide-indicator">Slide 10 / 11</span>
+      </div>
+      <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div>
+          <h2 class="text-3xl font-bold text-white">Full-Stack React Integration</h2>
+          <p class="text-slate-400 text-sm mt-1">Live management dashboard wired directly to the NestJS backend.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-6">
+          <div class="glass-card p-5 space-y-3">
+            <h3 class="font-bold text-white text-base"><i class="fa-solid fa-chart-line text-purple-400 mr-2"></i>Admin Dashboard</h3>
+            <p class="text-xs text-slate-300">Live system counters for total listings, available units, pending viewings, and full user accounts administration.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3">
+            <h3 class="font-bold text-white text-base"><i class="fa-solid fa-briefcase text-blue-400 mr-2"></i>Agent Workspace</h3>
+            <p class="text-xs text-slate-300">Filtered view showing only listings assigned to the logged-in agent, active client inquiries, and viewing tour confirmation.</p>
+          </div>
+          <div class="glass-card p-5 space-y-3">
+            <h3 class="font-bold text-white text-base"><i class="fa-solid fa-user text-emerald-400 mr-2"></i>Client Portal</h3>
+            <p class="text-xs text-slate-300">Property search and filter catalog, submission of inquiries, and scheduling on-site property viewing appointments.</p>
+          </div>
+        </div>
+        <div class="glass-card p-4 text-xs text-slate-400 flex items-center justify-between">
+          <span>Frontend URL: <strong class="text-white">http://localhost:5173</strong> • Built with React 18, Vite, and Tailwind CSS</span>
+          <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-plug mr-1"></i>100% Live REST API Wired</span>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">EstateCore — Frontend Integration</div>
+    </div>
+
+    <!-- SLIDE 11: Conclusion & Defense Readiness -->
+    <div class="slide" data-slide="11">
+      <div class="flex justify-between items-center text-xs text-slate-400 font-mono">
+        <span>10 / CONCLUSION & SUMMARY</span>
+        <span class="slide-indicator">Slide 11 / 11</span>
+      </div>
+      <div class="max-w-4xl mx-auto text-center space-y-6">
+        <div class="w-16 h-16 rounded-2xl bg-blue-600/30 text-blue-400 flex items-center justify-center mx-auto text-3xl">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h2 class="text-4xl font-extrabold text-white">Prototype Complete & Defensible</h2>
+        <p class="text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          EstateCore satisfies all mandatory requirements for ITEC 116: 22 production REST endpoints, MySQL 8.4 in Docker, TypeORM migrations, stateless JWT security, automated Postman testing, and an integrated React frontend.
+        </p>
+        <div class="grid grid-cols-3 gap-4 text-left max-w-2xl mx-auto text-xs text-slate-300 pt-4">
+          <div class="p-3 bg-slate-900/60 rounded border border-slate-800">
+            <span class="block text-slate-500 font-semibold mb-1">Deliverables</span>
+            <span>Documentation (PDF/MD), Postman JSON, SQL Export, Git Repo</span>
+          </div>
+          <div class="p-3 bg-slate-900/60 rounded border border-slate-800">
+            <span class="block text-slate-500 font-semibold mb-1">Test Status</span>
+            <span class="text-emerald-400 font-semibold">26/26 Tests Passed (100%)</span>
+          </div>
+          <div class="p-3 bg-slate-900/60 rounded border border-slate-800">
+            <span class="block text-slate-500 font-semibold mb-1">Git Commits</span>
+            <span class="text-blue-400 font-semibold">6 Verified Commits</span>
+          </div>
+        </div>
+        <div class="pt-6">
+          <p class="text-lg font-bold text-white">Thank you for your guidance and evaluation!</p>
+          <p class="text-xs text-slate-400 mt-1">Open for Questions and Technical Discussion (Q&A)</p>
+        </div>
+      </div>
+      <div class="flex justify-between items-center text-xs text-slate-500">
+        <span>Press <kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">F</kbd> for Fullscreen</span>
+        <span class="slide-indicator font-mono">Slide 11 / 11</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Presentation Navigation Controller Script -->
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 11;
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      document.querySelectorAll('.slide').forEach((el) => {
+        el.classList.remove('active');
+        if (parseInt(el.getAttribute('data-slide')) === currentSlide) {
+          el.classList.add('active');
+        }
+      });
+
+      const progress = (currentSlide / totalSlides) * 100;
+      document.getElementById('progress').style.width = progress + '%';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        showSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        showSlide(currentSlide - 1);
+      } else if (e.key === 'Home') {
+        showSlide(1);
+      } else if (e.key === 'End') {
+        showSlide(totalSlides);
+      } else if (e.key.toLowerCase() === 'f') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      // Advance slide on click unless clicking link or button
+      if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'KBD') {
+        showSlide(currentSlide + 1);
+      }
+    });
+  </script>
+</body>
+</html>
