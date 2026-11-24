@@ -38,11 +38,21 @@ const DashboardRedirect: React.FC = () => {
 
 /**
  * Adaptive layout for Property Catalog & Detail routes:
+ * - While auth is resolving: Displays a minimal loading state to prevent layout flashing
  * - If user is authenticated: Renders inside DashboardLayout (preserving sidebar & workspace context)
  * - If user is unauthenticated (guest): Renders inside PublicLayout (public website header & footer)
  */
 const AdaptiveCatalogLayout: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-700"></div>
+      </div>
+    );
+  }
+
   return user ? <DashboardLayout /> : <PublicLayout />;
 };
 
