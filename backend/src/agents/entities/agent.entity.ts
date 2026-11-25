@@ -35,7 +35,7 @@ export class Agent {
   @Column({ type: 'varchar', length: 50, nullable: true })
   licenseNumber: string | null;
 
-  @Column({ type: 'varchar', length: 150, nullable: true, default: 'Independent' })
+  @Column({ type: 'varchar', length: 150, nullable: true })
   agencyName: string | null;
 
   @Column({

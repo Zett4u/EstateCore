@@ -39,7 +39,7 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
         \`id\` int NOT NULL AUTO_INCREMENT,
         \`userId\` int NOT NULL,
         \`licenseNumber\` varchar(50) NULL,
-        \`agencyName\` varchar(150) NULL DEFAULT 'Independent',
+        \`agencyName\` varchar(150) NULL,
         \`verificationStatus\` enum('PENDING_VERIFICATION', 'VERIFIED', 'REJECTED') NOT NULL DEFAULT 'PENDING_VERIFICATION',
         \`specialization\` varchar(150) NULL,
         \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -53,10 +53,10 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
     // 3. Safe mapping: Insert Agent profiles strictly for users with role = 'AGENT'
     // Maria Santos (UserID=2) -> AgentID=1
     // Carlos Reyes (UserID=3) -> AgentID=2
-    // License numbers remain NULL until verified credentials are provided
+    // License numbers and agency affiliations remain strictly NULL until verified credentials exist
     await queryRunner.query(`
-      INSERT INTO \`agents\` (\`userId\`,\`agencyName\`, \`verificationStatus\`, \`licenseNumber\`)
-      SELECT \`id\`, 'EstateCore Realty', 'PENDING_VERIFICATION', NULL
+      INSERT INTO \`agents\` (\`userId\`, \`agencyName\`, \`verificationStatus\`, \`licenseNumber\`)
+      SELECT \`id\`, NULL, 'PENDING_VERIFICATION', NULL
       FROM \`users\`
       WHERE \`role\` = 'AGENT' AND \`id\` NOT IN (SELECT \`userId\` FROM \`agents\`)
       ORDER BY \`id\` ASC;

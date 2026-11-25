@@ -16,7 +16,7 @@ export interface AgentResponse {
   fullName: string;
   email: string;
   licenseNumber: string | null;
-  agencyName: string;
+  agencyName: string | null;
   verificationStatus: string;
   isActive: boolean;
   createdAt: Date;
@@ -39,7 +39,7 @@ export class AgentsService {
       fullName: agent.user ? agent.user.fullName : '',
       email: agent.user ? agent.user.email : '',
       licenseNumber: agent.licenseNumber,
-      agencyName: agent.agencyName || 'Independent',
+      agencyName: agent.agencyName || null,
       verificationStatus: agent.verificationStatus,
       isActive: agent.user ? agent.user.isActive : true,
       createdAt: agent.createdAt,
@@ -87,7 +87,7 @@ export class AgentsService {
     const newAgent = this.agentRepository.create({
       userId: targetUser.id,
       licenseNumber: createAgentDto.licenseNumber || null,
-      agencyName: createAgentDto.agencyName || 'EstateCore Realty',
+      agencyName: createAgentDto.agencyName || null,
       verificationStatus: AgentVerificationStatus.PENDING_VERIFICATION,
     });
     const saved = await this.agentRepository.save(newAgent);
