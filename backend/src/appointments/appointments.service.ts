@@ -55,12 +55,13 @@ export class AppointmentsService {
 
     const property = await this.propertyRepository.findOne({
       where: { id: createAppointmentDto.propertyId },
+      relations: ['agent'],
     });
     if (!property) {
       throw new NotFoundException(`Property with ID ${createAppointmentDto.propertyId} not found.`);
     }
 
-    const agentId = createAppointmentDto.agentId || property.agentId;
+    const agentId = createAppointmentDto.agentId || (property.agent ? property.agent.userId : property.agentId);
     if (!agentId) {
       throw new BadRequestException('This property does not have an assigned agent. Please contact support.');
     }

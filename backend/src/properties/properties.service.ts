@@ -28,33 +28,67 @@ export class PropertiesService {
     private readonly agentRepository: Repository<Agent>,
   ) {}
 
-  private async validateAgent(agentId: number): Promise<User> {
-    const agent = await this.userRepository.findOne({ where: { id: agentId } });
+  private async validateAgent(agentId: number): Promise<Agent> {
+    const agent = await this.agentRepository.findOne({
+      where: { id: agentId },
+      relations: ['user'],
+    });
     if (!agent) {
       throw new BadRequestException(`Assigned agent with ID ${agentId} does not exist.`);
     }
-    if (agent.role !== UserRole.AGENT && agent.role !== UserRole.ADMIN) {
-      throw new BadRequestException(`User '${agent.fullName}' (ID ${agentId}) is a CLIENT and cannot be assigned as a property agent.`);
-    }
-    if (!agent.isActive) {
-      throw new BadRequestException(`Agent '${agent.fullName}' (ID ${agentId}) is deactivated.`);
+    if (agent.user && !agent.user.isActive) {
+      throw new BadRequestException(`Agent with ID ${agentId} is deactivated.`);
     }
     return agent;
   }
 
-  async create(createPropertyDto: CreatePropertyDto, user: User): Promise<Property> {
-    let assignedAgentId = user.id;
+  private deriveCity(location: string): string {
+    if (!location) return '';
+    if (location.includes('Taguig') || location.includes('BGC')) return 'Taguig';
+    if (location.includes('Makati')) return 'Makati';
+    if (location.includes('Muntinlupa') || location.includes('Alabang')) return 'Muntinlupa';
+    if (location.includes('Quezon')) return 'Quezon City';
+    if (location.includes('San Juan')) return 'San Juan City';
+    if (location.includes('Cavite')) return 'Cavite';
+    if (location.includes('Batangas')) return 'Batangas';
+    return location;
+  }
 
-    if (user.role === UserRole.ADMIN && createPropertyDto.agentId) {
-      await this.validateAgent(createPropertyDto.agentId);
-      assignedAgentId = createPropertyDto.agentId;
+  async create(createPropertyDto: CreatePropertyDto, user: User): Promise<Property> {
+    let assignedAgentId: number | null = null;
+    let ownerId: number | null = null;
+
+    if (user.role === UserRole.ADMIN) {
+      if (createPropertyDto.agentId) {
+        await this.validateAgent(createPropertyDto.agentId);
+        assignedAgentId = createPropertyDto.agentId;
+      }
+      ownerId = createPropertyDto.ownerId || null;
     } else if (user.role === UserRole.AGENT) {
-      assignedAgentId = user.id; // Strictly force agent's own ID
+      const agentProfile = await this.agentRepository.findOne({ where: { userId: user.id } });
+      if (!agentProfile) {
+        throw new ForbiddenException('You do not have an active professional Agent profile.');
+      }
+      assignedAgentId = agentProfile.id;
+      ownerId = createPropertyDto.ownerId || null;
+    } else if (user.role === UserRole.CLIENT) {
+      // Property Owner capability: Client owns their created listing
+      ownerId = user.id;
+      if (createPropertyDto.agentId) {
+        await this.validateAgent(createPropertyDto.agentId);
+        assignedAgentId = createPropertyDto.agentId;
+      } else {
+        assignedAgentId = null;
+      }
     }
+
+    const city = createPropertyDto.city || this.deriveCity(createPropertyDto.location);
 
     const property = this.propertyRepository.create({
       ...createPropertyDto,
       agentId: assignedAgentId,
+      ownerId,
+      city,
     });
     return this.propertyRepository.save(property);
   }
@@ -62,27 +96,9 @@ export class PropertiesService {
   async findAll(query: QueryPropertyDto): Promise<Property[]> {
     const qb = this.propertyRepository.createQueryBuilder('property')
       .leftJoinAndSelect('property.agent', 'agent')
-      .select([
-        'property.id',
-        'property.title',
-        'property.description',
-        'property.propertyType',
-        'property.listingType',
-        'property.price',
-        'property.location',
-        'property.address',
-        'property.bedrooms',
-        'property.bathrooms',
-        'property.floorArea',
-        'property.lotArea',
-        'property.status',
-        'property.agentId',
-        'property.createdAt',
-        'property.updatedAt',
-        'agent.id',
-        'agent.fullName',
-        'agent.email',
-      ]);
+      .leftJoinAndSelect('agent.user', 'agentUser')
+      .leftJoinAndSelect('property.photos', 'photos')
+      .leftJoinAndSelect('property.owner', 'owner');
 
     if (query.search) {
       qb.andWhere(
@@ -122,21 +138,33 @@ export class PropertiesService {
       qb.andWhere('property.price <= :maxPrice', { maxPrice: query.maxPrice });
     }
 
-    return qb.orderBy('property.createdAt', 'DESC').getMany();
+    const properties = await qb.orderBy('property.createdAt', 'DESC').getMany();
+    return properties.map((p) => {
+      if (p.agent && (p.agent as any).user) {
+        delete (p.agent as any).user.password;
+      }
+      if (p.owner) {
+        delete (p.owner as any).password;
+      }
+      return p;
+    });
   }
 
   async findOne(id: number): Promise<Property> {
     const property = await this.propertyRepository.findOne({
       where: { id },
-      relations: ['agent'],
+      relations: ['agent', 'agent.user', 'photos', 'owner'],
     });
 
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found.`);
     }
 
-    if (property.agent) {
-      delete (property.agent as any).password;
+    if (property.agent && (property.agent as any).user) {
+      delete (property.agent as any).user.password;
+    }
+    if (property.owner) {
+      delete (property.owner as any).password;
     }
 
     return property;
@@ -145,17 +173,52 @@ export class PropertiesService {
   async update(id: number, updatePropertyDto: UpdatePropertyDto, user: User): Promise<Property> {
     const property = await this.findOne(id);
 
-    // Ownership check: Admin can update any, Agent only their assigned listings
-    if (user.role === UserRole.AGENT && property.agentId !== user.id) {
-      throw new ForbiddenException('You are not authorized to update properties assigned to other agents.');
+    if (user.role === UserRole.ADMIN) {
+      // Admin can update everything and reassign agent or owner
+      if (updatePropertyDto.agentId !== undefined && updatePropertyDto.agentId !== property.agentId) {
+        if (updatePropertyDto.agentId !== null) {
+          await this.validateAgent(updatePropertyDto.agentId);
+        }
+      }
+      if (updatePropertyDto.ownerId !== undefined && updatePropertyDto.ownerId !== property.ownerId) {
+        if (updatePropertyDto.ownerId !== null) {
+          const owner = await this.userRepository.findOne({ where: { id: updatePropertyDto.ownerId } });
+          if (!owner) {
+            throw new BadRequestException(`Owner with ID ${updatePropertyDto.ownerId} does not exist.`);
+          }
+        }
+      }
+    } else if (user.role === UserRole.AGENT) {
+      // Agent can only update listings assigned to them
+      const agentProfile = await this.agentRepository.findOne({ where: { userId: user.id } });
+      if (!agentProfile || property.agentId !== agentProfile.id) {
+        throw new ForbiddenException('You are not authorized to update properties assigned to other agents.');
+      }
+      if (updatePropertyDto.agentId !== undefined && updatePropertyDto.agentId !== property.agentId) {
+        throw new ForbiddenException('Only administrators can reassign properties to a different agent.');
+      }
+      if (updatePropertyDto.ownerId !== undefined && updatePropertyDto.ownerId !== property.ownerId) {
+        throw new ForbiddenException('Only administrators can reassign property owners.');
+      }
+      delete updatePropertyDto.agentId;
+      delete updatePropertyDto.ownerId;
+    } else if (user.role === UserRole.CLIENT) {
+      // Client / Property Owner can only update listings they own
+      if (property.ownerId !== user.id) {
+        throw new ForbiddenException('You are not authorized to update properties owned by other users.');
+      }
+      if (updatePropertyDto.agentId !== undefined && updatePropertyDto.agentId !== property.agentId) {
+        throw new ForbiddenException('Only administrators can reassign properties to a different agent.');
+      }
+      if (updatePropertyDto.ownerId !== undefined && updatePropertyDto.ownerId !== property.ownerId) {
+        throw new ForbiddenException('Only administrators can reassign property owners.');
+      }
+      delete updatePropertyDto.agentId;
+      delete updatePropertyDto.ownerId;
     }
 
-    if (user.role !== UserRole.ADMIN && updatePropertyDto.agentId && updatePropertyDto.agentId !== property.agentId) {
-      throw new ForbiddenException('Only administrators can reassign properties to a different agent.');
-    }
-
-    if (user.role === UserRole.ADMIN && updatePropertyDto.agentId && updatePropertyDto.agentId !== property.agentId) {
-      await this.validateAgent(updatePropertyDto.agentId);
+    if (updatePropertyDto.location && !updatePropertyDto.city) {
+      updatePropertyDto.city = this.deriveCity(updatePropertyDto.location);
     }
 
     Object.assign(property, updatePropertyDto);
@@ -165,8 +228,17 @@ export class PropertiesService {
   async remove(id: number, user: User): Promise<{ message: string; id: number }> {
     const property = await this.findOne(id);
 
-    if (user.role === UserRole.AGENT && property.agentId !== user.id) {
-      throw new ForbiddenException('You are not authorized to delete properties assigned to other agents.');
+    if (user.role === UserRole.ADMIN) {
+      // Admin can remove any
+    } else if (user.role === UserRole.AGENT) {
+      const agentProfile = await this.agentRepository.findOne({ where: { userId: user.id } });
+      if (!agentProfile || property.agentId !== agentProfile.id) {
+        throw new ForbiddenException('You are not authorized to delete properties assigned to other agents.');
+      }
+    } else if (user.role === UserRole.CLIENT) {
+      if (property.ownerId !== user.id) {
+        throw new ForbiddenException('You are not authorized to delete properties owned by other users.');
+      }
     }
 
     await this.propertyRepository.remove(property);
@@ -178,12 +250,17 @@ export class PropertiesService {
 
   async addPhoto(id: number, photoDto: any, user: User) {
     const property = await this.findOne(id);
-    if (user.role === UserRole.AGENT) {
-      // Find the agent profile corresponding to current user
+
+    if (user.role === UserRole.ADMIN) {
+      // Admin can add photo to any listing
+    } else if (user.role === UserRole.AGENT) {
       const agentProfile = await this.agentRepository.findOne({ where: { userId: user.id } });
-      const isOwner = property.agentId === user.id || (agentProfile && property.agentId === agentProfile.id);
-      if (!isOwner) {
+      if (!agentProfile || property.agentId !== agentProfile.id) {
         throw new ForbiddenException('You are not authorized to upload photos to listings assigned to other agents.');
+      }
+    } else if (user.role === UserRole.CLIENT) {
+      if (property.ownerId !== user.id) {
+        throw new ForbiddenException('You are not authorized to upload photos to properties owned by other users.');
       }
     }
 

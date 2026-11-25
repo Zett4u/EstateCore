@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Query,
+  Param,
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -23,5 +24,13 @@ export class TransactionsController {
   ): Promise<PropertyTransactionResponse[]> {
     const propId = propertyId ? parseInt(propertyId, 10) : undefined;
     return this.transactionsService.findAll(user, propId);
+  }
+
+  @Get(':id')
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ): Promise<PropertyTransactionResponse> {
+    return this.transactionsService.findOne(id, user);
   }
 }

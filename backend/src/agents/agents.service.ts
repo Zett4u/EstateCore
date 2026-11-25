@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -102,6 +103,12 @@ export class AgentsService {
     });
     if (!agent) {
       throw new NotFoundException(`Agent with ID ${id} was not found.`);
+    }
+
+    if (currentUser.role !== UserRole.ADMIN) {
+      if (currentUser.role !== UserRole.AGENT || agent.userId !== currentUser.id) {
+        throw new ForbiddenException('You can only update your own professional agent profile.');
+      }
     }
 
     if (updateAgentDto.agencyName !== undefined) {

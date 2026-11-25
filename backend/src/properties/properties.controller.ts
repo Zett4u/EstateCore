@@ -35,7 +35,7 @@ export class PropertiesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createPropertyDto: CreatePropertyDto,
@@ -56,7 +56,7 @@ export class PropertiesController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   async updatePut(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePropertyDto: UpdatePropertyDto,
@@ -67,7 +67,7 @@ export class PropertiesController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePropertyDto: UpdatePropertyDto,
@@ -78,7 +78,7 @@ export class PropertiesController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: User,
@@ -89,7 +89,7 @@ export class PropertiesController {
   // Nested Endpoint 1: POST /api/v1/properties/:id/photos (PDF Lab 05 EP-17)
   @Post(':id/photos')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   @HttpCode(HttpStatus.CREATED)
   async uploadPhoto(
     @Param('id', ParseIntPipe) id: number,

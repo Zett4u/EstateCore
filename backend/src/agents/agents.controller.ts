@@ -57,9 +57,6 @@ export class AgentsController {
     @Body() updateAgentDto: UpdateAgentDto,
     @CurrentUser() currentUser: User,
   ): Promise<AgentResponse> {
-    if (currentUser.role !== UserRole.ADMIN && currentUser.id !== id) {
-      throw new ForbiddenException('You can only update your own professional agent profile.');
-    }
     return this.agentsService.update(id, updateAgentDto, currentUser);
   }
 }

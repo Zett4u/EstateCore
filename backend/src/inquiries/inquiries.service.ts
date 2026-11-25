@@ -28,12 +28,13 @@ export class InquiriesService {
 
     const property = await this.propertyRepository.findOne({
       where: { id: createInquiryDto.propertyId },
+      relations: ['agent'],
     });
     if (!property) {
       throw new NotFoundException(`Property with ID ${createInquiryDto.propertyId} does not exist.`);
     }
 
-    const assignedAgentId = createInquiryDto.assignedAgentId || property.agentId || null;
+    const assignedAgentId = createInquiryDto.assignedAgentId || (property.agent ? property.agent.userId : property.agentId) || null;
 
     const inquiry = this.inquiryRepository.create({
       clientId: user.id,
@@ -77,7 +78,7 @@ export class InquiriesService {
       ]);
 
     if (user.role === UserRole.CLIENT) {
-      qb.andWhere('inquiry.clientId = :clientId', { clientId: user.id });
+      qb.andWhere('(inquiry.clientId = :clientId OR property.ownerId = :clientId)', { clientId: user.id });
     } else if (user.role === UserRole.AGENT) {
       qb.andWhere('inquiry.assignedAgentId = :agentId', { agentId: user.id });
     }
@@ -97,8 +98,12 @@ export class InquiriesService {
     }
 
     // Role-based visibility check
-    if (user.role === UserRole.CLIENT && inquiry.clientId !== user.id) {
-      throw new ForbiddenException('You are not authorized to view inquiries from other clients.');
+    if (user.role === UserRole.CLIENT) {
+      const isClient = inquiry.clientId === user.id;
+      const isOwner = inquiry.property && inquiry.property.ownerId === user.id;
+      if (!isClient && !isOwner) {
+        throw new ForbiddenException('You are not authorized to view inquiries from other clients.');
+      }
     }
     if (user.role === UserRole.AGENT && inquiry.assignedAgentId !== user.id) {
       throw new ForbiddenException('You are not authorized to view inquiries assigned to other agents.');

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -75,6 +75,30 @@ export class TransactionsService {
     qb.orderBy('tx.createdAt', 'DESC');
     const transactions = await qb.getMany();
     return transactions.map((t) => this.mapToResponse(t));
+  }
+
+  async findOne(id: number, user: User): Promise<PropertyTransactionResponse> {
+    const tx = await this.transactionRepository.findOne({
+      where: { id },
+      relations: ['property', 'buyer', 'agent'],
+    });
+
+    if (!tx) {
+      throw new NotFoundException(`Transaction with ID ${id} not found.`);
+    }
+
+    if (user.role === UserRole.CLIENT && tx.buyerId !== user.id) {
+      throw new ForbiddenException('You are not authorized to view this transaction.');
+    } else if (user.role === UserRole.AGENT) {
+      const agentProfile = await this.agentRepository.findOne({
+        where: { userId: user.id },
+      });
+      if (!agentProfile || tx.agentId !== agentProfile.id) {
+        throw new ForbiddenException('You are not authorized to view this transaction.');
+      }
+    }
+
+    return this.mapToResponse(tx);
   }
 
   async create(data: {
