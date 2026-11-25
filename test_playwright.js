@@ -298,22 +298,22 @@ async function runPlaywrightSuite() {
     // -------------------------------------------------------------
     await testStep('Public / Authenticated Agents Directory renders accredited agents', async () => {
       await page.goto('http://localhost:5173/agents', { waitUntil: 'networkidle' });
-      await page.waitForSelector('text=Accredited Real Estate Agents');
+      await page.waitForSelector('text=Licensed Real Estate Agents');
       await page.waitForSelector('text=Maria Santos');
       await page.screenshot({ path: path.join(EVIDENCE_DIR, '13_agents_directory.png') });
     });
 
     await testStep('Transactions Dashboard renders financial ledger & deal recording controls', async () => {
       await page.goto('http://localhost:5173/transactions', { waitUntil: 'networkidle' });
-      await page.waitForSelector('text=Property Transactions & Closing Ledger');
+      await page.waitForSelector('text=Property Transactions');
       await page.waitForSelector('text=Total Volume');
       await page.screenshot({ path: path.join(EVIDENCE_DIR, '14_transactions_dashboard.png') });
     });
 
     await testStep('Property Detail displays photo gallery and interactive offer workflow', async () => {
       await page.goto('http://localhost:5173/properties/1', { waitUntil: 'networkidle' });
-      await page.waitForSelector('text=Property Gallery');
-      await page.waitForSelector('button:has-text("Submit Formal Offer")');
+      await page.waitForSelector('text=Photo Gallery');
+      await page.waitForSelector('button:has-text("Make an Offer")');
       await page.screenshot({ path: path.join(EVIDENCE_DIR, '15_property_detail_phase5.png') });
     });
 
