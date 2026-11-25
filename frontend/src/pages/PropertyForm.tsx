@@ -44,7 +44,8 @@ export const PropertyForm: React.FC = () => {
           const prop = await api.getProperty(Number(id));
 
           // Strict ownership check: AGENT cannot edit listings assigned to another agent
-          if (user?.role === 'AGENT' && prop.agentId !== user.id) {
+          const assignedAgentUserId = prop.agent?.userId ?? prop.agent?.user?.id;
+          if (user?.role === 'AGENT' && (!assignedAgentUserId || assignedAgentUserId !== user.id)) {
             setAuthError('You are not authorized to edit properties assigned to other agents.');
             alert('Access Denied: You are not authorized to edit properties assigned to other agents.');
             navigate('/properties', { replace: true });

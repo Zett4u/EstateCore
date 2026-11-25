@@ -1,0 +1,106 @@
+{
+  "phase": "4.0",
+  "name": "Frontend Authorization Remediation, Regression Testing & Independent Acceptance",
+  "academicReference": "estatecire.pdf (Labs 03, 04, 05, 06)",
+  "branch": "feature/phase4-frontend-authorization-remediation",
+  "baseCommit": "c3d82d9810b3e1f2dd0bad63507efcd0b9919d92",
+  "timestamp": "2026-11-25T07:27:00.000Z",
+  "remediation": {
+    "defect": "Agent identity collision (user.id vs agent.id mismatch in frontend authorization guards)",
+    "affectedFiles": [
+      "frontend/src/types/index.ts",
+      "frontend/src/pages/PropertyForm.tsx",
+      "frontend/src/pages/PropertiesList.tsx",
+      "frontend/src/pages/PropertyDetail.tsx"
+    ],
+    "failClosedPolicyEnforced": true,
+    "fallbackLogic": "prop.agent?.userId ?? prop.agent?.user?.id"
+  },
+  "playwrightSuite": {
+    "totalTests": 24,
+    "passed": 24,
+    "failed": 0,
+    "successRate": "100.0%",
+    "consoleErrors": 0,
+    "regressionTests": [
+      {
+        "id": 15,
+        "name": "NEGATIVE OWNERSHIP: Agent cross-editing property owned by another agent/admin is denied",
+        "actor": "Maria Santos (user.id=2, agent.id=1)",
+        "target": "Property 3 (Carlos Reyes listing, agentId=2)",
+        "action": "GET /properties/3/edit",
+        "expected": "Redirect to /properties",
+        "actual": "Redirect to /properties",
+        "status": "PASSED"
+      },
+      {
+        "id": 16,
+        "name": "REGRESSION COLLISION: Agent Maria editing unassigned property (Fail closed) is denied",
+        "actor": "Maria Santos (user.id=2, agent.id=1)",
+        "target": "Property 17 (Unassigned listing, agentId=null)",
+        "action": "GET /properties/17/edit",
+        "expected": "Redirect to /properties",
+        "actual": "Redirect to /properties",
+        "status": "PASSED"
+      },
+      {
+        "id": 17,
+        "name": "REGRESSION COLLISION: Agent Maria accessing her own assigned Property 1 edit form is allowed",
+        "actor": "Maria Santos (user.id=2, agent.id=1)",
+        "target": "Property 1 (Maria Santos listing, agentId=1)",
+        "action": "GET /properties/1/edit",
+        "expected": "Form renders with title 'Luxury Villa in Makati'",
+        "actual": "Form renders with title 'Luxury Villa in Makati'",
+        "status": "PASSED"
+      },
+      {
+        "id": 18,
+        "name": "REGRESSION COLLISION: Agent Carlos accessing his own assigned Property 3 edit form is allowed",
+        "actor": "Carlos Reyes (user.id=3, agent.id=2)",
+        "target": "Property 3 (Carlos Reyes listing, agentId=2)",
+        "action": "GET /properties/3/edit",
+        "expected": "Form renders with title 'Modern Townhouse'",
+        "actual": "Form renders with title 'Modern Townhouse'",
+        "status": "PASSED"
+      }
+    ]
+  },
+  "backendSecuritySuite": {
+    "totalTests": 60,
+    "passed": 60,
+    "failed": 0,
+    "successRate": "100.0%",
+    "target": "estatecore_test_restore (MySQL port 3307)",
+    "categories": {
+      "auth": "5/5 passed",
+      "publicAndUnauth": "12/12 passed",
+      "agentIsolation": "14/14 passed",
+      "clientOwnership": "17/17 passed",
+      "transactions": "8/8 passed",
+      "adminAuthority": "4/4 passed"
+    }
+  },
+  "databaseSafetyAudit": {
+    "liveDatabase": "estatecore_db",
+    "liveTablesCount": 5,
+    "liveTables": [
+      "appointments",
+      "inquiries",
+      "migrations",
+      "properties",
+      "users"
+    ],
+    "liveMigrationsCount": 1,
+    "liveRowCount": {
+      "users": 11,
+      "properties": 8,
+      "inquiries": 7,
+      "appointments": 4,
+      "migrations": 1
+    },
+    "phase2SchemaAppliedToLive": false,
+    "backupChecksum": "32ce36ec92d4d330bb07b542411b62923dc7671b1908daae577090b0ece12d36",
+    "liveDatabaseUntouched": true
+  },
+  "verdict": "APPROVED FOR HUMAN REVIEW"
+}

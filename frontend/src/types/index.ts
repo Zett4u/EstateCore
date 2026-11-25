@@ -29,10 +29,13 @@ export interface Property {
   lotArea: number;
   status: PropertyStatus;
   agentId: number | null;
+  ownerId?: number | null;
   agent?: {
     id: number;
-    fullName: string;
-    email: string;
+    fullName?: string;
+    email?: string;
+    userId?: number;
+    user?: User;
   };
   createdAt: string;
   updatedAt: string;

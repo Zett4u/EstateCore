@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-11-25T06:18:28.034Z",
+  "timestamp": "2026-11-25T07:25:09.151Z",
   "backup": {
     "path": "database/exports/phase2_verified_backup.sql",
-    "sizeBytes": 30734,
-    "sha256": "acc78083067e281359d09f35ab3e535ad0d819ef5ee0fff5993605d7a7a0aa1e"
+    "sizeBytes": 15366,
+    "sha256": "32ce36ec92d4d330bb07b542411b62923dc7671b1908daae577090b0ece12d36"
   },
   "liveServer": {
     "currentDb": "estatecore_db",

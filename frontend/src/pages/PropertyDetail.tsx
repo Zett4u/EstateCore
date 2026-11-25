@@ -142,7 +142,8 @@ export const PropertyDetail: React.FC = () => {
     );
   }
 
-  const isOwner = user?.role === 'ADMIN' || (user?.role === 'AGENT' && property.agentId === user.id);
+  const assignedAgentUserId = property.agent?.userId ?? property.agent?.user?.id;
+  const isOwner = user?.role === 'ADMIN' || (user?.role === 'AGENT' && assignedAgentUserId === user.id) || (user?.role === 'CLIENT' && property.ownerId === user.id);
   const imageSrc = getPropertyImage(property.id, property.propertyType);
   const containerClasses = user
     ? 'space-y-8'
