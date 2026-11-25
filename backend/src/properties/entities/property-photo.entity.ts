@@ -33,4 +33,9 @@ export class PropertyPhoto {
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
+
+  // Academic PDF compliance getter
+  get dateUploaded(): Date {
+    return this.createdAt;
+  }
 }

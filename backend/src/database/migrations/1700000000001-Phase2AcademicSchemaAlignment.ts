@@ -4,7 +4,7 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
   name = 'Phase2AcademicSchemaAlignment1700000000001';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 0. Database Safety Check: refuse execution against live estatecore_db without override
+    // 0. Database Safety Check: refuse execution against live estatecore_db without explicit authorization
     const currentDb = (queryRunner.connection.options as any).database;
     if (currentDb === 'estatecore_db' && process.env.ALLOW_LIVE_MIGRATION !== 'true') {
       throw new Error(
@@ -12,7 +12,28 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       );
     }
 
-    // 1. Create `agents` table
+    // 1. Academic Schema Alignment for `users`: add firstName, lastName, and contactNumber
+    await queryRunner.query(`
+      ALTER TABLE \`users\`
+      ADD COLUMN \`firstName\` varchar(100) NULL AFTER \`fullName\`,
+      ADD COLUMN \`lastName\` varchar(100) NULL AFTER \`firstName\`,
+      ADD COLUMN \`contactNumber\` varchar(50) NULL AFTER \`email\`;
+    `);
+
+    // Deterministically populate firstName and lastName from existing fullName
+    await queryRunner.query(`
+      UPDATE \`users\`
+      SET \`firstName\` = CASE
+        WHEN LOCATE(' ', \`fullName\`) > 0 THEN SUBSTRING_INDEX(\`fullName\`, ' ', 1)
+        ELSE \`fullName\`
+      END,
+      \`lastName\` = CASE
+        WHEN LOCATE(' ', \`fullName\`) > 0 THEN TRIM(SUBSTRING(\`fullName\`, LOCATE(' ', \`fullName\`) + 1))
+        ELSE ''
+      END;
+    `);
+
+    // 2. Create `agents` table
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS \`agents\` (
         \`id\` int NOT NULL AUTO_INCREMENT,
@@ -29,19 +50,19 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // 2. Safe mapping: Insert Agent profiles for all existing users with role = 'AGENT'
+    // 3. Safe mapping: Insert Agent profiles strictly for users with role = 'AGENT'
     // Maria Santos (UserID=2) -> AgentID=1
     // Carlos Reyes (UserID=3) -> AgentID=2
     // License numbers remain NULL until verified credentials are provided
     await queryRunner.query(`
-      INSERT INTO \`agents\` (\`userId\`, \`agencyName\`, \`verificationStatus\`, \`licenseNumber\`)
+      INSERT INTO \`agents\` (\`userId\`,\`agencyName\`, \`verificationStatus\`, \`licenseNumber\`)
       SELECT \`id\`, 'EstateCore Realty', 'PENDING_VERIFICATION', NULL
       FROM \`users\`
       WHERE \`role\` = 'AGENT' AND \`id\` NOT IN (SELECT \`userId\` FROM \`agents\`)
       ORDER BY \`id\` ASC;
     `);
 
-    // 3. Add `ownerId` and `city` to `properties`
+    // 4. Add `ownerId` and `city` to `properties`
     await queryRunner.query(`
       ALTER TABLE \`properties\`
       ADD COLUMN \`ownerId\` int NULL AFTER \`id\`,
@@ -64,33 +85,46 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       WHERE \`city\` IS NULL;
     `);
 
-    // 4. Migrate `properties.agentId` foreign key to reference `agents(id)`
-    // Step 4a: Drop the old foreign key referencing `users(id)`
+    // 5. Migrate `properties.agentId` foreign key to reference `agents(id)` strictly avoiding Admin assignment
+    // Step 5a: Drop the old foreign key referencing `users(id)`
     await queryRunner.query(`
       ALTER TABLE \`properties\` DROP FOREIGN KEY \`FK_properties_agentId\`;
     `);
 
-    // Step 4b: Update existing property agentId to the mapped Agent.id
+    // Step 5b: Capture previous agent user ID in a temporary column
+    await queryRunner.query(`
+      ALTER TABLE \`properties\` ADD COLUMN \`_oldAgentUserId\` int NULL;
+    `);
+    await queryRunner.query(`
+      UPDATE \`properties\` SET \`_oldAgentUserId\` = \`agentId\`;
+    `);
+
+    // Step 5c: Reset all property agent assignments to NULL (so unverified/admin properties become NULL)
+    await queryRunner.query(`
+      UPDATE \`properties\` SET \`agentId\` = NULL;
+    `);
+
+    // Step 5d: Only assign agentId where _oldAgentUserId corresponds to a verified Agent record
+    // This correctly assigns properties 1, 2, 5 -> Agent 1 (Maria) and 3, 4, 6 -> Agent 2 (Carlos),
+    // while properties 17 and 18 (assigned to Admin User 1) remain strictly NULL.
     await queryRunner.query(`
       UPDATE \`properties\` p
-      JOIN \`agents\` a ON p.\`agentId\` = a.\`userId\`
+      JOIN \`agents\` a ON p.\`_oldAgentUserId\` = a.\`userId\`
       SET p.\`agentId\` = a.\`id\`;
     `);
 
-    // Step 4c: Set non-agent assigned properties (e.g. test records assigned to admin UserID=1) to NULL
+    // Step 5e: Drop temporary column
     await queryRunner.query(`
-      UPDATE \`properties\`
-      SET \`agentId\` = NULL
-      WHERE \`agentId\` IS NOT NULL AND \`agentId\` NOT IN (SELECT \`id\` FROM \`agents\`);
+      ALTER TABLE \`properties\` DROP COLUMN \`_oldAgentUserId\`;
     `);
 
-    // Step 4d: Add the new foreign key referencing `agents(id)`
+    // Step 5f: Add the new foreign key referencing `agents(id)`
     await queryRunner.query(`
       ALTER TABLE \`properties\`
       ADD CONSTRAINT \`FK_properties_agentId\` FOREIGN KEY (\`agentId\`) REFERENCES \`agents\` (\`id\`) ON DELETE SET NULL ON UPDATE CASCADE;
     `);
 
-    // 5. Create `property_photos` table
+    // 6. Create `property_photos` table
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS \`property_photos\` (
         \`id\` int NOT NULL AUTO_INCREMENT,
@@ -105,7 +139,7 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // 6. Create `property_transactions` table (with RESTRICT to prevent financial cascading deletes)
+    // 7. Create `property_transactions` table (with RESTRICT to prevent financial cascading deletes)
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS \`property_transactions\` (
         \`id\` int NOT NULL AUTO_INCREMENT,
@@ -132,7 +166,7 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // 7. Enhance `inquiries` table: add `inquiryType`, `offerAmount`, and `legacyStatus`
+    // 8. Enhance `inquiries` table: add `inquiryType`, `offerAmount`, and `legacyStatus`
     await queryRunner.query(`
       ALTER TABLE \`inquiries\`
       ADD COLUMN \`inquiryType\` enum('GENERAL', 'VIEWING', 'FINANCING', 'OFFER') NOT NULL DEFAULT 'GENERAL' AFTER \`propertyId\`,
@@ -146,6 +180,15 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       SET \`legacyStatus\` = \`status\`
       WHERE \`legacyStatus\` IS NULL;
     `);
+
+    // Protect inquiry history: transition foreign keys to RESTRICT so deleting a user or property doesn't erase inquiries
+    await queryRunner.query(`ALTER TABLE \`inquiries\` DROP FOREIGN KEY \`FK_inquiries_clientId\`;`);
+    await queryRunner.query(`ALTER TABLE \`inquiries\` DROP FOREIGN KEY \`FK_inquiries_propertyId\`;`);
+    await queryRunner.query(`
+      ALTER TABLE \`inquiries\`
+      ADD CONSTRAINT \`FK_inquiries_clientId\` FOREIGN KEY (\`clientId\`) REFERENCES \`users\` (\`id\`) ON DELETE RESTRICT ON UPDATE CASCADE,
+      ADD CONSTRAINT \`FK_inquiries_propertyId\` FOREIGN KEY (\`propertyId\`) REFERENCES \`properties\` (\`id\`) ON DELETE RESTRICT ON UPDATE CASCADE;
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -156,7 +199,14 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
       );
     }
 
-    // 1. Revert inquiries extensions
+    // 1. Revert inquiries FKs and extensions
+    await queryRunner.query(`ALTER TABLE \`inquiries\` DROP FOREIGN KEY \`FK_inquiries_clientId\`;`);
+    await queryRunner.query(`ALTER TABLE \`inquiries\` DROP FOREIGN KEY \`FK_inquiries_propertyId\`;`);
+    await queryRunner.query(`
+      ALTER TABLE \`inquiries\`
+      ADD CONSTRAINT \`FK_inquiries_clientId\` FOREIGN KEY (\`clientId\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
+      ADD CONSTRAINT \`FK_inquiries_propertyId\` FOREIGN KEY (\`propertyId\`) REFERENCES \`properties\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE;
+    `);
     await queryRunner.query(`
       ALTER TABLE \`inquiries\`
       DROP COLUMN \`legacyStatus\`,
@@ -173,12 +223,16 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
     // 4. Revert properties.agentId back to users(id)
     await queryRunner.query(`ALTER TABLE \`properties\` DROP FOREIGN KEY \`FK_properties_agentId\`;`);
 
-    // Map properties.agentId back from Agent.id to Agent.userId
+    // Safely map properties.agentId back from Agent.id to Agent.userId
+    await queryRunner.query(`ALTER TABLE \`properties\` ADD COLUMN \`_oldAgentId\` int NULL;`);
+    await queryRunner.query(`UPDATE \`properties\` SET \`_oldAgentId\` = \`agentId\`;`);
+    await queryRunner.query(`UPDATE \`properties\` SET \`agentId\` = NULL;`);
     await queryRunner.query(`
       UPDATE \`properties\` p
-      JOIN \`agents\` a ON p.\`agentId\` = a.\`id\`
+      JOIN \`agents\` a ON p.\`_oldAgentId\` = a.\`id\`
       SET p.\`agentId\` = a.\`userId\`;
     `);
+    await queryRunner.query(`ALTER TABLE \`properties\` DROP COLUMN \`_oldAgentId\`;`);
 
     // Drop owner foreign key & columns
     await queryRunner.query(`ALTER TABLE \`properties\` DROP FOREIGN KEY \`FK_properties_ownerId\`;`);
@@ -192,5 +246,13 @@ export class Phase2AcademicSchemaAlignment1700000000001 implements MigrationInte
 
     // 5. Drop agents table
     await queryRunner.query(`DROP TABLE IF EXISTS \`agents\`;`);
+
+    // 6. Revert users table additions
+    await queryRunner.query(`
+      ALTER TABLE \`users\`
+      DROP COLUMN \`contactNumber\`,
+      DROP COLUMN \`lastName\`,
+      DROP COLUMN \`firstName\`;
+    `);
   }
 }

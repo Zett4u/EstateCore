@@ -99,6 +99,11 @@ export class Property {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  // Academic PDF compliance getter
+  get dateListed(): Date {
+    return this.createdAt;
+  }
+
   // Relationships
   @OneToMany(() => Inquiry, (inquiry) => inquiry.property)
   inquiries: Inquiry[];

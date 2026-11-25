@@ -1,0 +1,721 @@
+{
+  "timestamp": "2026-11-25T05:50:31.958Z",
+  "database": "estatecore_test_restore",
+  "tables": {
+    "agents": {
+      "columnCount": 8,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "userId",
+          "type": "int",
+          "nullable": false,
+          "key": "UNI",
+          "default": null
+        },
+        {
+          "name": "licenseNumber",
+          "type": "varchar(50)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "agencyName",
+          "type": "varchar(150)",
+          "nullable": true,
+          "key": "",
+          "default": "Independent"
+        },
+        {
+          "name": "verificationStatus",
+          "type": "enum('PENDING_VERIFICATION','VERIFIED','REJECTED')",
+          "nullable": false,
+          "key": "",
+          "default": "PENDING_VERIFICATION"
+        },
+        {
+          "name": "specialization",
+          "type": "varchar(150)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 2,
+      "foreignKeyCount": 1,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_agents_userId",
+          "COLUMN_NAME": "userId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "appointments": {
+      "columnCount": 10,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "propertyId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "clientId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "agentId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "appointmentDate",
+          "type": "date",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "appointmentTime",
+          "type": "varchar(20)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "status",
+          "type": "enum('PENDING','CONFIRMED','COMPLETED','CANCELLED')",
+          "nullable": false,
+          "key": "MUL",
+          "default": "PENDING"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 6,
+      "foreignKeyCount": 3,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_appointments_agentId",
+          "COLUMN_NAME": "agentId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_appointments_clientId",
+          "COLUMN_NAME": "clientId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_appointments_propertyId",
+          "COLUMN_NAME": "propertyId",
+          "REFERENCED_TABLE_NAME": "properties",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "inquiries": {
+      "columnCount": 13,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "clientId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "propertyId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "inquiryType",
+          "type": "enum('GENERAL','VIEWING','FINANCING','OFFER')",
+          "nullable": false,
+          "key": "",
+          "default": "GENERAL"
+        },
+        {
+          "name": "assignedAgentId",
+          "type": "int",
+          "nullable": true,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "subject",
+          "type": "varchar(200)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "offerAmount",
+          "type": "decimal(12,2)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "contactNumber",
+          "type": "varchar(50)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "status",
+          "type": "enum('PENDING','CONTACTED','QUALIFIED','CLOSED')",
+          "nullable": false,
+          "key": "MUL",
+          "default": "PENDING"
+        },
+        {
+          "name": "legacyStatus",
+          "type": "varchar(50)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 5,
+      "foreignKeyCount": 3,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_inquiries_assignedAgentId",
+          "COLUMN_NAME": "assignedAgentId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_inquiries_clientId",
+          "COLUMN_NAME": "clientId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_inquiries_propertyId",
+          "COLUMN_NAME": "propertyId",
+          "REFERENCED_TABLE_NAME": "properties",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "migrations": {
+      "columnCount": 3,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "timestamp",
+          "type": "bigint",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        }
+      ],
+      "indexCount": 1,
+      "foreignKeyCount": 0,
+      "foreignKeys": []
+    },
+    "properties": {
+      "columnCount": 18,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "ownerId",
+          "type": "int",
+          "nullable": true,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "propertyType",
+          "type": "enum('HOUSE','APARTMENT','CONDOMINIUM','COMMERCIAL','LAND','TOWNHOUSE')",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "listingType",
+          "type": "enum('SALE','RENT')",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "price",
+          "type": "decimal(12,2)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "location",
+          "type": "varchar(150)",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "city",
+          "type": "varchar(100)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "address",
+          "type": "varchar(255)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "bedrooms",
+          "type": "int",
+          "nullable": false,
+          "key": "",
+          "default": "1"
+        },
+        {
+          "name": "bathrooms",
+          "type": "int",
+          "nullable": false,
+          "key": "",
+          "default": "1"
+        },
+        {
+          "name": "floorArea",
+          "type": "decimal(10,2)",
+          "nullable": false,
+          "key": "",
+          "default": "0.00"
+        },
+        {
+          "name": "lotArea",
+          "type": "decimal(10,2)",
+          "nullable": false,
+          "key": "",
+          "default": "0.00"
+        },
+        {
+          "name": "status",
+          "type": "enum('AVAILABLE','RESERVED','SOLD','RENTED')",
+          "nullable": false,
+          "key": "MUL",
+          "default": "AVAILABLE"
+        },
+        {
+          "name": "agentId",
+          "type": "int",
+          "nullable": true,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 7,
+      "foreignKeyCount": 2,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_properties_agentId",
+          "COLUMN_NAME": "agentId",
+          "REFERENCED_TABLE_NAME": "agents",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_properties_ownerId",
+          "COLUMN_NAME": "ownerId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "property_photos": {
+      "columnCount": 6,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "propertyId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "filePath",
+          "type": "varchar(500)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "isPrimary",
+          "type": "tinyint(1)",
+          "nullable": false,
+          "key": "",
+          "default": "0"
+        },
+        {
+          "name": "caption",
+          "type": "varchar(255)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 2,
+      "foreignKeyCount": 1,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_property_photos_propertyId",
+          "COLUMN_NAME": "propertyId",
+          "REFERENCED_TABLE_NAME": "properties",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "property_transactions": {
+      "columnCount": 12,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "propertyId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "buyerId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "agentId",
+          "type": "int",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "amount",
+          "type": "decimal(12,2)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "transactionType",
+          "type": "enum('SALE','RENT')",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "paymentMethod",
+          "type": "enum('CASH','BANK_TRANSFER','CHECK','FINANCING')",
+          "nullable": false,
+          "key": "",
+          "default": "BANK_TRANSFER"
+        },
+        {
+          "name": "status",
+          "type": "enum('PENDING','COMPLETED','CANCELLED')",
+          "nullable": false,
+          "key": "MUL",
+          "default": "PENDING"
+        },
+        {
+          "name": "transactionDate",
+          "type": "date",
+          "nullable": false,
+          "key": "MUL",
+          "default": null
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 6,
+      "foreignKeyCount": 3,
+      "foreignKeys": [
+        {
+          "CONSTRAINT_NAME": "FK_transactions_agentId",
+          "COLUMN_NAME": "agentId",
+          "REFERENCED_TABLE_NAME": "agents",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_transactions_buyerId",
+          "COLUMN_NAME": "buyerId",
+          "REFERENCED_TABLE_NAME": "users",
+          "REFERENCED_COLUMN_NAME": "id"
+        },
+        {
+          "CONSTRAINT_NAME": "FK_transactions_propertyId",
+          "COLUMN_NAME": "propertyId",
+          "REFERENCED_TABLE_NAME": "properties",
+          "REFERENCED_COLUMN_NAME": "id"
+        }
+      ]
+    },
+    "users": {
+      "columnCount": 11,
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "key": "PRI",
+          "default": null
+        },
+        {
+          "name": "fullName",
+          "type": "varchar(150)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "firstName",
+          "type": "varchar(100)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "lastName",
+          "type": "varchar(100)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "email",
+          "type": "varchar(150)",
+          "nullable": false,
+          "key": "UNI",
+          "default": null
+        },
+        {
+          "name": "contactNumber",
+          "type": "varchar(50)",
+          "nullable": true,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "password",
+          "type": "varchar(255)",
+          "nullable": false,
+          "key": "",
+          "default": null
+        },
+        {
+          "name": "role",
+          "type": "enum('ADMIN','AGENT','CLIENT')",
+          "nullable": false,
+          "key": "",
+          "default": "CLIENT"
+        },
+        {
+          "name": "isActive",
+          "type": "tinyint",
+          "nullable": false,
+          "key": "",
+          "default": "1"
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "nullable": false,
+          "key": "",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexCount": 2,
+      "foreignKeyCount": 0,
+      "foreignKeys": []
+    }
+  }
+}

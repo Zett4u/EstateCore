@@ -23,9 +23,18 @@ export class User {
   @Column({ type: 'varchar', length: 150 })
   fullName: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  firstName: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  lastName: string | null;
+
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 150, unique: true })
   email: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  contactNumber: string | null;
 
   @Column({ type: 'varchar', length: 255, select: false })
   password: string;
@@ -45,6 +54,11 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  // Academic PDF compliance getters
+  get dateRegistered(): Date {
+    return this.createdAt;
+  }
 
   // Relationships
   @OneToOne(() => Agent, (agent) => agent.user)

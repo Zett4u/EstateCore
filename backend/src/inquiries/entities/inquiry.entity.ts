@@ -27,14 +27,16 @@ export class Inquiry {
   @Column({ type: 'int' })
   clientId: number;
 
-  @ManyToOne(() => User, (user) => user.clientInquiries, { onDelete: 'CASCADE' })
+  // Historical data preservation: RESTRICT prevents silent cascading erasure of inquiry history
+  @ManyToOne(() => User, (user) => user.clientInquiries, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'clientId' })
   client: User;
 
   @Column({ type: 'int' })
   propertyId: number;
 
-  @ManyToOne(() => Property, (property) => property.inquiries, { onDelete: 'CASCADE' })
+  // Historical data preservation: RESTRICT prevents silent cascading erasure when properties are removed
+  @ManyToOne(() => Property, (property) => property.inquiries, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'propertyId' })
   property: Property;
 
@@ -80,4 +82,9 @@ export class Inquiry {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  // Academic PDF compliance getter
+  get dateSent(): Date {
+    return this.createdAt;
+  }
 }

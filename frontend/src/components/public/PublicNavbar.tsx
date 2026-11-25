@@ -55,11 +55,10 @@ export const PublicNavbar: React.FC = () => {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'text-forest-700 font-semibold'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
+                className={`text-sm font-medium transition-colors ${isActive
+                  ? 'text-forest-700 font-semibold'
+                  : 'text-stone-600 hover:text-stone-900'
+                  }`}
               >
                 {link.label}
               </Link>
