@@ -9,10 +9,13 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   ParseIntPipe,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PropertiesService } from './properties.service';
 import { InquiriesService } from '../inquiries/inquiries.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
@@ -86,20 +89,28 @@ export class PropertiesController {
     return this.propertiesService.remove(id, user);
   }
 
-  // Nested Endpoint 1: POST /api/v1/properties/:id/photos (PDF Lab 05 EP-17)
+  // Lab 05 Endpoint 13: GET /api/v1/properties/:id/photos (Public)
+  @Get(':id/photos')
+  async getPhotos(@Param('id', ParseIntPipe) id: number) {
+    return this.propertiesService.getPhotos(id);
+  }
+
+  // Lab 05 Endpoint 14: POST /api/v1/properties/:id/photos (Agent own listing or Admin/Owner)
   @Post(':id/photos')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
+  @UseInterceptors(FileInterceptor('photo'))
   @HttpCode(HttpStatus.CREATED)
   async uploadPhoto(
     @Param('id', ParseIntPipe) id: number,
     @Body() photoDto: any,
     @CurrentUser() user: User,
+    @UploadedFile() file?: any,
   ) {
-    return this.propertiesService.addPhoto(id, photoDto, user);
+    return this.propertiesService.addPhoto(id, photoDto, user, file);
   }
 
-  // Nested Endpoint 2: POST /api/v1/properties/:id/inquiries (PDF Lab 05 EP-18)
+  // Lab 05 Endpoint 15: POST /api/v1/properties/:id/inquiries (Buyer or Renter)
   @Post(':id/inquiries')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -110,5 +121,30 @@ export class PropertiesController {
   ) {
     createInquiryDto.propertyId = id;
     return this.inquiriesService.create(createInquiryDto, user);
+  }
+
+  // Lab 05 Endpoint 16: GET /api/v1/properties/:id/inquiries (Agent own listing or Admin/Owner)
+  @Get(':id/inquiries')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
+  async getPropertyInquiries(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+    @Query() query: any,
+  ) {
+    return this.propertiesService.getPropertyInquiries(id, user, query);
+  }
+
+  // Lab 05 Endpoint 17: PATCH /api/v1/properties/:id/inquiries/:inquiryId (Agent own listing)
+  @Patch(':id/inquiries/:inquiryId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  async updatePropertyInquiryStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('inquiryId', ParseIntPipe) inquiryId: number,
+    @Body('status') status: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.propertiesService.updatePropertyInquiryStatus(id, inquiryId, status, user);
   }
 }

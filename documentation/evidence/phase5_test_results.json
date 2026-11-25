@@ -1,0 +1,214 @@
+{
+  "timestamp": "2026-11-25T08:15:24.732Z",
+  "totalTests": 34,
+  "passedTests": 34,
+  "failedTests": 0,
+  "successRate": "100.0%",
+  "liveDbSafe": true,
+  "tests": [
+    {
+      "testId": "AUTH-ADMIN",
+      "name": "Admin Login",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "AUTH-MARIA",
+      "name": "Agent Maria Santos Login (users.id=2, agents.id=1)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "AUTH-CARLOS",
+      "name": "Agent Carlos Reyes Login (users.id=3, agents.id=2)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "AUTH-JUAN",
+      "name": "Client Juan Dela Cruz Login (users.id=4)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "AUTH-ELENA",
+      "name": "Client Elena Roxas Login (users.id=5)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-01",
+      "name": "POST /api/v1/users registers new user (Public)",
+      "passed": true,
+      "details": "status=201"
+    },
+    {
+      "testId": "EP-01-CONFLICT",
+      "name": "POST /api/v1/users duplicate email returns 409 Conflict",
+      "passed": true,
+      "details": "status=409"
+    },
+    {
+      "testId": "EP-02-ADMIN",
+      "name": "GET /api/v1/users/:id Admin retrieves user profile",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-02-BOLA",
+      "name": "GET /api/v1/users/:id Client forbidden from other user profile (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-03",
+      "name": "PATCH /api/v1/users/:id updates user own fields",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-04-FORBIDDEN",
+      "name": "DELETE /api/v1/users/:id non-admin forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-04-ADMIN",
+      "name": "DELETE /api/v1/users/:id Admin deletes user (204)",
+      "passed": true,
+      "details": "status=204"
+    },
+    {
+      "testId": "EP-05",
+      "name": "GET /api/v1/agents retrieves agents directory (Public)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-06-CONFLICT",
+      "name": "POST /api/v1/agents existing agent profile returns 409 Conflict",
+      "passed": true,
+      "details": "status=409"
+    },
+    {
+      "testId": "EP-07",
+      "name": "GET /api/v1/properties search and filter (Public)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-08",
+      "name": "GET /api/v1/properties/1 retrieves property details (Public)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-09",
+      "name": "POST /api/v1/properties Agent posts new listing",
+      "passed": true,
+      "details": "status=201"
+    },
+    {
+      "testId": "EP-10",
+      "name": "PUT /api/v1/properties/:id Agent replaces whole listing",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-11",
+      "name": "PATCH /api/v1/properties/:id Agent updates selected fields",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-13",
+      "name": "GET /api/v1/properties/:id/photos retrieves photos (Public)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-14",
+      "name": "POST /api/v1/properties/:id/photos Agent attaches photo to own listing",
+      "passed": true,
+      "details": "status=201"
+    },
+    {
+      "testId": "EP-14-BOLA",
+      "name": "POST /api/v1/properties/:id/photos Cross-agent photo upload forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-15",
+      "name": "POST /api/v1/properties/:id/inquiries Client sends formal price offer",
+      "passed": true,
+      "details": "status=201"
+    },
+    {
+      "testId": "EP-16",
+      "name": "GET /api/v1/properties/:id/inquiries Agent retrieves property inquiries",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-16-BOLA",
+      "name": "GET /api/v1/properties/:id/inquiries Cross-agent inquiry retrieval forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-17-BOLA",
+      "name": "PATCH /api/v1/properties/:id/inquiries/:inquiryId Cross-agent status update forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-17",
+      "name": "PATCH /api/v1/properties/:id/inquiries/:inquiryId Agent updates inquiry status",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-18-BOLA",
+      "name": "POST /api/v1/transactions Cross-agent deal recording forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-18",
+      "name": "POST /api/v1/transactions Agent records sale transaction (Status -> Pending, Property -> Sold)",
+      "passed": true,
+      "details": "status=201"
+    },
+    {
+      "testId": "EP-18-CONFLICT",
+      "name": "POST /api/v1/transactions Sold property returns 409 Conflict",
+      "passed": true,
+      "details": "status=409"
+    },
+    {
+      "testId": "EP-19-BUYER",
+      "name": "GET /api/v1/transactions/:id Buyer involved can view deal",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-19-BOLA",
+      "name": "GET /api/v1/transactions/:id Uninvolved buyer forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "EP-19-AGENT",
+      "name": "GET /api/v1/transactions/:id Listing agent can view deal",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "EP-12-CONFLICT",
+      "name": "DELETE /api/v1/properties/:id returns 409 Conflict when transactions exist",
+      "passed": true,
+      "details": "status=409"
+    }
+  ]
+}

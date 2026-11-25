@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Inquiry } from './entities/inquiry.entity';
+import { Inquiry, InquiryType } from './entities/inquiry.entity';
 import { CreateInquiryDto, UpdateInquiryDto } from './dto/create-inquiry.dto';
 import { Property } from '../properties/entities/property.entity';
 import { User } from '../users/entities/user.entity';
@@ -36,13 +36,20 @@ export class InquiriesService {
 
     const assignedAgentId = createInquiryDto.assignedAgentId || (property.agent ? property.agent.userId : property.agentId) || null;
 
+    const inquiryType =
+      createInquiryDto.inquiryType && createInquiryDto.inquiryType.toUpperCase() === 'OFFER'
+        ? InquiryType.OFFER
+        : InquiryType.GENERAL;
+
     const inquiry = this.inquiryRepository.create({
       clientId: user.id,
       propertyId: property.id,
       assignedAgentId,
-      subject: createInquiryDto.subject,
+      subject: createInquiryDto.subject || 'Property Inquiry',
       message: createInquiryDto.message,
-      contactNumber: createInquiryDto.contactNumber,
+      contactNumber: createInquiryDto.contactNumber || user.contactNumber || 'N/A',
+      inquiryType,
+      offerAmount: createInquiryDto.offerAmount || null,
     });
 
     const saved = await this.inquiryRepository.save(inquiry);

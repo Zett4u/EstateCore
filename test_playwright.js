@@ -294,7 +294,31 @@ async function runPlaywrightSuite() {
     });
 
     // -------------------------------------------------------------
-    // PHASE 5: RESPONSIVE MOBILE VIEWPORT AUDIT
+    // PHASE 5 ACADEMIC EXTENSIONS: TRANSACTIONS, AGENTS DIRECTORY, PHOTOS, OFFERS
+    // -------------------------------------------------------------
+    await testStep('Public / Authenticated Agents Directory renders accredited agents', async () => {
+      await page.goto('http://localhost:5173/agents', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Accredited Real Estate Agents');
+      await page.waitForSelector('text=Maria Santos');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '13_agents_directory.png') });
+    });
+
+    await testStep('Transactions Dashboard renders financial ledger & deal recording controls', async () => {
+      await page.goto('http://localhost:5173/transactions', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Property Transactions & Closing Ledger');
+      await page.waitForSelector('text=Total Volume');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '14_transactions_dashboard.png') });
+    });
+
+    await testStep('Property Detail displays photo gallery and interactive offer workflow', async () => {
+      await page.goto('http://localhost:5173/properties/1', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Property Gallery');
+      await page.waitForSelector('button:has-text("Submit Formal Offer")');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '15_property_detail_phase5.png') });
+    });
+
+    // -------------------------------------------------------------
+    // PHASE 6: RESPONSIVE MOBILE VIEWPORT AUDIT
     // -------------------------------------------------------------
     await testStep('Mobile viewport audit: responsive navigation and mobile drawer', async () => {
       await page.setViewportSize({ width: 375, height: 812 });
@@ -307,7 +331,7 @@ async function runPlaywrightSuite() {
         await menuButton.click();
         await page.waitForSelector('nav.flex-col >> text=Properties');
       }
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, '13_mobile_responsive.png') });
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '16_mobile_responsive.png') });
     });
 
   } finally {

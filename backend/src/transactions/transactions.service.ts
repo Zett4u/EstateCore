@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -7,9 +13,12 @@ import {
   PaymentMethod,
   TransactionStatus,
 } from './entities/property-transaction.entity';
+import { Property } from '../properties/entities/property.entity';
 import { User } from '../users/entities/user.entity';
 import { Agent } from '../agents/entities/agent.entity';
 import { UserRole } from '../common/enums/role.enum';
+import { PropertyStatus } from '../common/enums/property.enum';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 export interface PropertyTransactionResponse {
   transactionId: number;
@@ -31,6 +40,10 @@ export class TransactionsService {
     private readonly transactionRepository: Repository<PropertyTransaction>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Property)
+    private readonly propertyRepository: Repository<Property>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   private mapToResponse(tx: PropertyTransaction): PropertyTransactionResponse {
@@ -101,6 +114,98 @@ export class TransactionsService {
     return this.mapToResponse(tx);
   }
 
+  async recordTransaction(
+    dto: CreateTransactionDto,
+    user: User,
+  ): Promise<PropertyTransactionResponse> {
+    // 1. Authorization: Only AGENT or ADMIN can record a transaction
+    let resolvedAgentId: number;
+
+    if (user.role === UserRole.AGENT) {
+      const agentProfile = await this.agentRepository.findOne({
+        where: { userId: user.id },
+      });
+      if (!agentProfile) {
+        throw new ForbiddenException('Agent profile not found for this user.');
+      }
+      resolvedAgentId = agentProfile.id;
+    } else if (user.role === UserRole.ADMIN) {
+      // Admin can attribute to existing property agent or first available agent
+      resolvedAgentId = 1;
+    } else {
+      throw new ForbiddenException('Only agents and administrators can record transactions.');
+    }
+
+    // 2. Property validation
+    const property = await this.propertyRepository.findOne({
+      where: { id: dto.propertyId },
+    });
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${dto.propertyId} not found.`);
+    }
+
+    // Agent can only record deal for own assigned listing (unless ADMIN)
+    if (user.role === UserRole.AGENT && property.agentId !== resolvedAgentId) {
+      throw new ForbiddenException('Only the listing agent can record transactions for this property.');
+    }
+
+    // 3. Property availability check (Lab 05 EP 18: 409 Conflict if already sold or rented)
+    const upperStatus = String(property.status).toUpperCase();
+    if (upperStatus === 'SOLD' || property.status === PropertyStatus.SOLD) {
+      throw new ConflictException(`Property is not available. Property ${property.id} already has status Sold.`);
+    }
+    if (upperStatus === 'RENTED' || property.status === PropertyStatus.RENTED) {
+      throw new ConflictException(`Property is not available. Property ${property.id} already has status Rented.`);
+    }
+
+    // 4. Buyer validation
+    const buyer = await this.userRepository.findOne({
+      where: { id: dto.buyerId },
+    });
+    if (!buyer) {
+      throw new NotFoundException(`Buyer user with ID ${dto.buyerId} not found.`);
+    }
+
+    // 5. Type and Method normalization
+    const txTypeStr = String(dto.transactionType).toUpperCase();
+    const transactionType = txTypeStr === 'RENT' ? TransactionType.RENT : TransactionType.SALE;
+
+    let paymentMethod: PaymentMethod = PaymentMethod.BANK_TRANSFER;
+    const pmUpper = String(dto.paymentMethod).toUpperCase().replace(/[\s_-]/g, '');
+    if (pmUpper.includes('CASH')) paymentMethod = PaymentMethod.CASH;
+    else if (pmUpper.includes('BANK')) paymentMethod = PaymentMethod.BANK_TRANSFER;
+    else if (pmUpper.includes('GCASH')) paymentMethod = PaymentMethod.GCASH;
+    else if (pmUpper.includes('CARD') || pmUpper.includes('CREDIT') || pmUpper.includes('DEBIT')) paymentMethod = PaymentMethod.CARD;
+    else if (pmUpper.includes('CHECK') || pmUpper.includes('CHEQUE')) paymentMethod = PaymentMethod.CHECK;
+    else if (pmUpper.includes('FINANC')) paymentMethod = PaymentMethod.FINANCING;
+
+    // 6. Create & Save Transaction
+    const tx = this.transactionRepository.create({
+      propertyId: property.id,
+      buyerId: buyer.id,
+      agentId: resolvedAgentId,
+      amount: Number(dto.amount),
+      transactionType,
+      paymentMethod,
+      transactionDate: dto.transactionDate || new Date().toISOString().split('T')[0],
+      status: TransactionStatus.PENDING,
+      notes: dto.notes || null,
+    });
+
+    const savedTx = await this.transactionRepository.save(tx);
+
+    // 7. Update property status accordingly
+    if (transactionType === TransactionType.SALE) {
+      property.status = PropertyStatus.SOLD;
+    } else {
+      property.status = PropertyStatus.RENTED;
+    }
+    await this.propertyRepository.save(property);
+
+    return this.mapToResponse(savedTx);
+  }
+
+  // Backward compatibility alias for tests
   async create(data: {
     propertyId: number;
     buyerId: number;

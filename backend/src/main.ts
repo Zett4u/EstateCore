@@ -1,11 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import * as fs from 'fs';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('EstateCoreBootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Ensure uploads directory exists and configure static assets serving for property photos
+  const uploadsDir = join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
 
   // Backward compatibility middleware:
   // Maps incoming legacy '/api/...' calls to canonical PDF '/api/v1/...' routes
@@ -45,5 +55,6 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   logger.log(`EstateCore REST API Server running at http://0.0.0.0:${port}/api/v1`);
   logger.log(`Backward compatibility active: /api/ -> /api/v1/ transparent alias`);
+  logger.log(`Static assets served from ${uploadsDir} at /uploads/`);
 }
 bootstrap();

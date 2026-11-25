@@ -48,11 +48,30 @@ export class AgentsService {
     };
   }
 
-  async findAll(): Promise<AgentResponse[]> {
-    const agents = await this.agentRepository.find({
-      relations: ['user'],
-      order: { id: 'ASC' },
-    });
+  async findAll(query?: any): Promise<any> {
+    const qb = this.agentRepository
+      .createQueryBuilder('agent')
+      .leftJoinAndSelect('agent.user', 'user')
+      .orderBy('agent.id', 'ASC');
+
+    if (query?.agencyName) {
+      qb.andWhere('agent.agencyName LIKE :agencyName', { agencyName: `%${query.agencyName}%` });
+    }
+
+    if (query?.page !== undefined || query?.limit !== undefined || query?.agencyName !== undefined) {
+      const page = Math.max(1, Number(query?.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(query?.limit) || 10));
+      qb.skip((page - 1) * limit).take(limit);
+      const [agents, totalItems] = await qb.getManyAndCount();
+      return {
+        page,
+        limit,
+        totalItems,
+        data: agents.map((a) => this.mapAgentToResponse(a)),
+      };
+    }
+
+    const agents = await qb.getMany();
     return agents.map((a) => this.mapAgentToResponse(a));
   }
 
@@ -80,6 +99,15 @@ export class AgentsService {
     });
     if (existingAgent) {
       throw new ConflictException(`User ${targetUser.fullName} already has an Agent profile.`);
+    }
+
+    if (createAgentDto.licenseNumber) {
+      const existingLicense = await this.agentRepository.findOne({
+        where: { licenseNumber: createAgentDto.licenseNumber },
+      });
+      if (existingLicense) {
+        throw new ConflictException(`License number already registered. ${createAgentDto.licenseNumber} already exists.`);
+      }
     }
 
     targetUser.role = UserRole.AGENT;

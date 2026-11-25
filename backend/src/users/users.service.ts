@@ -19,7 +19,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<any> {
     const existing = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
@@ -27,17 +27,47 @@ export class UsersService {
       throw new ConflictException(`User with email '${createUserDto.email}' already exists.`);
     }
 
+    if (!createUserDto.fullName && (createUserDto.firstName || createUserDto.lastName)) {
+      createUserDto.fullName = `${createUserDto.firstName || ''} ${createUserDto.lastName || ''}`.trim();
+    }
+    if (!createUserDto.fullName) {
+      createUserDto.fullName = createUserDto.email.split('@')[0];
+    }
+
+    let role = UserRole.CLIENT;
+    if (createUserDto.role) {
+      const r = createUserDto.role.toUpperCase();
+      if (r === 'ADMIN') role = UserRole.ADMIN;
+      else if (r === 'AGENT') role = UserRole.AGENT;
+      else role = UserRole.CLIENT;
+    }
+
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const user = this.userRepository.create({
-      ...createUserDto,
+      fullName: createUserDto.fullName,
+      firstName: createUserDto.firstName,
+      lastName: createUserDto.lastName,
+      email: createUserDto.email,
+      contactNumber: createUserDto.contactNumber,
       password: hashedPassword,
-      role: createUserDto.role || UserRole.CLIENT,
+      role,
       isActive: createUserDto.isActive !== undefined ? createUserDto.isActive : true,
     });
 
     const saved = await this.userRepository.save(user);
     const { password, ...result } = saved;
-    return result as User;
+    return {
+      userId: saved.id,
+      id: saved.id,
+      firstName: saved.firstName || saved.fullName.split(' ')[0],
+      lastName: saved.lastName || saved.fullName.split(' ').slice(1).join(' '),
+      fullName: saved.fullName,
+      email: saved.email,
+      contactNumber: saved.contactNumber,
+      role: saved.role,
+      dateRegistered: saved.createdAt ? saved.createdAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      ...result,
+    };
   }
 
   async findAll(role?: UserRole, isActive?: boolean): Promise<User[]> {
@@ -65,7 +95,7 @@ export class UsersService {
   async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      select: ['id', 'fullName', 'email', 'role', 'isActive', 'createdAt', 'updatedAt'],
+      select: ['id', 'fullName', 'email', 'contactNumber', 'role', 'isActive', 'createdAt', 'updatedAt'],
     });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
@@ -99,6 +129,10 @@ export class UsersService {
 
     if (updateUserDto.fullName) {
       user.fullName = updateUserDto.fullName;
+    }
+
+    if (updateUserDto.contactNumber !== undefined) {
+      user.contactNumber = updateUserDto.contactNumber;
     }
 
     if (updateUserDto.role) {

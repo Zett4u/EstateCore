@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
   Patch,
   Delete,
@@ -10,8 +11,11 @@ import {
   UseGuards,
   ParseIntPipe,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -21,21 +25,19 @@ import { UserRole } from '../common/enums/role.enum';
 import { User } from './entities/user.entity';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  @Roles(UserRole.ADMIN)
-  async findAll(
-    @Query('role') role?: UserRole,
-    @Query('isActive') isActive?: string,
-  ): Promise<User[]> {
-    const activeBool = isActive !== undefined ? isActive === 'true' : undefined;
-    return this.usersService.findAll(role, activeBool);
+  // Lab 05 Endpoint 1: POST /api/v1/users (Public)
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 
+  // Lab 05 Endpoint 2: GET /api/v1/users/:id (Authenticated own profile or Admin)
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() currentUser: User,
@@ -46,7 +48,19 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async findAll(
+    @Query('role') role?: UserRole,
+    @Query('isActive') isActive?: string,
+  ): Promise<User[]> {
+    const activeBool = isActive !== undefined ? isActive === 'true' : undefined;
+    return this.usersService.findAll(role, activeBool);
+  }
+
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async updatePut(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -55,7 +69,9 @@ export class UsersController {
     return this.update(id, updateUserDto, currentUser);
   }
 
+  // Lab 05 Endpoint 3: PATCH /api/v1/users/:id (Authenticated own profile)
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -72,9 +88,12 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+  // Lab 05 Endpoint 4: DELETE /api/v1/users/:id (Admin only)
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+    await this.usersService.remove(id);
   }
 }

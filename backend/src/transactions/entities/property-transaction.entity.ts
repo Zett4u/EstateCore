@@ -22,6 +22,8 @@ export enum PaymentMethod {
   BANK_TRANSFER = 'BANK_TRANSFER',
   CHECK = 'CHECK',
   FINANCING = 'FINANCING',
+  GCASH = 'GCASH',
+  CARD = 'CARD',
 }
 
 export enum TransactionStatus {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Inquiry, InquiryStatus } from '../types';
+import { formatPHP } from '../lib/utils';
 import { StatusBadge } from '../components/StatusBadge';
 import { Button } from '../components/ui/Button';
 import { MessageSquare, Trash2, CheckCircle, Phone, Mail, Building, Clock } from 'lucide-react';
@@ -96,7 +97,18 @@ export const InquiriesList: React.FC = () => {
                 {inquiries.map((inq) => (
                   <tr key={inq.id} className="hover:bg-stone-50/70 transition">
                     <td className="px-6 py-4">
-                      <p className="font-semibold text-stone-900">{inq.subject}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-stone-900">{inq.subject}</span>
+                        {inq.inquiryType === 'OFFER' || inq.offerAmount ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                            OFFER: {inq.offerAmount ? formatPHP(inq.offerAmount) : 'Pending'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-600">
+                            INQUIRY
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-stone-500 mt-1 line-clamp-2 max-w-xs">{inq.message}</p>
                       <span className="text-[10px] text-stone-400 mt-1 block">
                         Received: {new Date(inq.createdAt).toLocaleDateString()}
@@ -137,8 +149,10 @@ export const InquiriesList: React.FC = () => {
                             className="text-xs py-1 px-2 border border-stone-200 rounded-lg bg-stone-50 font-medium text-stone-700 focus:bg-white focus:ring-1 focus:ring-forest-600"
                           >
                             <option value="PENDING">PENDING</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Replied">Replied</option>
                             <option value="CONTACTED">CONTACTED</option>
-                            <option value="QUALIFIED">QUALIFIED</option>
                             <option value="CLOSED">CLOSED</option>
                           </select>
                         )}

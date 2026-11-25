@@ -1,8 +1,11 @@
 import {
   User,
   Property,
+  PropertyPhoto,
   Inquiry,
   Appointment,
+  PropertyTransaction,
+  AgentProfile,
   AuthResponse,
   UserRole,
 } from '../types';
@@ -43,7 +46,7 @@ class ApiService {
   }
 
   // Auth Endpoints
-  async register(body: { fullName: string; email: string; password: string }): Promise<AuthResponse> {
+  async register(body: { fullName: string; email: string; password: string; role?: string; contactNumber?: string }): Promise<AuthResponse> {
     return this.request<AuthResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -101,7 +104,47 @@ class ApiService {
     });
   }
 
-  // Inquiries Endpoints
+  // Property Photos (Lab 05 EP 13, 14)
+  async getPropertyPhotos(propertyId: number): Promise<{ totalItems: number; data: PropertyPhoto[] }> {
+    return this.request<{ totalItems: number; data: PropertyPhoto[] }>(`/properties/${propertyId}/photos`);
+  }
+
+  async uploadPropertyPhoto(
+    propertyId: number,
+    body: FormData | { filePath: string; isPrimary?: boolean; caption?: string },
+  ): Promise<PropertyPhoto> {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    let requestInit: RequestInit;
+    if (body instanceof FormData) {
+      requestInit = {
+        method: 'POST',
+        headers,
+        body,
+      };
+    } else {
+      headers['Content-Type'] = 'application/json';
+      requestInit = {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/properties/${propertyId}/photos`, requestInit);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = Array.isArray(data.message) ? data.message.join(', ') : data.message || 'Photo upload failed';
+      throw new Error(message);
+    }
+    return data as PropertyPhoto;
+  }
+
+  // Inquiries Endpoints (Lab 05 EP 15, 16, 17)
   async getInquiries(): Promise<Inquiry[]> {
     return this.request<Inquiry[]>('/inquiries');
   }
@@ -110,10 +153,44 @@ class ApiService {
     return this.request<Inquiry>(`/inquiries/${id}`);
   }
 
-  async createInquiry(body: { propertyId: number; subject: string; message: string; contactNumber: string }): Promise<Inquiry> {
+  async createInquiry(body: {
+    propertyId: number;
+    subject?: string;
+    message: string;
+    contactNumber?: string;
+    inquiryType?: string;
+    offerAmount?: number;
+  }): Promise<Inquiry> {
     return this.request<Inquiry>('/inquiries', {
       method: 'POST',
       body: JSON.stringify(body),
+    });
+  }
+
+  async createPropertyInquiry(
+    propertyId: number,
+    body: {
+      message: string;
+      inquiryType?: string;
+      offerAmount?: number;
+      contactNumber?: string;
+      subject?: string;
+    },
+  ): Promise<Inquiry> {
+    return this.request<Inquiry>(`/properties/${propertyId}/inquiries`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async getPropertyInquiries(propertyId: number): Promise<any> {
+    return this.request<any>(`/properties/${propertyId}/inquiries`);
+  }
+
+  async updatePropertyInquiryStatus(propertyId: number, inquiryId: number, status: string): Promise<any> {
+    return this.request<any>(`/properties/${propertyId}/inquiries/${inquiryId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
     });
   }
 
@@ -159,6 +236,53 @@ class ApiService {
     });
   }
 
+  // Transactions Endpoints (Lab 05 EP 18, 19)
+  async getTransactions(propertyId?: number): Promise<PropertyTransaction[]> {
+    const qs = propertyId ? `?propertyId=${propertyId}` : '';
+    return this.request<PropertyTransaction[]>(`/transactions${qs}`);
+  }
+
+  async getTransaction(id: number): Promise<PropertyTransaction> {
+    return this.request<PropertyTransaction>(`/transactions/${id}`);
+  }
+
+  async recordTransaction(body: {
+    propertyId: number;
+    buyerId: number;
+    amount: number;
+    transactionType: string;
+    paymentMethod: string;
+    transactionDate?: string;
+    notes?: string;
+  }): Promise<PropertyTransaction> {
+    return this.request<PropertyTransaction>('/transactions', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // Agents Endpoints (Lab 05 EP 5, 6)
+  async getAgents(params?: { agencyName?: string; page?: number; limit?: number }): Promise<AgentProfile[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.agencyName) searchParams.append('agencyName', params.agencyName);
+    if (params?.page) searchParams.append('page', String(params.page));
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    const qs = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    const res = await this.request<any>(`/agents${qs}`);
+    return Array.isArray(res) ? res : res.data || [];
+  }
+
+  async getAgent(id: number): Promise<AgentProfile> {
+    return this.request<AgentProfile>(`/agents/${id}`);
+  }
+
+  async createAgentProfile(body: { userId: number; licenseNumber?: string; agencyName?: string }): Promise<AgentProfile> {
+    return this.request<AgentProfile>('/agents', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
   // Users Endpoints (Admin only)
   async getUsers(params?: { role?: UserRole; isActive?: boolean }): Promise<User[]> {
     const searchParams = new URLSearchParams();
@@ -181,6 +305,12 @@ class ApiService {
 
   async deactivateUser(id: number): Promise<{ message: string; id: number }> {
     return this.request<{ message: string; id: number }>(`/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    return this.request<void>(`/users/${id}`, {
       method: 'DELETE',
     });
   }

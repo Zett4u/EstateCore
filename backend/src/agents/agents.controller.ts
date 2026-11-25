@@ -6,9 +6,12 @@ import {
   Patch,
   Param,
   Body,
+  Query,
   UseGuards,
   ParseIntPipe,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AgentsService, AgentResponse } from './agents.service';
 import { CreateAgentDto, UpdateAgentDto } from './dto/agent.dto';
@@ -23,9 +26,10 @@ import { User } from '../users/entities/user.entity';
 export class AgentsController {
   constructor(private readonly agentsService: AgentsService) {}
 
+  // Lab 05 Endpoint 5: GET /api/v1/agents (Public)
   @Get()
-  async findAll(): Promise<AgentResponse[]> {
-    return this.agentsService.findAll();
+  async findAll(@Query() query?: any): Promise<any> {
+    return this.agentsService.findAll(query);
   }
 
   @Get(':id')
@@ -33,10 +37,18 @@ export class AgentsController {
     return this.agentsService.findOne(id);
   }
 
+  // Lab 05 Endpoint 6: POST /api/v1/agents (Authenticated Agent role or Admin)
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async create(@Body() createAgentDto: CreateAgentDto): Promise<AgentResponse> {
+  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @Body() createAgentDto: CreateAgentDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<AgentResponse> {
+    if (currentUser.role === UserRole.AGENT && createAgentDto.userId !== currentUser.id) {
+      throw new ForbiddenException('You can only create an agent profile for your own account.');
+    }
     return this.agentsService.create(createAgentDto);
   }
 

@@ -10,6 +10,7 @@ import {
   UserCheck,
   ShieldCheck,
   Sparkles,
+  CreditCard,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -41,6 +42,18 @@ export const Sidebar: React.FC = () => {
       to: '/inquiries',
       label: 'Inquiry Center',
       icon: MessageSquareText,
+      roles: ['ADMIN', 'AGENT', 'CLIENT'],
+    },
+    {
+      to: '/transactions',
+      label: 'Transactions & Deals',
+      icon: CreditCard,
+      roles: ['ADMIN', 'AGENT', 'CLIENT'],
+    },
+    {
+      to: '/agents',
+      label: 'Agent Directory',
+      icon: UserCheck,
       roles: ['ADMIN', 'AGENT', 'CLIENT'],
     },
     {

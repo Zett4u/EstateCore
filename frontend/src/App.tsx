@@ -21,6 +21,8 @@ import { ClientDashboard } from './pages/ClientDashboard';
 import { PropertyForm } from './pages/PropertyForm';
 import { InquiriesList } from './pages/InquiriesList';
 import { AppointmentsList } from './pages/AppointmentsList';
+import { TransactionsList } from './pages/TransactionsList';
+import { AgentsList } from './pages/AgentsList';
 import { UsersList } from './pages/UsersList';
 import { UserProfile } from './pages/UserProfile';
 
@@ -66,6 +68,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/agents" element={<AgentsList />} />
           </Route>
 
           {/* Adaptive Property Catalog (Public layout for visitors, Dashboard layout for logged-in users) */}
@@ -107,6 +110,7 @@ export const App: React.FC = () => {
               </Route>
 
               {/* ALL AUTHENTICATED ROLES (Scoped by backend ownership) */}
+              <Route path="/transactions" element={<TransactionsList />} />
               <Route path="/inquiries" element={<InquiriesList />} />
               <Route path="/appointments" element={<AppointmentsList />} />
               <Route path="/profile" element={<UserProfile />} />
