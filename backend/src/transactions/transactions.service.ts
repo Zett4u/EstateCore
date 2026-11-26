@@ -6,7 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   PropertyTransaction,
   TransactionType,
@@ -44,6 +44,7 @@ export class TransactionsService {
     private readonly propertyRepository: Repository<Property>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
   ) {}
 
   private mapToResponse(tx: PropertyTransaction): PropertyTransactionResponse {
@@ -119,7 +120,7 @@ export class TransactionsService {
     user: User,
   ): Promise<PropertyTransactionResponse> {
     // 1. Authorization: Only AGENT or ADMIN can record a transaction
-    let resolvedAgentId: number;
+    let resolvedAgentId: number | null = null;
 
     if (user.role === UserRole.AGENT) {
       const agentProfile = await this.agentRepository.findOne({
@@ -130,35 +131,36 @@ export class TransactionsService {
       }
       resolvedAgentId = agentProfile.id;
     } else if (user.role === UserRole.ADMIN) {
-      // Admin can attribute to existing property agent or first available agent
-      resolvedAgentId = 1;
+      resolvedAgentId = null; // Resolved dynamically from property or default
     } else {
       throw new ForbiddenException('Only agents and administrators can record transactions.');
     }
 
-    // 2. Property validation
-    const property = await this.propertyRepository.findOne({
-      where: { id: dto.propertyId },
-    });
-    if (!property) {
-      throw new NotFoundException(`Property with ID ${dto.propertyId} not found.`);
+    // 2. Validate financial and method inputs
+    const amountNum = Number(dto.amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      throw new BadRequestException('Amount must be greater than 0.');
     }
 
-    // Agent can only record deal for own assigned listing (unless ADMIN)
-    if (user.role === UserRole.AGENT && property.agentId !== resolvedAgentId) {
-      throw new ForbiddenException('Only the listing agent can record transactions for this property.');
+    const txTypeStr = String(dto.transactionType || '').toUpperCase();
+    if (!['SALE', 'RENT', 'LEASE'].includes(txTypeStr)) {
+      throw new BadRequestException(`Invalid transaction type: ${dto.transactionType}. Allowed: Sale, Rent, Lease.`);
+    }
+    const transactionType = txTypeStr === 'RENT' ? TransactionType.RENT : TransactionType.SALE;
+
+    let paymentMethod: PaymentMethod = PaymentMethod.BANK_TRANSFER;
+    const pmUpper = String(dto.paymentMethod || '').toUpperCase().replace(/[\s_-]/g, '');
+    if (pmUpper.includes('CASH')) paymentMethod = PaymentMethod.CASH;
+    else if (pmUpper.includes('BANK')) paymentMethod = PaymentMethod.BANK_TRANSFER;
+    else if (pmUpper.includes('GCASH')) paymentMethod = PaymentMethod.GCASH;
+    else if (pmUpper.includes('CARD') || pmUpper.includes('CREDIT') || pmUpper.includes('DEBIT')) paymentMethod = PaymentMethod.CARD;
+    else if (pmUpper.includes('CHECK') || pmUpper.includes('CHEQUE')) paymentMethod = PaymentMethod.CHECK;
+    else if (pmUpper.includes('FINANC')) paymentMethod = PaymentMethod.FINANCING;
+    else {
+      throw new BadRequestException(`Invalid payment method: ${dto.paymentMethod}. Allowed: Cash, BankTransfer, GCash, Card, Check, Financing.`);
     }
 
-    // 3. Property availability check (Lab 05 EP 18: 409 Conflict if already sold or rented)
-    const upperStatus = String(property.status).toUpperCase();
-    if (upperStatus === 'SOLD' || property.status === PropertyStatus.SOLD) {
-      throw new ConflictException(`Property is not available. Property ${property.id} already has status Sold.`);
-    }
-    if (upperStatus === 'RENTED' || property.status === PropertyStatus.RENTED) {
-      throw new ConflictException(`Property is not available. Property ${property.id} already has status Rented.`);
-    }
-
-    // 4. Buyer validation
+    // 3. Buyer validation
     const buyer = await this.userRepository.findOne({
       where: { id: dto.buyerId },
     });
@@ -166,43 +168,61 @@ export class TransactionsService {
       throw new NotFoundException(`Buyer user with ID ${dto.buyerId} not found.`);
     }
 
-    // 5. Type and Method normalization
-    const txTypeStr = String(dto.transactionType).toUpperCase();
-    const transactionType = txTypeStr === 'RENT' ? TransactionType.RENT : TransactionType.SALE;
+    // 4. ATOMIC DATABASE TRANSACTION WITH PESSIMISTIC LOCKING
+    // Ensures concurrent requests cannot create duplicate or conflicting completed sales/rentals
+    return await this.dataSource.transaction(async (manager) => {
+      const property = await manager
+        .getRepository(Property)
+        .createQueryBuilder('property')
+        .setLock('pessimistic_write')
+        .where('property.id = :id', { id: dto.propertyId })
+        .getOne();
 
-    let paymentMethod: PaymentMethod = PaymentMethod.BANK_TRANSFER;
-    const pmUpper = String(dto.paymentMethod).toUpperCase().replace(/[\s_-]/g, '');
-    if (pmUpper.includes('CASH')) paymentMethod = PaymentMethod.CASH;
-    else if (pmUpper.includes('BANK')) paymentMethod = PaymentMethod.BANK_TRANSFER;
-    else if (pmUpper.includes('GCASH')) paymentMethod = PaymentMethod.GCASH;
-    else if (pmUpper.includes('CARD') || pmUpper.includes('CREDIT') || pmUpper.includes('DEBIT')) paymentMethod = PaymentMethod.CARD;
-    else if (pmUpper.includes('CHECK') || pmUpper.includes('CHEQUE')) paymentMethod = PaymentMethod.CHECK;
-    else if (pmUpper.includes('FINANC')) paymentMethod = PaymentMethod.FINANCING;
+      if (!property) {
+        throw new NotFoundException(`Property with ID ${dto.propertyId} not found.`);
+      }
 
-    // 6. Create & Save Transaction
-    const tx = this.transactionRepository.create({
-      propertyId: property.id,
-      buyerId: buyer.id,
-      agentId: resolvedAgentId,
-      amount: Number(dto.amount),
-      transactionType,
-      paymentMethod,
-      transactionDate: dto.transactionDate || new Date().toISOString().split('T')[0],
-      status: TransactionStatus.PENDING,
-      notes: dto.notes || null,
+      const agentIdForDeal = resolvedAgentId !== null ? resolvedAgentId : (property.agentId || 1);
+
+      // Agent can only record deal for own assigned listing (unless ADMIN)
+      if (user.role === UserRole.AGENT && property.agentId !== agentIdForDeal) {
+        throw new ForbiddenException('Only the listing agent can record transactions for this property.');
+      }
+
+      // Check property availability (Lab 05 EP 18: 409 Conflict if already sold or rented)
+      const upperStatus = String(property.status).toUpperCase();
+      if (upperStatus === 'SOLD' || property.status === PropertyStatus.SOLD) {
+        throw new ConflictException(`Property is not available. Property ${property.id} already has status Sold.`);
+      }
+      if (upperStatus === 'RENTED' || property.status === PropertyStatus.RENTED) {
+        throw new ConflictException(`Property is not available. Property ${property.id} already has status Rented.`);
+      }
+
+      // Create & Save Transaction
+      const tx = manager.getRepository(PropertyTransaction).create({
+        propertyId: property.id,
+        buyerId: buyer.id,
+        agentId: agentIdForDeal,
+        amount: amountNum,
+        transactionType,
+        paymentMethod,
+        transactionDate: dto.transactionDate || new Date().toISOString().split('T')[0],
+        status: TransactionStatus.PENDING,
+        notes: dto.notes || null,
+      });
+
+      const savedTx = await manager.getRepository(PropertyTransaction).save(tx);
+
+      // Transition property status atomically
+      if (transactionType === TransactionType.SALE) {
+        property.status = PropertyStatus.SOLD;
+      } else {
+        property.status = PropertyStatus.RENTED;
+      }
+      await manager.getRepository(Property).save(property);
+
+      return this.mapToResponse(savedTx);
     });
-
-    const savedTx = await this.transactionRepository.save(tx);
-
-    // 7. Update property status accordingly
-    if (transactionType === TransactionType.SALE) {
-      property.status = PropertyStatus.SOLD;
-    } else {
-      property.status = PropertyStatus.RENTED;
-    }
-    await this.propertyRepository.save(property);
-
-    return this.mapToResponse(savedTx);
   }
 
   // Backward compatibility alias for tests

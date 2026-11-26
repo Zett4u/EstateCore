@@ -13,7 +13,7 @@ process.env.DB_PASSWORD = 'estatecore_secure_pass_2026';
 process.env.DB_NAME = 'estatecore_test_restore';
 process.env.JWT_SECRET = 'estatecore_super_secret_jwt_key_2026_academic_defense_key';
 process.env.JWT_EXPIRATION = '3600s';
-const TEST_PORT = 3344;
+const TEST_PORT = 3333;
 process.env.PORT = String(TEST_PORT);
 
 const BASE_URL = `http://127.0.0.1:${TEST_PORT}/api/v1`;
@@ -127,7 +127,7 @@ async function runTestSuite() {
   try {
     // 2. Authentication & Token Acquisition
     console.log('[2/7] Authenticating Users & Establishing Personas...');
-    
+
     // Admin (User 1)
     const adminLogin = await request('/auth/login', {
       method: 'POST',
@@ -170,7 +170,7 @@ async function runTestSuite() {
 
     // 3. Unauthenticated Access & Public Catalog Integrity
     console.log('\n[3/7] Verifying Public Endpoints & Unauthenticated Access Security...');
-    
+
     // Public Catalog
     const pubCatalog = await request('/properties');
     record('PUBLIC', 'Public Property Catalog Access', 200, pubCatalog.status, pubCatalog.status === 200 && Array.isArray(pubCatalog.data));
@@ -190,7 +190,7 @@ async function runTestSuite() {
     // Unauthenticated Rejection: Property Creation
     const unauthPropCreate = await request('/properties', {
       method: 'POST',
-      body: { title: 'Unauthorized Villa', price: 5000000, location: 'Makati', address: '123 Test St', propertyType: 'CONDOMINIUM', listingType: 'SALE' },
+      body: { title: 'Unauthorized Villa', price: 5000000, location: 'Makati', address: '123 Test St', propertyType: 'CONDOMINIUM', listingType: 'FOR_SALE' },
     });
     record('UNAUTH', 'Reject Anonymous Property Creation', 401, unauthPropCreate.status, unauthPropCreate.status === 401);
 
@@ -330,7 +330,7 @@ async function runTestSuite() {
         location: 'Alabang, Muntinlupa City',
         address: '45 Acacia Avenue, Ayala Alabang',
         propertyType: 'HOUSE',
-        listingType: 'SALE',
+        listingType: 'FOR_SALE',
         bedrooms: 4,
         bathrooms: 3,
         floorArea: 320,
@@ -518,7 +518,7 @@ async function runTestSuite() {
         location: 'Bonifacio Global City, Taguig',
         address: '5th Avenue corner 26th Street',
         propertyType: 'COMMERCIAL',
-        listingType: 'SALE',
+        listingType: 'FOR_SALE',
         agentId: 2,
         ownerId: 4,
       },
@@ -615,7 +615,12 @@ async function runTestSuite() {
     JSON.stringify(results, null, 2),
     'utf8'
   );
-  console.log(`Evidence saved to: documentation/evidence/phase3_security_test_results.json`);
+  fs.writeFileSync(
+    path.join(evidenceDir, 'phase5_1_security_results.json'),
+    JSON.stringify(results, null, 2),
+    'utf8'
+  );
+  console.log(`Evidence saved to: documentation/evidence/phase3_security_test_results.json & phase5_1_security_results.json`);
 
   if (results.summary.failed > 0 || !liveSafe) {
     process.exit(1);

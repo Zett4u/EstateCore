@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, Like } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { Property } from './entities/property.entity';
 import { PropertyPhoto } from './entities/property-photo.entity';
 import { CreatePropertyDto } from './dto/create-property.dto';
@@ -290,19 +291,34 @@ export class PropertiesService {
     let filePath: string;
 
     if (file) {
-      // Validate image MIME type
+      // 1. Validate image MIME type
       const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedMimes.includes(file.mimetype)) {
         throw new BadRequestException('Invalid file type. Only JPEG, PNG, WebP, and GIF images are allowed.');
       }
-      // Max 5MB
+
+      // 2. Max 5MB file size limit
       if (file.size > 5 * 1024 * 1024) {
         throw new BadRequestException('File size exceeds the 5MB limit.');
       }
 
-      // Safe filename generation
-      const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-      const safeFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      // 3. Strict extension whitelist & execution prevention
+      const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+      const rawExt = path.extname(file.originalname || '').toLowerCase();
+      let ext = allowedExts.includes(rawExt) ? rawExt : '';
+      if (!ext) {
+        if (file.mimetype === 'image/jpeg') ext = '.jpg';
+        else if (file.mimetype === 'image/png') ext = '.png';
+        else if (file.mimetype === 'image/webp') ext = '.webp';
+        else if (file.mimetype === 'image/gif') ext = '.gif';
+        else {
+          throw new BadRequestException('Invalid file extension. Only image files are permitted.');
+        }
+      }
+
+      // 4. Safe randomized filename without path traversal characters
+      const randomSuffix = crypto.randomBytes(8).toString('hex');
+      const safeFilename = `${Date.now()}-${randomSuffix}${ext}`;
       const uploadDir = path.join(process.cwd(), 'uploads', 'properties', String(id));
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -311,8 +327,18 @@ export class PropertiesService {
       fs.writeFileSync(targetPath, file.buffer);
 
       filePath = `/uploads/properties/${id}/${safeFilename}`;
+    } else if (photoDto?.filePath || photoDto?.photoUrl) {
+      const candidatePath = String(photoDto.filePath || photoDto.photoUrl).trim();
+
+      // Path traversal and null byte prevention
+      if (candidatePath.includes('..') || candidatePath.includes('\0')) {
+        throw new BadRequestException('Invalid filePath: path traversal is strictly prohibited.');
+      }
+
+      filePath = candidatePath;
     } else {
-      filePath = photoDto?.filePath || photoDto?.photoUrl || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80`;
+      // Lab 05 Card 14: filePath is required
+      throw new BadRequestException('filePath is required.');
     }
 
     const isPrimary = photoDto?.isPrimary !== undefined ? Boolean(photoDto.isPrimary) : false;
