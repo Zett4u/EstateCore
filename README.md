@@ -7,8 +7,9 @@
 [![Container](https://img.shields.io/badge/Docker-Compose-2496ED.svg)]()
 [![Auth](https://img.shields.io/badge/Authentication-JWT_Passport-yellow.svg)]()
 [![Frontend](https://img.shields.io/badge/React-18_Vite_Tailwind-61DAFB.svg)]()
+[![REST API](https://img.shields.io/badge/REST_Endpoints-39_Mapped-informational.svg)]()
+[![Final Project Tests](https://img.shields.io/badge/API_Verification-46%2F46_Passed-success.svg)]()
 [![Playwright Tests](https://img.shields.io/badge/Playwright_E2E-21%2F21_Passed-success.svg)]()
-[![Security & RBAC](https://img.shields.io/badge/RBAC_Audit-18%2F18_Passed-success.svg)]()
 
 ---
 
@@ -16,11 +17,16 @@
 
 **EstateCore** is a centralized, full-stack Real Estate Management Information System designed and implemented for **ITEC 116 (IT Elective 4: Systems Integration and Architecture 2)** under the supervision of **John Vincent A. Dallego, MIT**.
 
-The platform provides a modern architectural solution to streamline real estate operations: organizing property holdings, processing prospect inquiries, scheduling viewing appointments, and coordinating real estate advisors through a secured, role-guarded RESTful API and relational database.
+**Student Developer:** Cabico, Cristina O. (BSIT 4-C)  
+**Academic References:** `estatecire.pdf` (Labs 03–06) & `09_Final_Project_Student_Copy.pdf` (ITEC 116 Final Project Guidelines)
+
+The platform provides an enterprise architectural solution to streamline real estate operations: organizing property holdings, processing prospect inquiries, scheduling viewing appointments, executing atomic property sales with concurrency locking, and coordinating real estate advisors through a secured, role-guarded RESTful API and relational database.
 
 ### System Capabilities
-- **22 Production REST API Endpoints:** Complete business coverage across Authentication, Identity, Property Listings, Inquiry Pipelines, and Tour Appointments.
-- **Strict Role-Based Access Control (RBAC):** Server-side enforcement with zero trust for `ADMIN`, `AGENT`, and `CLIENT` roles, backed by ownership verification guards preventing IDOR.
+- **39 Production REST API Endpoints:** Complete business coverage across 7 dedicated controllers: Authentication, Users Management, Agents Directory, Properties Catalog, Standalone & Nested Inquiries, Tour Appointments, and Financial Transactions.
+- **Strict Role-Based Access Control (RBAC):** Server-side enforcement with zero trust for `ADMIN`, `AGENT`, and `CLIENT` roles, backed by ownership verification guards preventing Broken Object Level Authorization (BOLA/IDOR).
+- **Concurrency & Double-Sale Defense:** Pessimistic write locking (`pessimistic_write`) within database transactions preventing race conditions during simultaneous property acquisitions.
+- **Relational Integrity & History Retention:** MySQL InnoDB foreign key rules enforcing `RESTRICT` on properties with inquiries or settled transactions to protect audit trails from accidental cascaded deletion.
 - **Dockerized Relational Persistence:** MySQL 8.4 LTS running in an isolated Docker container with named persistent volumes, ACID compliance, and TypeORM migrations.
 - **Adaptive Frontend Workspace:** React 18 + Vite + Tailwind CSS featuring responsive public discovery, dedicated client portals, agent workflows, and executive administrative dashboards.
 - **Multi-Device & Mobile Ready:** Designed for responsive access across desktops, tablets, and smartphones over local Wi-Fi / LAN networks.
@@ -32,14 +38,14 @@ The platform provides a modern architectural solution to streamline real estate 
 | Domain | Technology | Description |
 | :--- | :--- | :--- |
 | **Backend Framework** | NestJS 10 (TypeScript) | Enterprise Node.js framework with dependency injection and modular architecture |
-| **ORM & Data Layer** | TypeORM 0.3 | Data Mapper ORM, schema migrations, query builders, and relation hydration |
+| **ORM & Data Layer** | TypeORM 0.3 | Data Mapper ORM, schema migrations, query builders, and pessimistic transaction locking |
 | **Database** | MySQL 8.4 LTS | ACID-compliant relational database hosted in Docker on port `3307` |
-| **Authentication** | Passport JWT & bcryptjs | Stateless Bearer token verification and 10-round salted password hashing |
-| **Validation & Security**| class-validator & class-transformer | Strict DTO validation, whitelist sanitization, and parameterized SQL queries |
+| **Authentication** | Passport JWT & bcryptjs | Stateless Bearer token verification (1-hour lifespan) with server-side blacklist revocation |
+| **Validation & Security**| class-validator & class-transformer | Strict DTO validation, whitelist sanitization, rate limiting, and parameterized queries |
 | **Frontend Framework** | React 18, Vite, TypeScript | Single Page Application with optimized Vite bundling and fast HMR |
 | **Styling & Design** | Tailwind CSS & Lucide Icons | Responsive styling, mobile navigation drawer, and warm architectural palette |
 | **Network Proxy** | Vite Reverse Proxy | Automatic `/api` forwarding to backend for seamless cross-device mobile access |
-| **Automated Testing** | Playwright & Custom RBAC Suite | 21/21 E2E browser tests and 18/18 API security tests passing with 0 errors |
+| **Automated Testing** | Comprehensive Test Suites | 46/46 Final Project API checks, 18/18 Stabilization checks, 34/34 Academic checks, and 21/21 E2E browser tests passing with 100% success rate |
 
 ---
 
@@ -222,9 +228,31 @@ The database comes pre-seeded with verified test accounts across all three syste
 
 ## 7. Verification & Automated Testing
 
-EstateCore includes two automated test suites ensuring zero regression, strong RBAC compliance, and reliable UI behavior.
+EstateCore includes comprehensive automated test suites ensuring zero regression, strong RBAC compliance, concurrency locking, and reliable full-stack behavior.
 
-### 1. Playwright End-to-End Suite (21 Tests)
+### 1. Final Project Comprehensive API Suite (46 Tests)
+Validates all 39 mapped REST endpoints, dual-prefix routing (`/api/v1` and `/api`), role permissions, DTO validation schemas, and negative error conditions against the isolated sandbox database (`estatecore_test_restore` on port 3307).
+```bash
+node scripts/test_final_project_36_endpoints.js
+```
+- **Result:** `46 / 46 passed (100.0%)` with zero errors.
+- **Evidence:** `documentation/evidence/final-project/07_api_testing/final_36_endpoints_results.json`
+
+### 2. Concurrency & Security Stabilization Suite (18 Tests)
+Validates pessimistic write locking (`pessimistic_write`) under simultaneous race conditions, atomic status transitions to `SOLD`, 1-hour JWT expiration, 5-attempt brute force rate-limiting lockout (`429 Too Many Requests`), and photo upload path traversal defenses.
+```bash
+node scripts/test_phase5_1_stabilization.js
+```
+- **Result:** `18 / 18 passed (100.0%)` with zero errors.
+
+### 3. Academic Endpoints Workflow Suite (34 Tests)
+Validates Laboratory Activity 05 workflows: user registration, public agent directory, listing publication, photo attachments, formal price offer submission, and relational delete protection.
+```bash
+node scripts/test_phase5_academic_endpoints.js
+```
+- **Result:** `34 / 34 passed (100.0%)` with zero errors.
+
+### 4. Playwright End-to-End Browser Suite (21 Tests)
 Covers all browser flows, form interactions, mobile drawer responsiveness, negative authorization redirects, and appointment cancellations.
 ```bash
 node test_playwright.js
@@ -232,26 +260,15 @@ node test_playwright.js
 - **Result:** `21 / 21 tests passed` with `0 console errors`.
 - **Evidence:** Visual screenshots captured in [documentation/evidence/playwright/](documentation/evidence/playwright/).
 
-### 2. Negative RBAC & Security Audit Suite (18 Tests)
-Direct HTTP assertions verifying role boundaries, IDOR resistance, past date appointment rejections, and direct MySQL query validations.
-```bash
-node test_security_rbac.js
-```
-- **Result:** `18 / 18 tests passed` (`403 Forbidden` / `401 Unauthorized` enforced where appropriate).
-
 ---
 
-## 8. Database Backup & Restoration
+## 8. Database Backup & Deliverable Verification
 
-### Create a Complete SQL Dump
-```bash
-docker exec estatecore-mysql mysqldump -u root -pestatecore_root_secure_pass_2026 --no-tablespaces --databases estatecore_db --add-drop-table > database/exports/estatecore_database.sql
-```
-
-### Restore Database from SQL Dump
-```bash
-docker exec -i estatecore-mysql mysql -u root -pestatecore_root_secure_pass_2026 estatecore_db < database/exports/estatecore_database.sql
-```
+### Official Academic SQL Export
+The final project deliverable dump is pre-packaged and verified:
+- **Deliverable File:** `documentation/deliverables/EstateCore_Final_Project.sql` (18.1 KB)
+- **Schema:** 7 tables (`users`, `agents`, `properties`, `property_photos`, `inquiries`, `appointments`, `property_transactions`).
+- **Data Integrity:** Fully populated with verified academic seed personas and listing catalog. Verified via clean import into temporary database `estatecore_verify_import`.
 
 ---
 
@@ -278,16 +295,41 @@ docker exec -i estatecore-mysql mysql -u root -pestatecore_root_secure_pass_2026
 
 ---
 
-## 10. Academic Documentation & Defense
+## 10. Final Project Submission Deliverables & Audit
 
-For detailed entity-relationship diagrams (ERD), normalization proofs (1NF to 3NF), API specification matrices, and presentation slides:
-- **Comprehensive Documentation:** [docs/FINAL_PROJECT_DOCUMENTATION.md](docs/FINAL_PROJECT_DOCUMENTATION.md)
-- **Role-Based Permission Matrix:** [documentation/RBAC_PERMISSION_MATRIX.md](documentation/RBAC_PERMISSION_MATRIX.md)
-- **Multi-Device Setup Guide:** [docs/DEVICE_ACCESS_GUIDE.md](docs/DEVICE_ACCESS_GUIDE.md)
+All academic submission requirements for **ITEC 116** are packaged under `documentation/deliverables/` and verified under `documentation/final-project/audit/`:
+
+### Core Submission Deliverables:
+1. **SQL Database Dump:** [EstateCore_Final_Project.sql](documentation/deliverables/EstateCore_Final_Project.sql) (18.1 KB, 7 relational tables + sample seed data).
+2. **Postman API Collection:** [EstateCore_Final_Project.postman_collection.json](documentation/deliverables/EstateCore_Final_Project.postman_collection.json) (40.3 KB, 46 requests across 8 folders).
+3. **Postman Environment Template:** [EstateCore_Postman_Environment.template.json](documentation/deliverables/EstateCore_Postman_Environment.template.json) (1.0 KB, pre-configured variables).
+4. **Technical Documentation PDF:** [EstateCore_Final_Project_Documentation.pdf](documentation/deliverables/EstateCore_Final_Project_Documentation.pdf) (641.9 KB, 28-page compiled technical report).
+5. **Presentation Deck:** [EstateCore_Final_Project_Presentation.pptx](documentation/deliverables/EstateCore_Final_Project_Presentation.pptx) (187.4 KB, 15 professional slides with speaker notes).
+6. **Demonstration Script:** [EstateCore_5_to_10_Minute_Demo_Script.md](documentation/deliverables/EstateCore_5_to_10_Minute_Demo_Script.md) (7.6 KB, timed 8-minute narration script).
+7. **Defense Q&A Preparation:** [EstateCore_Defense_Questions_and_Answers.md](documentation/deliverables/EstateCore_Defense_Questions_and_Answers.md) (5.8 KB, 10 panel questions with technical answers).
+
+### Independent Audit Reports (`documentation/final-project/audit/`):
+- [GITHUB_REPOSITORY_AUDIT.md](documentation/final-project/audit/GITHUB_REPOSITORY_AUDIT.md) — Git remote, commit history (`1a785d6` to `acf1a9f`), and branch topology.
+- [BACKEND_IMPLEMENTATION_AUDIT.md](documentation/final-project/audit/BACKEND_IMPLEMENTATION_AUDIT.md) — NestJS architecture, zero-mock audit, and transaction safety.
+- [DATABASE_INTEGRITY_AUDIT.md](documentation/final-project/audit/DATABASE_INTEGRITY_AUDIT.md) — 3NF schema, 13 foreign keys, and 100% live database isolation.
+- [REST_API_ENDPOINT_AUDIT.md](documentation/final-project/audit/REST_API_ENDPOINT_AUDIT.md) — Line-by-line inventory of all 39 mapped endpoints.
+- [AUTHENTICATION_SECURITY_AUDIT.md](documentation/final-project/audit/AUTHENTICATION_SECURITY_AUDIT.md) — 1-hour JWT, blacklist revocation, BOLA, rate limiting, and email-only mandate.
+- [AUTOMATED_TEST_RESULTS.md](documentation/final-project/audit/AUTOMATED_TEST_RESULTS.md) — Complete execution records and 139/144/163 test reconciliation.
+- [ACADEMIC_REQUIREMENTS_TRACEABILITY.md](documentation/final-project/audit/ACADEMIC_REQUIREMENTS_TRACEABILITY.md) — Requirements traceability matrix for Labs 03–06 & final project criteria.
+- [FINAL_DELIVERABLES_AUDIT.md](documentation/final-project/audit/FINAL_DELIVERABLES_AUDIT.md) — Verification of all submission files and sizes.
+- [MISSING_REQUIREMENTS_AND_DEFECTS.md](documentation/final-project/audit/MISSING_REQUIREMENTS_AND_DEFECTS.md) — Rigorous gap and defect analysis.
+- [ESTATECORE_FINAL_COMPLETION_VERDICT.md](documentation/final-project/audit/ESTATECORE_FINAL_COMPLETION_VERDICT.md) — Formal evaluative verdict.
+- [evidence_index.json](documentation/final-project/audit/evidence_index.json) — Machine-readable audit catalog.
+
+> [!IMPORTANT]
+> **Pending Submission Task for Student:**  
+> The physical video file (`.mp4`, 5–10 minutes) must be recorded by the student developer (**Cabico, Cristina O.**) using the provided presentation slides and timed script prior to submission to the university portal.
 
 ---
 
 ## 11. Academic Evaluation & License
 
-Developed for academic presentation and evaluation in **ITEC 116 — Systems Integration and Architecture 2**.
+Developed for academic presentation and evaluation in **ITEC 116 — Systems Integration and Architecture 2**.  
+**Instructor:** John Vincent A. Dallego, MIT  
+**Student Developer:** Cabico, Cristina O. (BSIT 4-C)  
 All rights reserved © 2026.
