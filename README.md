@@ -101,9 +101,10 @@ Follow these steps to clone, configure, and run EstateCore on a brand new Window
 
 ### Step-by-Step Installation
 
-#### 1. Clone the Repository
+#### 1. Clone the Completed Feature Branch
+Clone the official completed submission branch directly:
 ```bash
-git clone https://github.com/Zett4u/EstateCore.git
+git clone -b feature/phase5-2-final-project-completion https://github.com/Zett4u/EstateCore.git
 cd EstateCore
 ```
 
@@ -118,38 +119,46 @@ cp backend/.env.example backend/.env
 Copy-Item .env.example .env
 Copy-Item backend/.env.example backend/.env
 ```
-*(Note: If you skip this step, NestJS and Docker Compose will automatically use built-in safe defaults, but copying the file ensures custom configurations are supported).*
+> [!NOTE]
+> **Academic Demonstration Configuration:** The default configuration connects to the Dockerized MySQL database `estatecore_db` on port `3307` and sets `JWT_EXPIRATION=3600s` (1 hour) matching the academic requirements in `estatecire.pdf`.
+> For production deployments outside academic evaluation, generate a cryptographically strong JWT secret using:
+> `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
 #### 3. Start the MySQL 8.4 Database Container
 ```bash
 docker compose up -d
 ```
-Verify the container is healthy:
+Verify the container is healthy and accepting connections:
 ```bash
 docker compose ps
+docker exec estatecore-mysql mysqladmin ping -u estatecore_user -pestatecore_secure_pass_2026
 ```
 *(MySQL is exposed on host port `3307` mapped to internal `3306` to prevent conflicts with local services like XAMPP).*
 
-#### 4. Setup and Start the Backend API
-Open a new terminal window:
+#### 4. Setup Database Schema and Sample Data
+You can populate the database using either of two methods:
+
+- **Method A: TypeORM Schema Migrations & Seeder (Standard)**
+  ```bash
+  cd backend
+  npm install
+  npm run migration:run
+  npm run seed
+  ```
+
+- **Method B: Instant Import from Verified Academic SQL Deliverable**
+  ```bash
+  docker exec -i estatecore-mysql mysql -u root -pestatecore_root_secure_pass_2026 estatecore_db < documentation/deliverables/EstateCore_Final_Project.sql
+  ```
+
+#### 5. Start the Backend API
+In the `backend` terminal:
 ```bash
-cd backend
-
-# Install dependencies
-npm install
-
-# Run schema migrations
-npm run migration:run
-
-# Seed initial system accounts and listings
-npm run seed
-
-# Start NestJS in development mode
 npm run start:dev
 ```
-*Backend API will be running at:* `http://localhost:3000/api`
+*Backend API will be running at:* `http://localhost:3000/api/v1` (with `/api` backward-compatibility alias).
 
-#### 5. Setup and Start the Frontend Application
+#### 6. Setup and Start the Frontend Application
 Open a second terminal window:
 ```bash
 cd frontend
@@ -327,7 +336,25 @@ All academic submission requirements for **ITEC 116** are packaged under `docume
 
 ---
 
-## 11. Academic Evaluation & License
+## 11. Developer Documentation Suite
+
+For developers, evaluators, and system maintainers who wish to understand the codebase, inspect the schema, or reproduce testing independently, comprehensive technical guides are available under `documentation/developer/`:
+
+1. **System Overview:** [documentation/developer/SYSTEM_OVERVIEW.md](documentation/developer/SYSTEM_OVERVIEW.md) — Business domain, personas, capabilities, and system boundaries.
+2. **System Architecture:** [documentation/developer/SYSTEM_ARCHITECTURE.md](documentation/developer/SYSTEM_ARCHITECTURE.md) — 3-tier architecture, request lifecycle, data flow, and concurrency controls.
+3. **Database & ERD Guide:** [documentation/developer/DATABASE_AND_ERD_GUIDE.md](documentation/developer/DATABASE_AND_ERD_GUIDE.md) — Entity-relationship diagram, 3NF schema, foreign key inventory, deletion rules, and ID disambiguation (`users.id` vs `agents.id`).
+4. **Backend Developer Guide:** [documentation/developer/BACKEND_DEVELOPER_GUIDE.md](documentation/developer/BACKEND_DEVELOPER_GUIDE.md) — NestJS modules, controller-service-repository patterns, DTO validation, and transaction managers.
+5. **Frontend Developer Guide:** [documentation/developer/FRONTEND_DEVELOPER_GUIDE.md](documentation/developer/FRONTEND_DEVELOPER_GUIDE.md) — React 18, Vite proxy, state management, role-based route guards, and component hierarchy.
+6. **API Reference:** [documentation/developer/API_REFERENCE.md](documentation/developer/API_REFERENCE.md) — Complete 39-route specification with request/response examples and status codes.
+7. **Installation & Setup Guide:** [documentation/developer/INSTALLATION_AND_SETUP.md](documentation/developer/INSTALLATION_AND_SETUP.md) — Step-by-step instructions for clean Docker install or instant SQL dump restoration.
+8. **Testing & Verification Guide:** [documentation/developer/TESTING_AND_VERIFICATION.md](documentation/developer/TESTING_AND_VERIFICATION.md) — Detailed execution commands for all 4 test suites.
+9. **Troubleshooting Guide:** [documentation/developer/TROUBLESHOOTING.md](documentation/developer/TROUBLESHOOTING.md) — Solutions for common connection, migration, port, and firewall issues.
+10. **Academic Traceability Matrix:** [documentation/developer/ACADEMIC_REQUIREMENTS_TRACEABILITY.md](documentation/developer/ACADEMIC_REQUIREMENTS_TRACEABILITY.md) — Line-by-line mapping of Labs 03–06 and Final Project criteria to source code and tests.
+11. **Developer Handoff Audit:** [documentation/developer/FINAL_DEVELOPER_HANDOFF_AUDIT.md](documentation/developer/FINAL_DEVELOPER_HANDOFF_AUDIT.md) — Final technical evaluative verdict and handoff verification.
+
+---
+
+## 12. Academic Evaluation & License
 
 Developed for academic presentation and evaluation in **ITEC 116 — Systems Integration and Architecture 2**.  
 **Instructor:** John Vincent A. Dallego, MIT  

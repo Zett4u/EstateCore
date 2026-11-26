@@ -125,12 +125,11 @@ async function auditLiveDatabase() {
 
   await liveConn.end();
 
-  const outputDir = path.resolve(__dirname, '../documentation/evidence');
+  const outputDir = path.resolve(__dirname, '../documentation/evidence/final-project');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
-  fs.writeFileSync(path.join(outputDir, 'phase2_2_live_db_audit.json'), JSON.stringify(auditReport, null, 2));
-  fs.writeFileSync(path.join(outputDir, 'phase5_1_database_audit.json'), JSON.stringify(auditReport, null, 2));
+  fs.writeFileSync(path.join(outputDir, 'live_db_pre_commit_audit.json'), JSON.stringify(auditReport, null, 2));
 
   console.log('\n--- ISOLATION AUDIT RESULT ---');
   console.log('Live DB Has Phase 2 Tables (`agents`, etc.):', liveHasPhase2Tables);
