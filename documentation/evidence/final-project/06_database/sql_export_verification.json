@@ -1,0 +1,48 @@
+{
+  "course": "ITEC 116 - Systems Integration and Architecture 2",
+  "instructor": "John Vincent A. Dallego, MIT",
+  "student": "Cabico, Cristina O. | BSIT 4-C",
+  "timestamp": "2026-11-26T03:14:40.383Z",
+  "exportFile": "documentation/deliverables/EstateCore_Final_Project.sql",
+  "exportSizeKb": "17.64",
+  "sourceDatabase": "estatecore_test_restore",
+  "verifiedInDatabase": "estatecore_verify_import",
+  "importSuccess": true,
+  "tables": [
+    {
+      "table": "users",
+      "present": true,
+      "recordCount": 5
+    },
+    {
+      "table": "agents",
+      "present": true,
+      "recordCount": 2
+    },
+    {
+      "table": "properties",
+      "present": true,
+      "recordCount": 6
+    },
+    {
+      "table": "property_photos",
+      "present": true,
+      "recordCount": 6
+    },
+    {
+      "table": "inquiries",
+      "present": true,
+      "recordCount": 7
+    },
+    {
+      "table": "appointments",
+      "present": true,
+      "recordCount": 4
+    },
+    {
+      "table": "property_transactions",
+      "present": true,
+      "recordCount": 2
+    }
+  ]
+}

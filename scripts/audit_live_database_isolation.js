@@ -19,14 +19,24 @@ async function auditLiveDatabase() {
   console.log(`Backup Size: ${backupSize} bytes`);
   console.log(`Backup SHA-256: ${backupHash}`);
 
-  // 2. Read-only connection to live database `estatecore_db`
-  const liveConn = await mysql.createConnection({
-    host: '127.0.0.1',
-    port: 3307,
-    user: 'estatecore_user',
-    password: 'estatecore_secure_pass_2026',
-    database: 'estatecore_db',
-  });
+  // 2. Read-only connection to live database `estatecore_db` with retry
+  let liveConn;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      liveConn = await mysql.createConnection({
+        host: attempt === 1 ? 'localhost' : '127.0.0.1',
+        port: 3307,
+        user: 'estatecore_user',
+        password: 'estatecore_secure_pass_2026',
+        database: 'estatecore_db',
+      });
+      break;
+    } catch (e) {
+      if (attempt === 3) throw e;
+      console.log(`Connection attempt ${attempt} failed, retrying...`);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
 
   const [[serverMeta]] = await liveConn.query(`
     SELECT 
