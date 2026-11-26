@@ -1,0 +1,96 @@
+{
+  "auditMetadata": {
+    "auditVersion": "Phase 3.1 Independent Security Acceptance Audit",
+    "timestamp": "2026-11-25T15:10:00.000Z",
+    "academicSourceOfTruth": "estatecire.pdf (Labs 03, 04, 05, 06)",
+    "gitBranch": "feature/phase3-rbac-ownership-isolation",
+    "targetCommit": "c3d82d9810b3e1f2dd0bad63507efcd0b9919d92",
+    "parentCommit": "5662f75354be43285ae1477aa5391a92e105e4f4",
+    "verdict": "APPROVED WITH DOCUMENTED LIMITATIONS"
+  },
+  "gitIntegrity": {
+    "branchVerified": true,
+    "commitVerified": true,
+    "workingTreeClean": true,
+    "filesChangedInCommit": 20,
+    "insertions": 2471,
+    "deletions": 66
+  },
+  "liveDatabaseAudit": {
+    "database": "estatecore_db",
+    "host": "127.0.0.1:3307",
+    "status": "100% UNTOUCHED",
+    "tableCount": 5,
+    "tablesPresent": ["appointments", "inquiries", "migrations", "properties", "users"],
+    "phase2TablesAbsent": ["agents", "property_transactions", "property_photos"],
+    "fingerprints": {
+      "appointments": { "columns": 10, "rows": 4, "sha256": "a4aa13e40991cdc5cab3bf5a65d0488151922b5ccff9e57abb24f5b11f647e0b" },
+      "inquiries": { "columns": 10, "rows": 7, "sha256": "88b1f9df686cbbaf91148da0b97da4aef4c3a0b606a1355664418f5bea47bc1a" },
+      "migrations": { "columns": 3, "rows": 1, "sha256": "3bb81f0ce05de0d8784ba055df2ff689819d4d782a0ed552f2c6ad41a76568ee" },
+      "properties": { "columns": 16, "rows": 8, "sha256": "e1421860213e463fca31e8dce8d1ea310b13c968ca86df61813b46e16025615e" },
+      "users": { "columns": 8, "rows": 11, "sha256": "63ea72335fe991fa0472d7a3a1685159cbd50871f430cb778ed9f8f26f7a6ad5" }
+    }
+  },
+  "securityTestSuiteReproduction": {
+    "script": "scripts/test_phase3_security_suite.js",
+    "targetDatabase": "estatecore_test_restore",
+    "targetPort": 3344,
+    "exitCode": 0,
+    "totalTests": 60,
+    "passed": 60,
+    "failed": 0,
+    "successRate": "100.0%",
+    "categorySummary": {
+      "AUTH": { "total": 5, "passed": 5, "failed": 0 },
+      "PUBLIC": { "total": 4, "passed": 4, "failed": 0 },
+      "UNAUTH": { "total": 8, "passed": 8, "failed": 0 },
+      "AGENT_ISOLATION": { "total": 14, "passed": 14, "failed": 0 },
+      "CLIENT_OWNERSHIP": { "total": 18, "passed": 18, "failed": 0 },
+      "TRANSACTIONS": { "total": 7, "passed": 7, "failed": 0 },
+      "ADMIN_AUTHORITY": { "total": 4, "passed": 4, "failed": 0 }
+    },
+    "cleanupVerified": true,
+    "realHttpRequests": true
+  },
+  "frontendPlaywrightAudit": {
+    "script": "test_playwright.js",
+    "runner": "scripts/run_playwright_acceptance.js",
+    "targetUrl": "http://localhost:5173",
+    "backendUrl": "http://localhost:3000 (estatecore_test_restore)",
+    "totalTests": 21,
+    "passed": 20,
+    "failed": 1,
+    "successRate": "95.2%",
+    "documentedDefect": {
+      "testStep": "NEGATIVE OWNERSHIP: Agent cross-editing property owned by another agent is denied",
+      "symptom": "page.waitForURL timed out after 8000ms",
+      "rootCause": "PropertyForm.tsx line 47 compares prop.agentId directly with user.id, creating an integer collision between Carlos Reyes (agents.id = 2) and Maria Santos (users.id = 2)",
+      "backendSafety": "Backend API correctly rejects save with 403 Forbidden (verified in AGENT-01)",
+      "remediationRequired": "Phase 4 frontend fix to compare prop.agent?.userId !== user.id"
+    }
+  },
+  "permissionMatrixReconciliation": {
+    "totalRoutesAudited": 28,
+    "conformingRoutes": 26,
+    "documentedNuances": [
+      {
+        "endpoint": "POST /api/v1/inquiries & POST /api/v1/appointments",
+        "description": "Matrix indicated 403 for agents; actual implementation allows any authenticated user to inquire or book as a consumer under their own clientId = user.id"
+      },
+      {
+        "endpoint": "POST/PUT/DELETE /api/v1/transactions",
+        "description": "No mutating REST API endpoints exist; transactions are read-only financial records"
+      }
+    ]
+  },
+  "invariantGuarantees": {
+    "globalRoles": ["ADMIN", "AGENT", "CLIENT"],
+    "propertyOwnerIsResourceLevel": true,
+    "agentResolvedViaAgentProfile": true,
+    "appointmentsAgentIdPointsToUsers": true,
+    "inquiriesAssignedAgentIdPointsToUsers": true,
+    "inquiriesFkOnDeleteRestrict": true,
+    "notificationsEmailOnly": true,
+    "noSmsDependencies": true
+  }
+}

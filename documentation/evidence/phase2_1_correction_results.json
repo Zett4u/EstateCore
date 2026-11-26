@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-11-25T05:49:54.078Z",
+  "sandboxDatabase": "estatecore_test_restore",
+  "liveDatabaseProtected": true,
+  "upMigration": {
+    "appliedCount": 0
+  },
+  "inquiryHistoryProtection": {
+    "passed": true,
+    "clientFkDeleteRule": "RESTRICT",
+    "propertyFkDeleteRule": "RESTRICT",
+    "deletionBlockedByRestrict": true
+  },
+  "adminMappingCorrection": {
+    "passed": true,
+    "property17AgentId": null,
+    "property18AgentId": null,
+    "adminAssignmentCleanedToNull": true,
+    "validAgentAssignmentsPreserved": true
+  },
+  "downMigrationRollback": {
+    "passed": true,
+    "tablesRemaining": [
+      "appointments",
+      "inquiries",
+      "migrations",
+      "properties",
+      "users"
+    ],
+    "usersColsRemaining": [
+      "id",
+      "fullName",
+      "email",
+      "password",
+      "role",
+      "isActive",
+      "createdAt",
+      "updatedAt"
+    ]
+  },
+  "reAppliedUpMigration": {
+    "passed": true,
+    "appliedCount": 1,
+    "tables": [
+      "agents",
+      "appointments",
+      "inquiries",
+      "migrations",
+      "properties",
+      "property_photos",
+      "property_transactions",
+      "users"
+    ]
+  },
+  "academicCompliance": {
+    "users": {
+      "passed": true,
+      "sampleUsers": [
+        {
+          "id": 1,
+          "fullName": "System Administrator",
+          "firstName": "System",
+          "lastName": "Administrator",
+          "contactNumber": null,
+          "email": "admin@estatecore.local",
+          "role": "ADMIN"
+        },
+        {
+          "id": 2,
+          "fullName": "Maria Santos",
+          "firstName": "Maria",
+          "lastName": "Santos",
+          "contactNumber": null,
+          "email": "maria.santos@estatecore.local",
+          "role": "AGENT"
+        },
+        {
+          "id": 3,
+          "fullName": "Carlos Reyes",
+          "firstName": "Carlos",
+          "lastName": "Reyes",
+          "contactNumber": null,
+          "email": "carlos.reyes@estatecore.local",
+          "role": "AGENT"
+        },
+        {
+          "id": 4,
+          "fullName": "Juan Dela Cruz",
+          "firstName": "Juan",
+          "lastName": "Dela Cruz",
+          "contactNumber": null,
+          "email": "juan.delacruz@client.local",
+          "role": "CLIENT"
+        },
+        {
+          "id": 5,
+          "fullName": "Elena Roxas",
+          "firstName": "Elena",
+          "lastName": "Roxas",
+          "contactNumber": null,
+          "email": "elena.roxas@client.local",
+          "role": "CLIENT"
+        }
+      ]
+    }
+  },
+  "persistence": {
+    "passed": true,
+    "photoPersisted": true,
+    "txPersisted": true
+  }
+}

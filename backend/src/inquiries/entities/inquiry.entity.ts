@@ -12,6 +12,13 @@ import { InquiryStatus } from '../../common/enums/inquiry.enum';
 import { User } from '../../users/entities/user.entity';
 import { Property } from '../../properties/entities/property.entity';
 
+export enum InquiryType {
+  GENERAL = 'GENERAL',
+  VIEWING = 'VIEWING',
+  FINANCING = 'FINANCING',
+  OFFER = 'OFFER',
+}
+
 @Entity('inquiries')
 export class Inquiry {
   @PrimaryGeneratedColumn()
@@ -20,16 +27,25 @@ export class Inquiry {
   @Column({ type: 'int' })
   clientId: number;
 
-  @ManyToOne(() => User, (user) => user.clientInquiries, { onDelete: 'CASCADE' })
+  // Historical data preservation: RESTRICT prevents silent cascading erasure of inquiry history
+  @ManyToOne(() => User, (user) => user.clientInquiries, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'clientId' })
   client: User;
 
   @Column({ type: 'int' })
   propertyId: number;
 
-  @ManyToOne(() => Property, (property) => property.inquiries, { onDelete: 'CASCADE' })
+  // Historical data preservation: RESTRICT prevents silent cascading erasure when properties are removed
+  @ManyToOne(() => Property, (property) => property.inquiries, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'propertyId' })
   property: Property;
+
+  @Column({
+    type: 'enum',
+    enum: InquiryType,
+    default: InquiryType.GENERAL,
+  })
+  inquiryType: InquiryType;
 
   @Column({ type: 'int', nullable: true })
   assignedAgentId: number | null;
@@ -38,13 +54,16 @@ export class Inquiry {
   @JoinColumn({ name: 'assignedAgentId' })
   assignedAgent: User | null;
 
-  @Column({ type: 'varchar', length: 200 })
+  @Column({ type: 'varchar', length: 200, nullable: true })
   subject: string;
 
   @Column({ type: 'text' })
   message: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  offerAmount: number | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
   contactNumber: string;
 
   @Index()
@@ -55,9 +74,17 @@ export class Inquiry {
   })
   status: InquiryStatus;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  legacyStatus: string | null;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  // Academic PDF compliance getter
+  get dateSent(): Date {
+    return this.createdAt;
+  }
 }

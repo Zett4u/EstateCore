@@ -16,6 +16,10 @@ export class UpdateUserDto {
   password?: string;
 
   @IsOptional()
+  @IsString()
+  contactNumber?: string;
+
+  @IsOptional()
   @IsEnum(UserRole, { message: 'Role must be ADMIN, AGENT, or CLIENT.' })
   role?: UserRole;
 

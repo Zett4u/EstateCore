@@ -1,10 +1,17 @@
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
-import { UserRole } from '../../common/enums/role.enum';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {
-  @IsNotEmpty({ message: 'Full name is required.' })
+  @IsOptional()
   @IsString()
-  fullName: string;
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
   @IsNotEmpty({ message: 'Email address is required.' })
   @IsEmail({}, { message: 'Invalid email address format.' })
@@ -16,8 +23,12 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  @IsEnum(UserRole, { message: 'Role must be ADMIN, AGENT, or CLIENT.' })
-  role?: UserRole;
+  @IsString()
+  contactNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
 
   @IsOptional()
   @IsBoolean()

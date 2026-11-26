@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Inquiry } from './entities/inquiry.entity';
+import { Inquiry, InquiryType } from './entities/inquiry.entity';
 import { CreateInquiryDto, UpdateInquiryDto } from './dto/create-inquiry.dto';
 import { Property } from '../properties/entities/property.entity';
 import { User } from '../users/entities/user.entity';
@@ -22,22 +22,34 @@ export class InquiriesService {
   ) {}
 
   async create(createInquiryDto: CreateInquiryDto, user: User): Promise<Inquiry> {
+    if (!createInquiryDto.propertyId) {
+      throw new BadRequestException('Property ID is required.');
+    }
+
     const property = await this.propertyRepository.findOne({
       where: { id: createInquiryDto.propertyId },
+      relations: ['agent'],
     });
     if (!property) {
       throw new NotFoundException(`Property with ID ${createInquiryDto.propertyId} does not exist.`);
     }
 
-    const assignedAgentId = createInquiryDto.assignedAgentId || property.agentId || null;
+    const assignedAgentId = createInquiryDto.assignedAgentId || (property.agent ? property.agent.userId : property.agentId) || null;
+
+    const inquiryType =
+      createInquiryDto.inquiryType && createInquiryDto.inquiryType.toUpperCase() === 'OFFER'
+        ? InquiryType.OFFER
+        : InquiryType.GENERAL;
 
     const inquiry = this.inquiryRepository.create({
       clientId: user.id,
       propertyId: property.id,
       assignedAgentId,
-      subject: createInquiryDto.subject,
+      subject: createInquiryDto.subject || 'Property Inquiry',
       message: createInquiryDto.message,
-      contactNumber: createInquiryDto.contactNumber,
+      contactNumber: createInquiryDto.contactNumber || user.contactNumber || 'N/A',
+      inquiryType,
+      offerAmount: createInquiryDto.offerAmount || null,
     });
 
     const saved = await this.inquiryRepository.save(inquiry);
@@ -73,7 +85,7 @@ export class InquiriesService {
       ]);
 
     if (user.role === UserRole.CLIENT) {
-      qb.andWhere('inquiry.clientId = :clientId', { clientId: user.id });
+      qb.andWhere('(inquiry.clientId = :clientId OR property.ownerId = :clientId)', { clientId: user.id });
     } else if (user.role === UserRole.AGENT) {
       qb.andWhere('inquiry.assignedAgentId = :agentId', { agentId: user.id });
     }
@@ -93,8 +105,12 @@ export class InquiriesService {
     }
 
     // Role-based visibility check
-    if (user.role === UserRole.CLIENT && inquiry.clientId !== user.id) {
-      throw new ForbiddenException('You are not authorized to view inquiries from other clients.');
+    if (user.role === UserRole.CLIENT) {
+      const isClient = inquiry.clientId === user.id;
+      const isOwner = inquiry.property && inquiry.property.ownerId === user.id;
+      if (!isClient && !isOwner) {
+        throw new ForbiddenException('You are not authorized to view inquiries from other clients.');
+      }
     }
     if (user.role === UserRole.AGENT && inquiry.assignedAgentId !== user.id) {
       throw new ForbiddenException('You are not authorized to view inquiries assigned to other agents.');

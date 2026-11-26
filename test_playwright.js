@@ -185,13 +185,59 @@ async function runPlaywrightSuite() {
     });
 
     await testStep('NEGATIVE OWNERSHIP: Agent cross-editing property owned by another agent/admin is denied', async () => {
-      // Property #3 is assigned to Agent 3 (Maria is Agent 2)
+      // Property #3 is assigned to Agent Carlos Reyes (agents.id = 2, users.id = 3).
+      // Maria Santos is logged in (users.id = 2, agents.id = 1).
+      // Integer collision trap: Maria users.id (2) === Carlos agents.id (2).
+      // Remediated PropertyForm verifies prop.agent.userId (3) !== Maria user.id (2) and denies access.
       await page.goto('http://localhost:5173/properties/3/edit', { waitUntil: 'networkidle' });
       // The frontend ownership check alerts and navigates back to /properties
       await page.waitForURL('**/properties', { timeout: 8000 });
       if (!page.url().endsWith('/properties')) {
         throw new Error(`Expected redirect to /properties but URL is ${page.url()}`);
       }
+    });
+
+    await testStep('REGRESSION COLLISION: Agent Maria editing unassigned property (Fail closed) is denied', async () => {
+      // Property #17 is unassigned (agentId = null).
+      // Agent Maria attempting to edit unassigned property must fail closed.
+      await page.goto('http://localhost:5173/properties/17/edit', { waitUntil: 'networkidle' });
+      await page.waitForURL('**/properties', { timeout: 8000 });
+      if (!page.url().endsWith('/properties')) {
+        throw new Error(`Expected redirect to /properties but URL is ${page.url()}`);
+      }
+    });
+
+    await testStep('REGRESSION COLLISION: Agent Maria accessing her own assigned Property 1 edit form is allowed', async () => {
+      // Property #1 is assigned to Maria (Agent 1, User 2).
+      await page.goto('http://localhost:5173/properties/1/edit', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Edit Property Listing', { timeout: 8000 });
+      if (!page.url().includes('/properties/1/edit')) {
+        throw new Error(`Expected URL to remain on /properties/1/edit but got ${page.url()}`);
+      }
+    });
+
+    await testStep('REGRESSION COLLISION: Agent Carlos accessing his own assigned Property 3 edit form is allowed', async () => {
+      // Sign out Maria and log in as Carlos (users.id = 3, agents.id = 2)
+      await page.click('button[title*="Sign out"], button:has-text("Sign Out")');
+      await page.waitForURL('**/login', { timeout: 10000 });
+      await page.fill('input[type="email"]', 'carlos.reyes@estatecore.local');
+      await page.fill('input[type="password"]', 'Password123!');
+      await page.click('button:has-text("Sign In to Portal")');
+      await page.waitForURL('**/agent', { timeout: 10000 });
+
+      // Carlos opens Property 3 (assigned to Carlos: prop.agent.userId = 3 === user.id = 3)
+      await page.goto('http://localhost:5173/properties/3/edit', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Edit Property Listing', { timeout: 8000 });
+      if (!page.url().includes('/properties/3/edit')) {
+        throw new Error(`Expected URL to remain on /properties/3/edit for Carlos but got ${page.url()}`);
+      }
+
+      // Re-login Maria to restore suite flow
+      await page.click('button[title*="Sign out"], button:has-text("Sign Out")');
+      await page.waitForURL('**/login', { timeout: 10000 });
+      await page.click('button:has-text("Agent")');
+      await page.click('button:has-text("Sign In to Portal")');
+      await page.waitForURL('**/agent', { timeout: 10000 });
     });
 
     // -------------------------------------------------------------
@@ -248,7 +294,31 @@ async function runPlaywrightSuite() {
     });
 
     // -------------------------------------------------------------
-    // PHASE 5: RESPONSIVE MOBILE VIEWPORT AUDIT
+    // PHASE 5 ACADEMIC EXTENSIONS: TRANSACTIONS, AGENTS DIRECTORY, PHOTOS, OFFERS
+    // -------------------------------------------------------------
+    await testStep('Public / Authenticated Agents Directory renders accredited agents', async () => {
+      await page.goto('http://localhost:5173/agents', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Licensed Real Estate Agents');
+      await page.waitForSelector('text=Maria Santos');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '13_agents_directory.png') });
+    });
+
+    await testStep('Transactions Dashboard renders financial ledger & deal recording controls', async () => {
+      await page.goto('http://localhost:5173/transactions', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Property Transactions');
+      await page.waitForSelector('text=Total Volume');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '14_transactions_dashboard.png') });
+    });
+
+    await testStep('Property Detail displays photo gallery and interactive offer workflow', async () => {
+      await page.goto('http://localhost:5173/properties/1', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Photo Gallery');
+      await page.waitForSelector('button:has-text("Make an Offer")');
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '15_property_detail_phase5.png') });
+    });
+
+    // -------------------------------------------------------------
+    // PHASE 6: RESPONSIVE MOBILE VIEWPORT AUDIT
     // -------------------------------------------------------------
     await testStep('Mobile viewport audit: responsive navigation and mobile drawer', async () => {
       await page.setViewportSize({ width: 375, height: 812 });
@@ -261,7 +331,7 @@ async function runPlaywrightSuite() {
         await menuButton.click();
         await page.waitForSelector('nav.flex-col >> text=Properties');
       }
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, '13_mobile_responsive.png') });
+      await page.screenshot({ path: path.join(EVIDENCE_DIR, '16_mobile_responsive.png') });
     });
 
   } finally {

@@ -21,6 +21,8 @@ import { ClientDashboard } from './pages/ClientDashboard';
 import { PropertyForm } from './pages/PropertyForm';
 import { InquiriesList } from './pages/InquiriesList';
 import { AppointmentsList } from './pages/AppointmentsList';
+import { TransactionsList } from './pages/TransactionsList';
+import { AgentsList } from './pages/AgentsList';
 import { UsersList } from './pages/UsersList';
 import { UserProfile } from './pages/UserProfile';
 
@@ -38,11 +40,21 @@ const DashboardRedirect: React.FC = () => {
 
 /**
  * Adaptive layout for Property Catalog & Detail routes:
+ * - While auth is resolving: Displays a minimal loading state to prevent layout flashing
  * - If user is authenticated: Renders inside DashboardLayout (preserving sidebar & workspace context)
  * - If user is unauthenticated (guest): Renders inside PublicLayout (public website header & footer)
  */
 const AdaptiveCatalogLayout: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-700"></div>
+      </div>
+    );
+  }
+
   return user ? <DashboardLayout /> : <PublicLayout />;
 };
 
@@ -56,6 +68,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/agents" element={<AgentsList />} />
           </Route>
 
           {/* Adaptive Property Catalog (Public layout for visitors, Dashboard layout for logged-in users) */}
@@ -97,6 +110,7 @@ export const App: React.FC = () => {
               </Route>
 
               {/* ALL AUTHENTICATED ROLES (Scoped by backend ownership) */}
+              <Route path="/transactions" element={<TransactionsList />} />
               <Route path="/inquiries" element={<InquiriesList />} />
               <Route path="/appointments" element={<AppointmentsList />} />
               <Route path="/profile" element={<UserProfile />} />

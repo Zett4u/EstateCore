@@ -1,0 +1,187 @@
+{
+  "timestamp": "2026-11-24T10:50:55.612Z",
+  "totalTests": 17,
+  "passedTests": 17,
+  "failedTests": 0,
+  "tests": [
+    {
+      "id": 1,
+      "name": "POST /api/v1/auth/login as Administrator and verify 3600s JWT expiration",
+      "status": "PASS",
+      "durationMs": 172,
+      "details": {
+        "role": "ADMIN",
+        "durationSeconds": 3600
+      }
+    },
+    {
+      "id": 2,
+      "name": "POST /api/v1/auth/login as Agent and Client",
+      "status": "PASS",
+      "durationMs": 191,
+      "details": {
+        "agentSub": 2,
+        "clientSub": 4
+      }
+    },
+    {
+      "id": 3,
+      "name": "POST /api/v1/auth/register creates new Client with input validation",
+      "status": "PASS",
+      "durationMs": 145,
+      "details": {
+        "registeredUser": "contract_test_1795517454878@domain.local"
+      }
+    },
+    {
+      "id": 4,
+      "name": "POST /api/v1/auth/logout revokes token; subsequent request rejected with 401",
+      "status": "PASS",
+      "durationMs": 148,
+      "details": {
+        "revocationConfirmed": true,
+        "rejectedStatus": 401
+      }
+    },
+    {
+      "id": 5,
+      "name": "Backward compatibility: /api/properties transparently aliases to /api/v1/properties",
+      "status": "PASS",
+      "durationMs": 23,
+      "details": {
+        "count": 7
+      }
+    },
+    {
+      "id": 6,
+      "name": "GET /api/v1/users (Admin only)",
+      "status": "PASS",
+      "durationMs": 6,
+      "details": {
+        "userCount": 11
+      }
+    },
+    {
+      "id": 7,
+      "name": "GET /api/v1/users/:id (Admin or Self)",
+      "status": "PASS",
+      "durationMs": 13,
+      "details": {
+        "selfViewStatus": 200,
+        "forbiddenStatus": 403
+      }
+    },
+    {
+      "id": 8,
+      "name": "PUT & PATCH /api/v1/users/:id support",
+      "status": "PASS",
+      "durationMs": 66,
+      "details": {
+        "putStatus": 200,
+        "patchStatus": 200
+      }
+    },
+    {
+      "id": 9,
+      "name": "GET /api/v1/agents returns verified agent list (Public / Auth)",
+      "status": "PASS",
+      "durationMs": 17,
+      "details": {
+        "agentCount": 2,
+        "sampleAgent": "Maria Santos"
+      }
+    },
+    {
+      "id": 10,
+      "name": "GET /api/v1/agents/:id returns single agent dossier",
+      "status": "PASS",
+      "durationMs": 15,
+      "details": {
+        "agentName": "Maria Santos",
+        "email": "maria.santos@estatecore.local"
+      }
+    },
+    {
+      "id": 11,
+      "name": "PUT /api/v1/agents/:id updates agent profile (Admin or Self)",
+      "status": "PASS",
+      "durationMs": 17,
+      "details": {
+        "updatedAgency": "EstateCore Premier Realty"
+      }
+    },
+    {
+      "id": 12,
+      "name": "GET /api/v1/properties and GET /api/v1/properties/:id",
+      "status": "PASS",
+      "durationMs": 49,
+      "details": {
+        "totalProperties": 7,
+        "sampleTitle": "Modern High-Rise Condominium in BGC"
+      }
+    },
+    {
+      "id": 13,
+      "name": "PUT & PATCH /api/v1/properties/:id support",
+      "status": "PASS",
+      "durationMs": 110,
+      "details": {
+        "putStatus": 200,
+        "patchStatus": 200
+      }
+    },
+    {
+      "id": 14,
+      "name": "POST /api/v1/properties/:id/photos (Agent / Admin only)",
+      "status": "PASS",
+      "durationMs": 22,
+      "details": {
+        "photoId": 1795517455511,
+        "forbiddenVerified": true
+      }
+    },
+    {
+      "id": 15,
+      "name": "POST /api/v1/properties/:id/inquiries creates nested inquiry",
+      "status": "PASS",
+      "durationMs": 81,
+      "details": {
+        "inquiryId": 9,
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": 16,
+      "name": "GET /api/v1/transactions returns transaction history (Auth only)",
+      "status": "PASS",
+      "durationMs": 11,
+      "details": {
+        "unauthenticated401": true,
+        "authenticated200": true,
+        "transactionsLength": 0
+      }
+    },
+    {
+      "id": 17,
+      "name": "Security: Non-whitelisted request payload is rejected with 400 Bad Request",
+      "status": "PASS",
+      "durationMs": 5,
+      "details": {
+        "status": 400,
+        "error": [
+          "property maliciousInjectedField should not exist",
+          "description must be a string",
+          "Description is required.",
+          "Invalid property type.",
+          "Property type is required.",
+          "Listing type must be SALE or RENT.",
+          "Listing type is required.",
+          "location must be a string",
+          "Location is required.",
+          "address must be a string",
+          "Address is required."
+        ]
+      }
+    }
+  ]
+}

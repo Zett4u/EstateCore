@@ -1,0 +1,118 @@
+{
+  "timestamp": "2026-11-26T02:21:16.134Z",
+  "totalTests": 18,
+  "passedTests": 18,
+  "failedTests": 0,
+  "successRate": "100.0%",
+  "liveDbSafe": true,
+  "tests": [
+    {
+      "testId": "AUTH-ADMIN",
+      "name": "Admin Login succeeds with 200 OK",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "AUTH-MARIA",
+      "name": "Agent Maria Login succeeds (users.id=2, agents.id=1)",
+      "passed": true,
+      "details": "status=200"
+    },
+    {
+      "testId": "JWT-AGENT-CLAIM",
+      "name": "Agent JWT payload contains agentId claim (Lab 06 Page 22)",
+      "passed": true,
+      "details": "agentId=1"
+    },
+    {
+      "testId": "JWT-EXPIRATION",
+      "name": "JWT expiration lifespan is exactly 1 hour (3600 seconds)",
+      "passed": true,
+      "details": "lifespan=3600"
+    },
+    {
+      "testId": "JWT-NO-PASSWORD",
+      "name": "JWT payload does not expose password or hash",
+      "passed": true,
+      "details": "safe"
+    },
+    {
+      "testId": "RATE-LIMIT-LOGIN",
+      "name": "5 failed login attempts trigger 429 Too Many Requests lockout",
+      "passed": true,
+      "details": "429 received as expected"
+    },
+    {
+      "testId": "SETUP-PROP",
+      "name": "Agent Maria creates listing for concurrency testing",
+      "passed": true,
+      "details": "id=42"
+    },
+    {
+      "testId": "TX-CONCURRENCY-RACE",
+      "name": "Concurrent requests for same property: exactly 1 succeeds (201) and 1 conflicts (409)",
+      "passed": true,
+      "details": "statuses=201,409"
+    },
+    {
+      "testId": "TX-STATUS-SOLD",
+      "name": "Property status atomically transitioned to SOLD after completed deal",
+      "passed": true,
+      "details": "status=SOLD"
+    },
+    {
+      "testId": "TX-NEG-ALREADY-SOLD",
+      "name": "Attempting sale of already SOLD property returns 409 Conflict",
+      "passed": true,
+      "details": "status=409"
+    },
+    {
+      "testId": "TX-NEG-INVALID-BUYER",
+      "name": "Non-existent buyer returns 404 Not Found",
+      "passed": true,
+      "details": "status=404"
+    },
+    {
+      "testId": "TX-NEG-CROSS-AGENT",
+      "name": "Unassigned agent forbidden from recording deal for another agent (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "TX-NEG-INVALID-AMOUNT",
+      "name": "Negative transaction amount returns 400 Bad Request",
+      "passed": true,
+      "details": "status=400"
+    },
+    {
+      "testId": "TX-NEG-INVALID-METHOD",
+      "name": "Unsupported payment method returns 400 Bad Request",
+      "passed": true,
+      "details": "status=400"
+    },
+    {
+      "testId": "PHOTO-PATH-TRAVERSAL",
+      "name": "Path traversal attempt in filePath returns 400 Bad Request",
+      "passed": true,
+      "details": "status=400"
+    },
+    {
+      "testId": "PHOTO-MISSING-BODY",
+      "name": "Missing file and filePath returns 400 Bad Request (Lab 05 Card 14)",
+      "passed": true,
+      "details": "status=400"
+    },
+    {
+      "testId": "PHOTO-CROSS-AGENT",
+      "name": "Cross-agent photo upload forbidden (403)",
+      "passed": true,
+      "details": "status=403"
+    },
+    {
+      "testId": "PHOTO-VALID-ATTACH",
+      "name": "Valid photo attachment returns 201 Created with photoId",
+      "passed": true,
+      "details": "status=201"
+    }
+  ]
+}

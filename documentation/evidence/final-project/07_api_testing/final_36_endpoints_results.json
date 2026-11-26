@@ -1,0 +1,521 @@
+{
+  "course": "ITEC 116 - Systems Integration and Architecture 2",
+  "instructor": "John Vincent A. Dallego, MIT",
+  "student": "Cabico, Cristina O. | BSIT 4-C",
+  "project": "EstateCore - Real Estate Management System",
+  "timestamp": "2026-11-26T03:13:03.517Z",
+  "totalTests": 46,
+  "passed": 46,
+  "failed": 0,
+  "successRate": "100.0%",
+  "endpointsCovered": 41,
+  "securityChecks": 5,
+  "results": [
+    {
+      "testId": "EP-01",
+      "name": "POST /auth/register - Register new client account",
+      "passed": true,
+      "details": "Status: 201, Body: {\"message\":\"Registration successful\",\"accessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIzLCJlbWFpbCI6ImZpbmFsX2NsaWVudF8xNzk1NjYyNzc5NTMzQGV4YW1wbGUuY29tIiwicm9sZSI6IkNMSUVOVCIsImlhdCI6MTc5NTY2Mjc3OSwiZXhwIjoxNzk1NjY2Mzc5fQ.1fbWhW9uWPGNucAICjesWCey5mP_musH_JwlJdK7kG8\",\"user\":{\"id\":23,\"fullName\":\"Final Project Client\",\"email\":\"final_client_1795662779533@example.com\",\"role\":\"CLIENT\",\"isActive\":true}}",
+      "metadata": {
+        "method": "POST",
+        "path": "/auth/register",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-02",
+      "name": "POST /auth/login - Authenticate Administrator",
+      "passed": true,
+      "details": "Status: 200, HasToken: true",
+      "metadata": {
+        "method": "POST",
+        "path": "/auth/login",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-03",
+      "name": "POST /auth/login - Authenticate Agent (Maria Santos)",
+      "passed": true,
+      "details": "Status: 200, Role: AGENT",
+      "metadata": {
+        "method": "POST",
+        "path": "/auth/login",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-04",
+      "name": "POST /auth/login - Authenticate Client (Juan Dela Cruz)",
+      "passed": true,
+      "details": "Status: 200, Role: CLIENT",
+      "metadata": {
+        "method": "POST",
+        "path": "/auth/login",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-05",
+      "name": "GET /auth/me - Retrieve current authenticated user profile",
+      "passed": true,
+      "details": "Status: 200, Email: maria.santos@estatecore.local",
+      "metadata": {
+        "method": "GET",
+        "path": "/auth/me",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-06",
+      "name": "POST /auth/logout - Revoke JWT session token on server",
+      "passed": true,
+      "details": "LogoutStatus: 200, PostLogoutStatus: 401",
+      "metadata": {
+        "method": "POST",
+        "path": "/auth/logout",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-07",
+      "name": "GET /users - Admin list all users with role filtering support",
+      "passed": true,
+      "details": "Status: 200, Count: 23",
+      "metadata": {
+        "method": "GET",
+        "path": "/users",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-08",
+      "name": "POST /users - Create new user account",
+      "passed": true,
+      "details": "Status: 201, CreatedId: 24",
+      "metadata": {
+        "method": "POST",
+        "path": "/users",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-09",
+      "name": "GET /users/:id - Retrieve user record by ID",
+      "passed": true,
+      "details": "Status: 200, FoundEmail: final_user_crud_1795662780764@example.com",
+      "metadata": {
+        "method": "GET",
+        "path": "/users/24",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-10",
+      "name": "PATCH /users/:id - Partial update user profile details",
+      "passed": true,
+      "details": "Status: 200, NewName: Updated Test User",
+      "metadata": {
+        "method": "PATCH",
+        "path": "/users/24",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-11",
+      "name": "PUT /users/:id - Full replacement update of user profile",
+      "passed": true,
+      "details": "Status: 200, NewName: Full Put User",
+      "metadata": {
+        "method": "PUT",
+        "path": "/users/24",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-12",
+      "name": "DELETE /users/:id - Admin delete user account (soft delete deactivation)",
+      "passed": true,
+      "details": "DeleteStatus: 204, IsActiveAfterDelete: false",
+      "metadata": {
+        "method": "DELETE",
+        "path": "/users/24",
+        "status": 204
+      }
+    },
+    {
+      "testId": "EP-13",
+      "name": "GET /agents - Public directory listing of active agents",
+      "passed": true,
+      "details": "Status: 200, Count: 3",
+      "metadata": {
+        "method": "GET",
+        "path": "/agents",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-14",
+      "name": "GET /agents/:id - Get agent details with associated user info",
+      "passed": true,
+      "details": "Status: 200, AgentEmail: maria.santos@estatecore.local",
+      "metadata": {
+        "method": "GET",
+        "path": "/agents/1",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-15",
+      "name": "POST /agents - Create professional agent profile",
+      "passed": true,
+      "details": "Status: 201, AgentId: 4",
+      "metadata": {
+        "method": "POST",
+        "path": "/agents",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-16",
+      "name": "PATCH /agents/:id - Partial update agent bio and details",
+      "passed": true,
+      "details": "Status: 200, AgencyName: EstateCore Senior Realty",
+      "metadata": {
+        "method": "PATCH",
+        "path": "/agents/4",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-17",
+      "name": "PUT /agents/:id - Full update agent profile",
+      "passed": true,
+      "details": "Status: 200, Agency: EstateCore Elite Realty",
+      "metadata": {
+        "method": "PUT",
+        "path": "/agents/4",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-18",
+      "name": "GET /properties - Public query property catalog with filters",
+      "passed": true,
+      "details": "Status: 200, Count: 1",
+      "metadata": {
+        "method": "GET",
+        "path": "/properties",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-19",
+      "name": "GET /properties/:id - Public retrieve single property specification",
+      "passed": true,
+      "details": "Status: 200, Title: Modern High-Rise Condominium in BGC",
+      "metadata": {
+        "method": "GET",
+        "path": "/properties/1",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-20",
+      "name": "POST /properties - Create property listing with ownership attribution",
+      "passed": true,
+      "details": "Status: 201, CreatedPropId: 51",
+      "metadata": {
+        "method": "POST",
+        "path": "/properties",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-21",
+      "name": "PATCH /properties/:id - Partial update listing price and status",
+      "passed": true,
+      "details": "Status: 200, Price: 31000000",
+      "metadata": {
+        "method": "PATCH",
+        "path": "/properties/51",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-22",
+      "name": "PUT /properties/:id - Full replacement update of listing details",
+      "passed": true,
+      "details": "Status: 200, Bathrooms: 4",
+      "metadata": {
+        "method": "PUT",
+        "path": "/properties/51",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-23",
+      "name": "POST /properties/:id/photos - Attach photographic asset to property",
+      "passed": true,
+      "details": "Status: 201, PhotoId: 15",
+      "metadata": {
+        "method": "POST",
+        "path": "/properties/51/photos",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-24",
+      "name": "GET /properties/:id/photos - Retrieve all media assets for listing",
+      "passed": true,
+      "details": "Status: 200",
+      "metadata": {
+        "method": "GET",
+        "path": "/properties/51/photos",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-25",
+      "name": "POST /properties/:id/inquiries - Submit nested client property inquiry",
+      "passed": true,
+      "details": "Status: 201, InquiryId: 15",
+      "metadata": {
+        "method": "POST",
+        "path": "/properties/51/inquiries",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-26",
+      "name": "GET /properties/:id/inquiries - Agent list all inquiries for owned property",
+      "passed": true,
+      "details": "Status: 200",
+      "metadata": {
+        "method": "GET",
+        "path": "/properties/51/inquiries",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-27",
+      "name": "PATCH /properties/:id/inquiries/:inquiryId - Agent update inquiry status (nested)",
+      "passed": true,
+      "details": "Status: 200, Body: {\"inquiryId\":15,\"propertyId\":51,\"userId\":4,\"inquiryType\":\"GENERAL\",\"message\":\"Is this penthouse available for an in-person viewing this Saturday?\",\"offerAmount\":null,\"status\":\"CONTACTED\",\"dateSent\":\"2026-11-25T19:13:02.000Z\"}",
+      "metadata": {
+        "method": "PATCH",
+        "path": "/properties/51/inquiries/15",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-28",
+      "name": "DELETE /properties/:id - Delete listing with relational safety",
+      "passed": true,
+      "details": "DeleteStatus: 200, VerifyStatus: 404",
+      "metadata": {
+        "method": "DELETE",
+        "path": "/properties/52",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-29",
+      "name": "POST /inquiries - Create inquiry via root controller",
+      "passed": true,
+      "details": "Status: 201, InquiryId: 16",
+      "metadata": {
+        "method": "POST",
+        "path": "/inquiries",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-30",
+      "name": "GET /inquiries - Retrieve inquiry catalog with role-based visibility",
+      "passed": true,
+      "details": "Status: 200, Count: 9",
+      "metadata": {
+        "method": "GET",
+        "path": "/inquiries",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-31",
+      "name": "GET /inquiries/:id - Retrieve specific inquiry detail",
+      "passed": true,
+      "details": "Status: 200, FoundMsg: Direct inquiry regarding prope...",
+      "metadata": {
+        "method": "GET",
+        "path": "/inquiries/16",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-32",
+      "name": "PATCH /inquiries/:id - Update inquiry lifecycle status",
+      "passed": true,
+      "details": "Status: 200, NewStatus: CLOSED",
+      "metadata": {
+        "method": "PATCH",
+        "path": "/inquiries/16",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-33",
+      "name": "DELETE /inquiries/:id - Remove inquiry record",
+      "passed": true,
+      "details": "DeleteStatus: 200, VerifyStatus: 404",
+      "metadata": {
+        "method": "DELETE",
+        "path": "/inquiries/16",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-34",
+      "name": "POST /appointments - Schedule viewing appointment with agent",
+      "passed": true,
+      "details": "Status: 201, ApptId: 8",
+      "metadata": {
+        "method": "POST",
+        "path": "/appointments",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-35",
+      "name": "GET /appointments - List appointments for authenticated user",
+      "passed": true,
+      "details": "Status: 200, Count: 4",
+      "metadata": {
+        "method": "GET",
+        "path": "/appointments",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-36",
+      "name": "GET /appointments/:id - Retrieve specific appointment details",
+      "passed": true,
+      "details": "Status: 200, Notes: Client request for private viewing with family.",
+      "metadata": {
+        "method": "GET",
+        "path": "/appointments/8",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-37",
+      "name": "PATCH /appointments/:id - Update appointment status and agent remarks",
+      "passed": true,
+      "details": "Status: 200, Status: CONFIRMED",
+      "metadata": {
+        "method": "PATCH",
+        "path": "/appointments/8",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-38",
+      "name": "DELETE /appointments/:id - Cancel and remove appointment schedule",
+      "passed": true,
+      "details": "DeleteStatus: 200, VerifyStatus: 404",
+      "metadata": {
+        "method": "DELETE",
+        "path": "/appointments/8",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-39",
+      "name": "POST /transactions - Execute atomic property transaction & transition status to SOLD",
+      "passed": true,
+      "details": "TxStatus: 201, TxId: 16, PropStatus: SOLD",
+      "metadata": {
+        "method": "POST",
+        "path": "/transactions",
+        "status": 201
+      }
+    },
+    {
+      "testId": "EP-40",
+      "name": "GET /transactions - List financial settlements with role permissions",
+      "passed": true,
+      "details": "Status: 200, Count: 2",
+      "metadata": {
+        "method": "GET",
+        "path": "/transactions",
+        "status": 200
+      }
+    },
+    {
+      "testId": "EP-41",
+      "name": "GET /transactions/:id - Retrieve audited transaction details",
+      "passed": true,
+      "details": "Status: 200, Amount: 31000000",
+      "metadata": {
+        "method": "GET",
+        "path": "/transactions/16",
+        "status": 200
+      }
+    },
+    {
+      "testId": "SEC-01",
+      "name": "Security: HTTP 401 Unauthorized for unauthenticated access",
+      "passed": true,
+      "details": "Status: 401",
+      "metadata": {
+        "method": "GET",
+        "path": "/users",
+        "status": 401
+      }
+    },
+    {
+      "testId": "SEC-02",
+      "name": "Security: HTTP 403 Forbidden when client accesses admin resource",
+      "passed": true,
+      "details": "Status: 403",
+      "metadata": {
+        "method": "GET",
+        "path": "/users",
+        "status": 403
+      }
+    },
+    {
+      "testId": "SEC-03",
+      "name": "Security: HTTP 400 Bad Request on invalid DTO validation schema",
+      "passed": true,
+      "details": "Status: 400",
+      "metadata": {
+        "method": "POST",
+        "path": "/properties",
+        "status": 400
+      }
+    },
+    {
+      "testId": "SEC-04",
+      "name": "Security: HTTP 404 Not Found for nonexistent property identifier",
+      "passed": true,
+      "details": "Status: 404",
+      "metadata": {
+        "method": "GET",
+        "path": "/properties/999999",
+        "status": 404
+      }
+    },
+    {
+      "testId": "SEC-05",
+      "name": "Integrity: Prevent duplicate transaction on already-sold property (HTTP 409 Conflict)",
+      "passed": true,
+      "details": "Status: 409, Error: \"Property is not available. Property 51 already has status Sold.\"",
+      "metadata": {
+        "method": "POST",
+        "path": "/transactions",
+        "status": 409
+      }
+    }
+  ]
+}

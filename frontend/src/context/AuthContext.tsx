@@ -78,7 +78,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    return {
+      user: null,
+      token: typeof window !== 'undefined' ? localStorage.getItem('estatecore_token') : null,
+      loading: false,
+      login: async () => { throw new Error('Auth not ready'); },
+      register: async () => { throw new Error('Auth not ready'); },
+      logout: () => { if (typeof window !== 'undefined') localStorage.removeItem('estatecore_token'); },
+      refreshUser: async () => {},
+    };
   }
   return ctx;
 };

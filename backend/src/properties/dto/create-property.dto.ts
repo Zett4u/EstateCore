@@ -73,4 +73,13 @@ export class CreatePropertyDto {
   @Type(() => Number)
   @IsNumber()
   agentId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  ownerId?: number;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
 }

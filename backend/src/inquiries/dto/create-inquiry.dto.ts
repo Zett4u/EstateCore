@@ -1,24 +1,35 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { InquiryStatus } from '../../common/enums/inquiry.enum';
+import { InquiryType } from '../entities/inquiry.entity';
 
 export class CreateInquiryDto {
-  @IsNotEmpty({ message: 'Property ID is required.' })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'Property ID must be a number.' })
-  propertyId: number;
+  propertyId?: number;
 
-  @IsNotEmpty({ message: 'Subject is required.' })
+  @IsOptional()
   @IsString()
-  subject: string;
+  subject?: string;
 
   @IsNotEmpty({ message: 'Message is required.' })
   @IsString()
   message: string;
 
-  @IsNotEmpty({ message: 'Contact number is required.' })
+  @IsOptional()
   @IsString()
-  contactNumber: string;
+  contactNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  inquiryType?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Offer amount must be a number.' })
+  @IsPositive({ message: 'Offer amount must be greater than 0.' })
+  offerAmount?: number;
 
   @IsOptional()
   @Type(() => Number)
@@ -47,4 +58,9 @@ export class UpdateInquiryDto {
   @IsOptional()
   @IsString()
   contactNumber?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  offerAmount?: number;
 }

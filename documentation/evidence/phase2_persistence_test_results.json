@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-11-24T11:12:49.851Z",
+  "database": "estatecore_test_restore",
+  "tests": {
+    "agentPersistence": {
+      "passed": true,
+      "agentId": 4,
+      "licenseNumber": "PRC-0099881",
+      "agencyName": "Sandbox Premier Realty",
+      "verificationStatus": "VERIFIED"
+    },
+    "photoPersistence": {
+      "passed": true,
+      "photoId": 1,
+      "filePath": "/uploads/properties/bgc_condo_living_room.jpg",
+      "isPrimary": true
+    },
+    "transactionPersistence": {
+      "passed": true,
+      "transactionId": 1,
+      "propertyTitle": "Modern High-Rise Condominium in BGC",
+      "buyerName": "Juan Dela Cruz",
+      "amount": 18500000,
+      "status": "COMPLETED"
+    },
+    "restartPersistence": {
+      "passed": true,
+      "persistedAgentId": 4,
+      "persistedPhotoId": 1,
+      "persistedTransactionId": 1
+    },
+    "liveDatabaseIntegrity": {
+      "passed": true,
+      "liveTables": [
+        "appointments",
+        "inquiries",
+        "migrations",
+        "properties",
+        "users"
+      ],
+      "migrationCount": 1,
+      "agentsTablePresentInLive": false
+    }
+  }
+}

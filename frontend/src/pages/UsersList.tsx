@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { User, UserRole } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { Users as UsersIcon, UserCheck, UserX, Shield, Mail, Calendar } from 'lucide-react';
+import { Users as UsersIcon, UserCheck, UserX, Shield, Mail, Calendar, Trash2 } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 
 export const UsersList: React.FC = () => {
@@ -45,6 +45,16 @@ export const UsersList: React.FC = () => {
       }
     } catch (err: any) {
       alert(err.message || 'Failed to toggle account status.');
+    }
+  };
+
+  const handleDeleteUser = async (id: number, name: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user account '${name}'?`)) return;
+    try {
+      await api.deleteUser(id);
+      setUsers(users.filter((u) => u.id !== id));
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete user account.');
     }
   };
 
@@ -117,7 +127,7 @@ export const UsersList: React.FC = () => {
                     <td className="px-6 py-4 text-xs text-stone-500">
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleToggleActive(u.id, u.isActive)}
                         className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
@@ -137,6 +147,13 @@ export const UsersList: React.FC = () => {
                             <span>Reactivate</span>
                           </>
                         )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(u.id, u.fullName)}
+                        className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                        title="Delete User Account"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>

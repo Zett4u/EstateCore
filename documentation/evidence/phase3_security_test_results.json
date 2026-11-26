@@ -1,0 +1,500 @@
+{
+  "summary": {
+    "total": 60,
+    "passed": 60,
+    "failed": 0
+  },
+  "testCases": [
+    {
+      "category": "AUTH",
+      "testName": "Admin Login",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AUTH",
+      "testName": "Agent Maria Santos Login",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AUTH",
+      "testName": "Agent Carlos Reyes Login",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AUTH",
+      "testName": "Client Juan Dela Cruz Login",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AUTH",
+      "testName": "Client Elena Roxas Login",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "PUBLIC",
+      "testName": "Public Property Catalog Access",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "PUBLIC",
+      "testName": "Public Property Detail Access",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "PUBLIC",
+      "testName": "Public Agents Directory Access",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "PUBLIC",
+      "testName": "Legacy /api/properties Alias Access",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Property Creation",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Property Update",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Property Deletion",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Photo Upload",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous User Directory Access",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Inquiries Access",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Appointments Access",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "UNAUTH",
+      "testName": "Reject Anonymous Transactions Access",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Updates Assigned Property 1",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Carlos Forbidden to Update Maria Assigned Property 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Carlos Forbidden to Delete Maria Assigned Property 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Carlos Forbidden to Upload Photo to Maria Assigned Property 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Forbidden to Reassign Property Agent",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Forbidden from Global User Directory",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Can View Own User Profile",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Forbidden from Viewing Carlos User Profile",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Can Update Own Agent Profile",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Carlos Forbidden to Update Maria Agent Profile",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Inquiries List Filtered to Assigned Only",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Carlos Forbidden from Viewing Maria Assigned Inquiry 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Maria Appointments Filtered to Assigned Only",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "AGENT_ISOLATION",
+      "testName": "Agent Carlos Forbidden from Viewing Maria Assigned Appointment 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Creates Listing as Property Owner (ownerId=4)",
+      "expectedStatus": 201,
+      "actualStatus": 201,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Updates Owned Property Listing",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Elena Forbidden from Updating Juan Owned Property",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Elena Forbidden from Deleting Juan Owned Property",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Elena Forbidden from Uploading Photo to Juan Owned Property",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Uploads Photo to Owned Property",
+      "expectedStatus": 201,
+      "actualStatus": 201,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Forbidden from Altering Listing Owner",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Forbidden from Assigning Agent via PATCH",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Role Escalation to ADMIN Stripped/Prevented",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Forbidden from Global User Directory",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Forbidden from Reading Elena User Profile",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Can View Own User Profile",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Can View Own Inquiry 1",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Elena Forbidden from Viewing Juan Inquiry 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Can View Own Appointment 1",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Elena Forbidden from Viewing Juan Appointment 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Elena Forbidden from Modifying Juan Appointment 1",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "CLIENT_OWNERSHIP",
+      "testName": "Client Juan Deletes Owned Property Listing",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Admin Can View All Transactions",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Admin Can View Transaction by ID",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Client Juan Transactions List Filtered to Own Purchases",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Client Juan Can View Own Transaction",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Client Elena Forbidden from Viewing Juan Transaction",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Agent Maria Can View Assigned Transaction",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "TRANSACTIONS",
+      "testName": "Agent Carlos Forbidden from Viewing Maria Transaction",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "ADMIN_AUTHORITY",
+      "testName": "Admin Creates Property with Agent 2 and Owner 4",
+      "expectedStatus": 201,
+      "actualStatus": 201,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "ADMIN_AUTHORITY",
+      "testName": "Admin Reassigns Property Agent to Maria (1)",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "ADMIN_AUTHORITY",
+      "testName": "Admin Reassigns Property Owner to Elena (5)",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "category": "ADMIN_AUTHORITY",
+      "testName": "Admin Deletes Test Property Listing",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "liveDatabaseIntegrity": {
+    "untouched": true,
+    "tableCount": 5,
+    "agentsTablePresent": false,
+    "propertyTransactionsPresent": false,
+    "propertyPhotosPresent": false,
+    "userCount": 11,
+    "propertyCount": 8,
+    "inquiryCount": 7,
+    "appointmentCount": 4
+  }
+}

@@ -440,7 +440,8 @@ export const PropertiesList: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedProperties.map((prop) => {
-            const isOwner = user?.role === 'ADMIN' || (user?.role === 'AGENT' && prop.agentId === user.id);
+            const assignedAgentUserId = prop.agent?.userId ?? prop.agent?.user?.id;
+            const isOwner = user?.role === 'ADMIN' || (user?.role === 'AGENT' && assignedAgentUserId === user.id) || (user?.role === 'CLIENT' && prop.ownerId === user.id);
             const imageSrc = getPropertyImage(prop.id, prop.propertyType);
 
             return (

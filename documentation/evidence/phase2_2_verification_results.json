@@ -1,0 +1,223 @@
+{
+  "timestamp": "2026-11-25T06:21:04.333Z",
+  "sandboxDatabase": "estatecore_test_restore",
+  "liveDatabaseUntouched": true,
+  "agencyProvenanceValid": true,
+  "adminUnassignedValid": true,
+  "deleteBlockedByRestrict": true,
+  "rollbackSuccess": true,
+  "reapplySuccess": true,
+  "userNameAudit": [
+    {
+      "id": 1,
+      "fullName": "System Administrator",
+      "firstName": "System",
+      "lastName": "Administrator",
+      "contactNumber": null,
+      "isMultiWordSurname": false,
+      "classification": "VERIFIED_USER_ACCOUNT",
+      "auditAssessment": "VERIFIED_CLEAN_SPLIT"
+    },
+    {
+      "id": 2,
+      "fullName": "Maria Santos",
+      "firstName": "Maria",
+      "lastName": "Santos",
+      "contactNumber": null,
+      "isMultiWordSurname": false,
+      "classification": "VERIFIED_USER_ACCOUNT",
+      "auditAssessment": "VERIFIED_CLEAN_SPLIT"
+    },
+    {
+      "id": 3,
+      "fullName": "Carlos Reyes",
+      "firstName": "Carlos",
+      "lastName": "Reyes",
+      "contactNumber": null,
+      "isMultiWordSurname": false,
+      "classification": "VERIFIED_USER_ACCOUNT",
+      "auditAssessment": "VERIFIED_CLEAN_SPLIT"
+    },
+    {
+      "id": 4,
+      "fullName": "Juan Dela Cruz",
+      "firstName": "Juan",
+      "lastName": "Dela Cruz",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "VERIFIED_USER_ACCOUNT",
+      "auditAssessment": "VERIFIED_SPANISH_FILIPINO_SURNAME (Dela Cruz)"
+    },
+    {
+      "id": 5,
+      "fullName": "Elena Roxas",
+      "firstName": "Elena",
+      "lastName": "Roxas",
+      "contactNumber": null,
+      "isMultiWordSurname": false,
+      "classification": "VERIFIED_USER_ACCOUNT",
+      "auditAssessment": "VERIFIED_CLEAN_SPLIT"
+    },
+    {
+      "id": 6,
+      "fullName": "Updated Test Buyer Name",
+      "firstName": "Updated",
+      "lastName": "Test Buyer Name",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "INTEGRATION_TEST_RECORD",
+      "auditAssessment": "SYNTHETIC_TEST_ARTIFACT"
+    },
+    {
+      "id": 7,
+      "fullName": "Updated Test Buyer Name",
+      "firstName": "Updated",
+      "lastName": "Test Buyer Name",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "INTEGRATION_TEST_RECORD",
+      "auditAssessment": "SYNTHETIC_TEST_ARTIFACT"
+    },
+    {
+      "id": 8,
+      "fullName": "Snooping Client B",
+      "firstName": "Snooping",
+      "lastName": "Client B",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "INTEGRATION_TEST_RECORD",
+      "auditAssessment": "SYNTHETIC_TEST_ARTIFACT"
+    },
+    {
+      "id": 9,
+      "fullName": "Snooping Client B",
+      "firstName": "Snooping",
+      "lastName": "Client B",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "INTEGRATION_TEST_RECORD",
+      "auditAssessment": "SYNTHETIC_TEST_ARTIFACT"
+    },
+    {
+      "id": 10,
+      "fullName": "Contract Verification User",
+      "firstName": "Contract",
+      "lastName": "Verification User",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "INTEGRATION_TEST_RECORD",
+      "auditAssessment": "SYNTHETIC_TEST_ARTIFACT"
+    },
+    {
+      "id": 11,
+      "fullName": "Contract Verification User",
+      "firstName": "Contract",
+      "lastName": "Verification User",
+      "contactNumber": null,
+      "isMultiWordSurname": true,
+      "classification": "INTEGRATION_TEST_RECORD",
+      "auditAssessment": "SYNTHETIC_TEST_ARTIFACT"
+    }
+  ],
+  "relationships": {
+    "properties.agentId": "agents",
+    "property_transactions.agentId": "agents",
+    "appointments.agentId": "users",
+    "inquiries.assignedAgentId": "users",
+    "inquiries.clientId": "users",
+    "inquiries.propertyId": "properties"
+  },
+  "foreignKeys": [
+    {
+      "TABLE_NAME": "agents",
+      "CONSTRAINT_NAME": "FK_agents_userId",
+      "COLUMN_NAME": "userId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "CONSTRAINT_NAME": "FK_appointments_agentId",
+      "COLUMN_NAME": "agentId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "CONSTRAINT_NAME": "FK_appointments_clientId",
+      "COLUMN_NAME": "clientId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "appointments",
+      "CONSTRAINT_NAME": "FK_appointments_propertyId",
+      "COLUMN_NAME": "propertyId",
+      "REFERENCED_TABLE_NAME": "properties",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "inquiries",
+      "CONSTRAINT_NAME": "FK_inquiries_assignedAgentId",
+      "COLUMN_NAME": "assignedAgentId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "inquiries",
+      "CONSTRAINT_NAME": "FK_inquiries_clientId",
+      "COLUMN_NAME": "clientId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "inquiries",
+      "CONSTRAINT_NAME": "FK_inquiries_propertyId",
+      "COLUMN_NAME": "propertyId",
+      "REFERENCED_TABLE_NAME": "properties",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "properties",
+      "CONSTRAINT_NAME": "FK_properties_agentId",
+      "COLUMN_NAME": "agentId",
+      "REFERENCED_TABLE_NAME": "agents",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "properties",
+      "CONSTRAINT_NAME": "FK_properties_ownerId",
+      "COLUMN_NAME": "ownerId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "property_photos",
+      "CONSTRAINT_NAME": "FK_property_photos_propertyId",
+      "COLUMN_NAME": "propertyId",
+      "REFERENCED_TABLE_NAME": "properties",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "property_transactions",
+      "CONSTRAINT_NAME": "FK_transactions_agentId",
+      "COLUMN_NAME": "agentId",
+      "REFERENCED_TABLE_NAME": "agents",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "property_transactions",
+      "CONSTRAINT_NAME": "FK_transactions_buyerId",
+      "COLUMN_NAME": "buyerId",
+      "REFERENCED_TABLE_NAME": "users",
+      "REFERENCED_COLUMN_NAME": "id"
+    },
+    {
+      "TABLE_NAME": "property_transactions",
+      "CONSTRAINT_NAME": "FK_transactions_propertyId",
+      "COLUMN_NAME": "propertyId",
+      "REFERENCED_TABLE_NAME": "properties",
+      "REFERENCED_COLUMN_NAME": "id"
+    }
+  ]
+}
