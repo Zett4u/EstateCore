@@ -3,7 +3,7 @@
   "instructor": "John Vincent A. Dallego, MIT",
   "student": "Cabico, Cristina O. | BSIT 4-C",
   "project": "EstateCore - Real Estate Management System",
-  "timestamp": "2026-11-26T03:13:03.517Z",
+  "timestamp": "2026-11-26T03:49:23.336Z",
   "totalTests": 46,
   "passed": 46,
   "failed": 0,
@@ -15,7 +15,7 @@
       "testId": "EP-01",
       "name": "POST /auth/register - Register new client account",
       "passed": true,
-      "details": "Status: 201, Body: {\"message\":\"Registration successful\",\"accessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIzLCJlbWFpbCI6ImZpbmFsX2NsaWVudF8xNzk1NjYyNzc5NTMzQGV4YW1wbGUuY29tIiwicm9sZSI6IkNMSUVOVCIsImlhdCI6MTc5NTY2Mjc3OSwiZXhwIjoxNzk1NjY2Mzc5fQ.1fbWhW9uWPGNucAICjesWCey5mP_musH_JwlJdK7kG8\",\"user\":{\"id\":23,\"fullName\":\"Final Project Client\",\"email\":\"final_client_1795662779533@example.com\",\"role\":\"CLIENT\",\"isActive\":true}}",
+      "details": "Status: 201, Body: {\"message\":\"Registration successful\",\"accessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI2LCJlbWFpbCI6ImZpbmFsX2NsaWVudF8xNzk1NjY0OTYwNDc5QGV4YW1wbGUuY29tIiwicm9sZSI6IkNMSUVOVCIsImlhdCI6MTc5NTY2NDk2MCwiZXhwIjoxNzk1NjY4NTYwfQ.2MCfaVgiWHH0rpp7STNQ7OaR17UmKu0VFee8OAM10yg\",\"user\":{\"id\":26,\"fullName\":\"Final Project Client\",\"email\":\"final_client_1795664960479@example.com\",\"role\":\"CLIENT\",\"isActive\":true}}",
       "metadata": {
         "method": "POST",
         "path": "/auth/register",
@@ -81,7 +81,7 @@
       "testId": "EP-07",
       "name": "GET /users - Admin list all users with role filtering support",
       "passed": true,
-      "details": "Status: 200, Count: 23",
+      "details": "Status: 200, Count: 26",
       "metadata": {
         "method": "GET",
         "path": "/users",
@@ -92,7 +92,7 @@
       "testId": "EP-08",
       "name": "POST /users - Create new user account",
       "passed": true,
-      "details": "Status: 201, CreatedId: 24",
+      "details": "Status: 201, CreatedId: 27",
       "metadata": {
         "method": "POST",
         "path": "/users",
@@ -103,10 +103,10 @@
       "testId": "EP-09",
       "name": "GET /users/:id - Retrieve user record by ID",
       "passed": true,
-      "details": "Status: 200, FoundEmail: final_user_crud_1795662780764@example.com",
+      "details": "Status: 200, FoundEmail: final_user_crud_1795664961619@example.com",
       "metadata": {
         "method": "GET",
-        "path": "/users/24",
+        "path": "/users/27",
         "status": 200
       }
     },
@@ -117,7 +117,7 @@
       "details": "Status: 200, NewName: Updated Test User",
       "metadata": {
         "method": "PATCH",
-        "path": "/users/24",
+        "path": "/users/27",
         "status": 200
       }
     },
@@ -128,7 +128,7 @@
       "details": "Status: 200, NewName: Full Put User",
       "metadata": {
         "method": "PUT",
-        "path": "/users/24",
+        "path": "/users/27",
         "status": 200
       }
     },
@@ -139,7 +139,7 @@
       "details": "DeleteStatus: 204, IsActiveAfterDelete: false",
       "metadata": {
         "method": "DELETE",
-        "path": "/users/24",
+        "path": "/users/27",
         "status": 204
       }
     },
@@ -147,7 +147,7 @@
       "testId": "EP-13",
       "name": "GET /agents - Public directory listing of active agents",
       "passed": true,
-      "details": "Status: 200, Count: 3",
+      "details": "Status: 200, Count: 4",
       "metadata": {
         "method": "GET",
         "path": "/agents",
@@ -169,7 +169,7 @@
       "testId": "EP-15",
       "name": "POST /agents - Create professional agent profile",
       "passed": true,
-      "details": "Status: 201, AgentId: 4",
+      "details": "Status: 201, AgentId: 5",
       "metadata": {
         "method": "POST",
         "path": "/agents",
@@ -183,7 +183,7 @@
       "details": "Status: 200, AgencyName: EstateCore Senior Realty",
       "metadata": {
         "method": "PATCH",
-        "path": "/agents/4",
+        "path": "/agents/5",
         "status": 200
       }
     },
@@ -194,7 +194,7 @@
       "details": "Status: 200, Agency: EstateCore Elite Realty",
       "metadata": {
         "method": "PUT",
-        "path": "/agents/4",
+        "path": "/agents/5",
         "status": 200
       }
     },
@@ -224,7 +224,7 @@
       "testId": "EP-20",
       "name": "POST /properties - Create property listing with ownership attribution",
       "passed": true,
-      "details": "Status: 201, CreatedPropId: 51",
+      "details": "Status: 201, CreatedPropId: 53",
       "metadata": {
         "method": "POST",
         "path": "/properties",
@@ -238,7 +238,7 @@
       "details": "Status: 200, Price: 31000000",
       "metadata": {
         "method": "PATCH",
-        "path": "/properties/51",
+        "path": "/properties/53",
         "status": 200
       }
     },
@@ -249,7 +249,7 @@
       "details": "Status: 200, Bathrooms: 4",
       "metadata": {
         "method": "PUT",
-        "path": "/properties/51",
+        "path": "/properties/53",
         "status": 200
       }
     },
@@ -257,10 +257,10 @@
       "testId": "EP-23",
       "name": "POST /properties/:id/photos - Attach photographic asset to property",
       "passed": true,
-      "details": "Status: 201, PhotoId: 15",
+      "details": "Status: 201, PhotoId: 16",
       "metadata": {
         "method": "POST",
-        "path": "/properties/51/photos",
+        "path": "/properties/53/photos",
         "status": 201
       }
     },
@@ -271,7 +271,7 @@
       "details": "Status: 200",
       "metadata": {
         "method": "GET",
-        "path": "/properties/51/photos",
+        "path": "/properties/53/photos",
         "status": 200
       }
     },
@@ -279,10 +279,10 @@
       "testId": "EP-25",
       "name": "POST /properties/:id/inquiries - Submit nested client property inquiry",
       "passed": true,
-      "details": "Status: 201, InquiryId: 15",
+      "details": "Status: 201, InquiryId: 17",
       "metadata": {
         "method": "POST",
-        "path": "/properties/51/inquiries",
+        "path": "/properties/53/inquiries",
         "status": 201
       }
     },
@@ -293,7 +293,7 @@
       "details": "Status: 200",
       "metadata": {
         "method": "GET",
-        "path": "/properties/51/inquiries",
+        "path": "/properties/53/inquiries",
         "status": 200
       }
     },
@@ -301,10 +301,10 @@
       "testId": "EP-27",
       "name": "PATCH /properties/:id/inquiries/:inquiryId - Agent update inquiry status (nested)",
       "passed": true,
-      "details": "Status: 200, Body: {\"inquiryId\":15,\"propertyId\":51,\"userId\":4,\"inquiryType\":\"GENERAL\",\"message\":\"Is this penthouse available for an in-person viewing this Saturday?\",\"offerAmount\":null,\"status\":\"CONTACTED\",\"dateSent\":\"2026-11-25T19:13:02.000Z\"}",
+      "details": "Status: 200, Body: {\"inquiryId\":17,\"propertyId\":53,\"userId\":4,\"inquiryType\":\"GENERAL\",\"message\":\"Is this penthouse available for an in-person viewing this Saturday?\",\"offerAmount\":null,\"status\":\"CONTACTED\",\"dateSent\":\"2026-11-25T19:49:22.000Z\"}",
       "metadata": {
         "method": "PATCH",
-        "path": "/properties/51/inquiries/15",
+        "path": "/properties/53/inquiries/17",
         "status": 200
       }
     },
@@ -315,7 +315,7 @@
       "details": "DeleteStatus: 200, VerifyStatus: 404",
       "metadata": {
         "method": "DELETE",
-        "path": "/properties/52",
+        "path": "/properties/54",
         "status": 200
       }
     },
@@ -323,7 +323,7 @@
       "testId": "EP-29",
       "name": "POST /inquiries - Create inquiry via root controller",
       "passed": true,
-      "details": "Status: 201, InquiryId: 16",
+      "details": "Status: 201, InquiryId: 18",
       "metadata": {
         "method": "POST",
         "path": "/inquiries",
@@ -334,7 +334,7 @@
       "testId": "EP-30",
       "name": "GET /inquiries - Retrieve inquiry catalog with role-based visibility",
       "passed": true,
-      "details": "Status: 200, Count: 9",
+      "details": "Status: 200, Count: 10",
       "metadata": {
         "method": "GET",
         "path": "/inquiries",
@@ -348,7 +348,7 @@
       "details": "Status: 200, FoundMsg: Direct inquiry regarding prope...",
       "metadata": {
         "method": "GET",
-        "path": "/inquiries/16",
+        "path": "/inquiries/18",
         "status": 200
       }
     },
@@ -359,7 +359,7 @@
       "details": "Status: 200, NewStatus: CLOSED",
       "metadata": {
         "method": "PATCH",
-        "path": "/inquiries/16",
+        "path": "/inquiries/18",
         "status": 200
       }
     },
@@ -370,7 +370,7 @@
       "details": "DeleteStatus: 200, VerifyStatus: 404",
       "metadata": {
         "method": "DELETE",
-        "path": "/inquiries/16",
+        "path": "/inquiries/18",
         "status": 200
       }
     },
@@ -378,7 +378,7 @@
       "testId": "EP-34",
       "name": "POST /appointments - Schedule viewing appointment with agent",
       "passed": true,
-      "details": "Status: 201, ApptId: 8",
+      "details": "Status: 201, ApptId: 9",
       "metadata": {
         "method": "POST",
         "path": "/appointments",
@@ -403,7 +403,7 @@
       "details": "Status: 200, Notes: Client request for private viewing with family.",
       "metadata": {
         "method": "GET",
-        "path": "/appointments/8",
+        "path": "/appointments/9",
         "status": 200
       }
     },
@@ -414,7 +414,7 @@
       "details": "Status: 200, Status: CONFIRMED",
       "metadata": {
         "method": "PATCH",
-        "path": "/appointments/8",
+        "path": "/appointments/9",
         "status": 200
       }
     },
@@ -425,7 +425,7 @@
       "details": "DeleteStatus: 200, VerifyStatus: 404",
       "metadata": {
         "method": "DELETE",
-        "path": "/appointments/8",
+        "path": "/appointments/9",
         "status": 200
       }
     },
@@ -433,7 +433,7 @@
       "testId": "EP-39",
       "name": "POST /transactions - Execute atomic property transaction & transition status to SOLD",
       "passed": true,
-      "details": "TxStatus: 201, TxId: 16, PropStatus: SOLD",
+      "details": "TxStatus: 201, TxId: 17, PropStatus: SOLD",
       "metadata": {
         "method": "POST",
         "path": "/transactions",
@@ -444,7 +444,7 @@
       "testId": "EP-40",
       "name": "GET /transactions - List financial settlements with role permissions",
       "passed": true,
-      "details": "Status: 200, Count: 2",
+      "details": "Status: 200, Count: 3",
       "metadata": {
         "method": "GET",
         "path": "/transactions",
@@ -458,7 +458,7 @@
       "details": "Status: 200, Amount: 31000000",
       "metadata": {
         "method": "GET",
-        "path": "/transactions/16",
+        "path": "/transactions/17",
         "status": 200
       }
     },
@@ -510,7 +510,7 @@
       "testId": "SEC-05",
       "name": "Integrity: Prevent duplicate transaction on already-sold property (HTTP 409 Conflict)",
       "passed": true,
-      "details": "Status: 409, Error: \"Property is not available. Property 51 already has status Sold.\"",
+      "details": "Status: 409, Error: \"Property is not available. Property 53 already has status Sold.\"",
       "metadata": {
         "method": "POST",
         "path": "/transactions",

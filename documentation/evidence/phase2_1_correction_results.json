@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-25T05:49:54.078Z",
+  "timestamp": "2026-11-26T03:50:46.266Z",
   "sandboxDatabase": "estatecore_test_restore",
   "liveDatabaseProtected": true,
   "upMigration": {
@@ -54,7 +54,7 @@
   },
   "academicCompliance": {
     "users": {
-      "passed": true,
+      "passed": false,
       "sampleUsers": [
         {
           "id": 1,
