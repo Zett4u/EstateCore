@@ -38,12 +38,12 @@ To ensure academic rigor, each requirement is evaluated against live code and au
 | Requirement ID | Specification from Handout | Implementation File(s) | Database Entity / Constraint | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | **L04-01** | User Entity | `user.entity.ts` | `users` table: id, email, password, role, firstName, lastName, contactNumber, isActive | **IMPLEMENTED & TESTED** |
-| **L04-02** | Agent Entity (1:1 with User) | `agent.entity.ts` | `agents` table: id, userId (FK -> users.id, CASCADE), licenseNumber, agencyName, bio | **IMPLEMENTED & TESTED** |
+| **L04-02** | Agent Entity (1:1 with User) | `agent.entity.ts` | `agents` table: id, userId (FK -> users.id, RESTRICT), licenseNumber, agencyName, verificationStatus, specialization | **IMPLEMENTED & TESTED** |
 | **L04-03** | Property Entity | `property.entity.ts` | `properties` table: id, title, price, bedrooms, bathrooms, floorArea, lotArea, agentId, ownerId | **IMPLEMENTED & TESTED** |
-| **L04-04** | PropertyPhoto Entity | `property-photo.entity.ts` | `property_photos` table: id, propertyId (FK -> properties.id, CASCADE), photoUrl, isPrimary | **IMPLEMENTED & TESTED** |
-| **L04-05** | Inquiry Entity | `inquiry.entity.ts` | `inquiries` table: id, propertyId (RESTRICT), clientId (RESTRICT), offerPrice, status | **IMPLEMENTED & TESTED** |
-| **L04-06** | PropertyTransaction Entity | `transaction.entity.ts` | `property_transactions` table: id, propertyId (RESTRICT), buyerId, agentId, finalPrice | **IMPLEMENTED & TESTED** |
-| **L04-07** | Appointments Module | `appointment.entity.ts` | `appointments` table: id, propertyId, clientId, agentId, appointmentDate, status | **IMPLEMENTED & TESTED** |
+| **L04-04** | PropertyPhoto Entity | `property-photo.entity.ts` | `property_photos` table: id, propertyId (FK -> properties.id, CASCADE), filePath, isPrimary | **IMPLEMENTED & TESTED** |
+| **L04-05** | Inquiry Entity | `inquiry.entity.ts` | `inquiries` table: id, propertyId (RESTRICT), clientId (RESTRICT), assignedAgentId (SET NULL), offerAmount, status | **IMPLEMENTED & TESTED** |
+| **L04-06** | PropertyTransaction Entity | `transaction.entity.ts` | `property_transactions` table: id, propertyId (RESTRICT), buyerId (RESTRICT), agentId (RESTRICT), amount, status | **IMPLEMENTED & TESTED** |
+| **L04-07** | Appointments Module | `appointment.entity.ts` | `appointments` table: id, propertyId, clientId, agentId, appointmentDate, appointmentTime, status, notes | **IMPLEMENTED & TESTED** |
 | **L04-08** | Foreign Key Integrity | 7 Entity files | 13 foreign keys enforced in MySQL InnoDB engine with RESTRICT on inquiries & deals | **IMPLEMENTED & TESTED** |
 | **L04-09** | Identity Disambiguation | Entities & Services | Strict separation of `users.id` vs `agents.id`; resolved via `agents.userId` | **IMPLEMENTED & TESTED** |
 
@@ -67,7 +67,7 @@ To ensure academic rigor, each requirement is evaluated against live code and au
 | Card 12 | `/api/v1/properties/:id` | `DELETE` | `PropertiesController.remove` | `EP-28` (409 on transaction conflict) | **IMPLEMENTED & TESTED** |
 | Card 13 | `/api/v1/properties/:id/photos` | `GET` | `PropertiesController.getPhotos` | `EP-24` (200 OK) | **IMPLEMENTED & TESTED** |
 | Card 14 | `/api/v1/properties/:id/photos` | `POST` | `PropertiesController.addPhoto` | `EP-23` (201 Created / 400 empty) | **IMPLEMENTED & TESTED** |
-| Card 15 | `/api/v1/properties/:id/inquiries` | `POST` | `PropertiesController.createInquiry` | `EP-25` (201 Created with offerPrice) | **IMPLEMENTED & TESTED** |
+| Card 15 | `/api/v1/properties/:id/inquiries` | `POST` | `PropertiesController.createInquiry` | `EP-25` (201 Created with offerAmount) | **IMPLEMENTED & TESTED** |
 | Card 16 | `/api/v1/properties/:id/inquiries` | `GET` | `PropertiesController.getInquiries` | `EP-26` (200 OK assigned agent only) | **IMPLEMENTED & TESTED** |
 | Card 17 | `/api/v1/properties/:id/inquiries/:inquiryId` | `PATCH` | `PropertiesController.updateInquiry` | `EP-27` (200 OK status update) | **IMPLEMENTED & TESTED** |
 | Card 18 | `/api/v1/transactions` | `POST` | `TransactionsController.create` | `EP-39` (201 Created, sets SOLD) | **IMPLEMENTED & TESTED** |

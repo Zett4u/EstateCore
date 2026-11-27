@@ -188,9 +188,13 @@ backend/src/
 - **JWT Lifespan:** 1 hour (`3600s`). Token contains `sub` (User ID), `email`, `role`, and `agentId` (for Agents).
 - **Token Blacklisting:** `TokenBlacklistService` tracks revoked tokens upon `POST /api/v1/auth/logout`. `JwtAuthGuard` checks revocation before granting access.
 
-### 3.2 Brute-Force Rate Limiting (Lab 06 p. 21)
-- Implemented in `AuthService`: tracks consecutive failed logins by IP / email.
-- Exceeding 5 failed attempts within 15 minutes triggers `429 Too Many Requests: Too many failed login attempts. Please try again later.`
+### 3.2 Brute-Force Rate Limiting & Account Lockout (Lab 06 p. 21)
+- **Implementation:** Built into `AuthService` using an in-memory `Map<string, LoginAttemptTracker>` keyed by normalized email (`emailKey = email.toLowerCase().trim()`).
+- **Policy:** Exactly matches `estatecire.pdf` Lab 06 (p. 21): 5 failed attempts within a 10-minute window triggers a temporary 10-minute lockout returning `429 Too Many Requests`:
+  `"Too many failed login attempts. Account temporarily locked. Please try again in X seconds."`
+- **Architectural Characteristics & Limitations:**
+  - *In-Memory State:* Because attempts are tracked in the Node.js application memory heap, restarting the backend service resets the counter.
+  - *Single-Instance Scope:* In multi-instance clustered or load-balanced deployments, rate limiting requires a centralized shared cache (such as Redis) to coordinate lockout state across nodes. For local academic demonstration and defense evaluation, the in-memory map provides lightweight, zero-dependency protection.
 
 ### 3.3 File Upload Security
 - Multi-part file upload in `PropertiesController.addPhoto`:

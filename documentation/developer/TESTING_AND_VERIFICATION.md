@@ -96,7 +96,7 @@ node test_playwright.js
 **Expected Output:**
 ```
 ========================================================================
-PLAYWRIGHT TEST RESULTS: 21 passed, 0 failed (100.0%)
+PLAYWRIGHT TEST RESULTS: 27 passed, 0 failed (100.0%)
 Screenshots saved to documentation/evidence/playwright/
 ========================================================================
 ```
@@ -104,7 +104,7 @@ Screenshots saved to documentation/evidence/playwright/
 ---
 
 ### Suite 5: Live Database Zero-Touch Isolation Audit
-Verifies that the live production database (`estatecore_db` on Port 3306) remains 100% untouched and unmigrated:
+Verifies that the live production database (`estatecore_db` on Port 3306 standard / Port 3307 baseline) remains 100% untouched and unmigrated:
 ```bash
 node scripts/audit_live_database_isolation.js
 ```
@@ -124,7 +124,24 @@ In historical progress reports, three different test totals appeared: **139**, *
 
 1. **The "139" Tally:** Sum of Phase 3 Security Suite (60) + Phase 5.0 Academic Suite (34) + Phase 5.1 Stabilization sub-checks (45) = **139 total tests**.
 2. **The "144" Tally:** Sum of Phase 3 Security Suite (60) + Phase 5.0 Suite (34) + Phase 5.1 Suite (18) + Phase 2 Core Validation (18) + Live DB/Persistence checks (14) = **144 total tests**.
-3. **The "163" Tally:** Full aggregation across all test scripts in `scripts/`: Phase 3 (60) + Phase 5.0 (34) + Phase 5.1 (18) + Final Project Suite (46) + Playwright Acceptance (5) = **163 total assertions**.
+3. **The "163" Tally:** Full aggregation across all test scripts in `scripts/`: Phase 3 (60) + Phase 5.0 (34) + Phase 5.1 (18) + Final Project Suite (46) + Playwright Macro Acceptance Stages (5) = **163 total assertions**.
+
+### Playwright Test Count Reconciliation (21 vs 27 vs 5 Acceptance Stages)
+- **The "5 Acceptance Checks" in the 163 aggregation:** Represents the 5 macro user acceptance workflow stages:
+  1. *Public Discovery:* Landing page, property catalog filters, and specification detail view.
+  2. *Client Experience & RBAC:* One-click demo sign-in, appointment cancellation, and strict negative redirects when trying to access `/admin`, `/agent`, `/users`, or `/properties/new`.
+  3. *Agent Assignment & Collision Safety:* Provenance verification, Maria and Carlos assigned listing access, and cross-agent editing rejection.
+  4. *Administrator Governance:* User management, role distribution overview, and system-wide inquiries management.
+  5. *Transactions, Media & Mobile:* Financial ledger, photo gallery offer workflows, and responsive mobile viewport drawer.
+- **The "21 Tests" in Phase 4.0:** The initial 21 granular step assertions created for frontend authorization and RBAC verification.
+- **The "27 Tests" in Current `test_playwright.js`:** The expanded full-suite test script containing 27 discrete step assertions, adding coverage for profile updates, accredited agent directory, transactions dashboard, photo galleries, and mobile viewports.
+
+### REST API Verification Metrics Disambiguation
+To prevent confusing endpoint counts with assertion counts:
+- **39 Unique REST Controller Routes:** The actual count of unique `@Get`, `@Post`, `@Put`, `@Patch`, `@Delete` route handlers registered across all 7 NestJS controllers.
+- **41 Endpoint Test Requests:** The count of unique HTTP request invocations in `test_final_project_36_endpoints.js` (some routes are exercised under different roles).
+- **5 Security Validations:** Explicit security assertions (HTTP 401 unauthenticated, HTTP 403 forbidden role, HTTP 400 DTO validation, HTTP 404 not found, HTTP 409 duplicate transaction on sold property).
+- **46 Total Assertions:** 41 endpoint requests + 5 security checks = 46 passed assertions (100% pass rate).
 
 ### Legacy Phase 3 Test Script Failure Explanation
 When `scripts/test_phase3_security_suite.js` (written during Phase 3) is run against the current codebase, 13 assertions fail.

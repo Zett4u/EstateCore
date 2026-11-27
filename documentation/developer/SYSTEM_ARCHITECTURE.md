@@ -116,10 +116,10 @@ await this.dataSource.transaction(async (manager) => {
     buyerId: dto.buyerId,
     agentId: agent.id,
     transactionType: dto.transactionType,
-    finalPrice: dto.finalPrice,
+    amount: dto.amount,
     paymentMethod: dto.paymentMethod,
     status: TransactionStatus.PENDING,
-    remarks: dto.remarks,
+    notes: dto.notes,
   });
   const savedTx = await manager.save(transaction);
 

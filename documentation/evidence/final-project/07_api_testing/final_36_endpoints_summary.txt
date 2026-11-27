@@ -1,63 +1,66 @@
 ========================================================================
 ESTATECORE FINAL PROJECT: 36+ REST ENDPOINTS VERIFICATION REPORT
 ========================================================================
-Course:      ITEC 116 - Systems Integration and Architecture 2
-Instructor:  John Vincent A. Dallego, MIT
-Student:     Cabico, Cristina O. (BSIT 4-C)
-Date:        11/26/2026, 12:10:48 PM
-Database:    estatecore_test_restore (MySQL Port 3307 Sandbox)
-Live DB:     estatecore_db (Port 3307 - Zero Changes)
+Course:                 ITEC 116 - Systems Integration and Architecture 2
+Instructor:             John Vincent A. Dallego, MIT
+Student:                Cabico, Cristina O. (BSIT 4-C)
+Execution Timestamp:    2026-11-26T04:45:36.515Z
+Environment:            Isolated Docker MySQL Sandbox (Host Port 3307 -> Container 3306)
+Sandbox Database:       estatecore_test_restore (Active Test Target on Port 3307)
+Live DB Isolation:      estatecore_db (Port 3306 Standard / Port 3307 Baseline - 100% Zero-Touch Isolation)
 ------------------------------------------------------------------------
-Total Tests Executed: 46
-Passed:               46
-Failed:               0
-Pass Rate:            100.0%
-Endpoints Covered:    41 (Final Project requirement: >= 20)
+Unique REST Routes:     39 Distinct Controller Endpoints (Exceeds >= 20 Requirement)
+Endpoint Invocations:   41 Endpoint Test Requests Executed
+Security Validations:   5 Security & Authorization Checks (BOLA, Rate Limit, Lockout)
+Total Assertions:       46
+Passed Assertions:      46
+Failed Assertions:      0
+Success Rate:           100.0%
 ========================================================================
 
-[PASS] [EP-01] POST /auth/register - Register new client account -> Status: 201, Body: {"message":"Registration successful","accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyLCJlbWFpbCI6ImZpbmFsX2NsaWVudF8xNzk1NjY2MjQ2MzEyQGV4YW1wbGUuY29tIiwicm9sZSI6IkNMSUVOVCIsImlhdCI6MTc5NTY2NjI0NiwiZXhwIjoxNzk1NjY5ODQ2fQ.AI-ClFTHNBJMoOUpK-Pp7b2ojWlZ80CtTmAssYGkwzI","user":{"id":12,"fullName":"Final Project Client","email":"final_client_1795666246312@example.com","role":"CLIENT","isActive":true}}
+[PASS] [EP-01] POST /auth/register - Register new client account -> Status: 201, TokenIssued: true, User: {"id":15,"fullName":"Final Project Client","email":"final_client_1795668332784@example.com","role":"CLIENT","isActive":true}
 [PASS] [EP-02] POST /auth/login - Authenticate Administrator -> Status: 200, HasToken: true
 [PASS] [EP-03] POST /auth/login - Authenticate Agent (Maria Santos) -> Status: 200, Role: AGENT
 [PASS] [EP-04] POST /auth/login - Authenticate Client (Juan Dela Cruz) -> Status: 200, Role: CLIENT
 [PASS] [EP-05] GET /auth/me - Retrieve current authenticated user profile -> Status: 200, Email: maria.santos@estatecore.local
 [PASS] [EP-06] POST /auth/logout - Revoke JWT session token on server -> LogoutStatus: 200, PostLogoutStatus: 401
-[PASS] [EP-07] GET /users - Admin list all users with role filtering support -> Status: 200, Count: 12
-[PASS] [EP-08] POST /users - Create new user account -> Status: 201, CreatedId: 13
-[PASS] [EP-09] GET /users/:id - Retrieve user record by ID -> Status: 200, FoundEmail: final_user_crud_1795666247280@example.com
+[PASS] [EP-07] GET /users - Admin list all users with role filtering support -> Status: 200, Count: 15
+[PASS] [EP-08] POST /users - Create new user account -> Status: 201, CreatedId: 16
+[PASS] [EP-09] GET /users/:id - Retrieve user record by ID -> Status: 200, FoundEmail: final_user_crud_1795668334045@example.com
 [PASS] [EP-10] PATCH /users/:id - Partial update user profile details -> Status: 200, NewName: Updated Test User
 [PASS] [EP-11] PUT /users/:id - Full replacement update of user profile -> Status: 200, NewName: Full Put User
 [PASS] [EP-12] DELETE /users/:id - Admin delete user account (soft delete deactivation) -> DeleteStatus: 204, IsActiveAfterDelete: false
-[PASS] [EP-13] GET /agents - Public directory listing of active agents -> Status: 200, Count: 2
+[PASS] [EP-13] GET /agents - Public directory listing of active agents -> Status: 200, Count: 3
 [PASS] [EP-14] GET /agents/:id - Get agent details with associated user info -> Status: 200, AgentEmail: maria.santos@estatecore.local
-[PASS] [EP-15] POST /agents - Create professional agent profile -> Status: 201, AgentId: 4
+[PASS] [EP-15] POST /agents - Create professional agent profile -> Status: 201, AgentId: 5
 [PASS] [EP-16] PATCH /agents/:id - Partial update agent bio and details -> Status: 200, AgencyName: EstateCore Senior Realty
 [PASS] [EP-17] PUT /agents/:id - Full update agent profile -> Status: 200, Agency: EstateCore Elite Realty
 [PASS] [EP-18] GET /properties - Public query property catalog with filters -> Status: 200, Count: 1
 [PASS] [EP-19] GET /properties/:id - Public retrieve single property specification -> Status: 200, Title: Modern High-Rise Condominium in BGC
-[PASS] [EP-20] POST /properties - Create property listing with ownership attribution -> Status: 201, CreatedPropId: 19
+[PASS] [EP-20] POST /properties - Create property listing with ownership attribution -> Status: 201, CreatedPropId: 21
 [PASS] [EP-21] PATCH /properties/:id - Partial update listing price and status -> Status: 200, Price: 31000000
 [PASS] [EP-22] PUT /properties/:id - Full replacement update of listing details -> Status: 200, Bathrooms: 4
-[PASS] [EP-23] POST /properties/:id/photos - Attach photographic asset to property -> Status: 201, PhotoId: 1
+[PASS] [EP-23] POST /properties/:id/photos - Attach photographic asset to property -> Status: 201, PhotoId: 2
 [PASS] [EP-24] GET /properties/:id/photos - Retrieve all media assets for listing -> Status: 200
-[PASS] [EP-25] POST /properties/:id/inquiries - Submit nested client property inquiry -> Status: 201, InquiryId: 10
+[PASS] [EP-25] POST /properties/:id/inquiries - Submit nested client property inquiry -> Status: 201, InquiryId: 12
 [PASS] [EP-26] GET /properties/:id/inquiries - Agent list all inquiries for owned property -> Status: 200
-[PASS] [EP-27] PATCH /properties/:id/inquiries/:inquiryId - Agent update inquiry status (nested) -> Status: 200, Body: {"inquiryId":10,"propertyId":19,"userId":4,"inquiryType":"GENERAL","message":"Is this penthouse available for an in-person viewing this Saturday?","offerAmount":null,"status":"CONTACTED","dateSent":"2026-11-25T20:10:48.000Z"}
+[PASS] [EP-27] PATCH /properties/:id/inquiries/:inquiryId - Agent update inquiry status (nested) -> Status: 200, Body: {"inquiryId":12,"propertyId":21,"userId":4,"inquiryType":"GENERAL","message":"Is this penthouse available for an in-person viewing this Saturday?","offerAmount":null,"status":"CONTACTED","dateSent":"2026-11-25T20:45:35.000Z"}
 [PASS] [EP-28] DELETE /properties/:id - Delete listing with relational safety -> DeleteStatus: 200, VerifyStatus: 404
-[PASS] [EP-29] POST /inquiries - Create inquiry via root controller -> Status: 201, InquiryId: 11
-[PASS] [EP-30] GET /inquiries - Retrieve inquiry catalog with role-based visibility -> Status: 200, Count: 8
+[PASS] [EP-29] POST /inquiries - Create inquiry via root controller -> Status: 201, InquiryId: 13
+[PASS] [EP-30] GET /inquiries - Retrieve inquiry catalog with role-based visibility -> Status: 200, Count: 9
 [PASS] [EP-31] GET /inquiries/:id - Retrieve specific inquiry detail -> Status: 200, FoundMsg: Direct inquiry regarding prope...
 [PASS] [EP-32] PATCH /inquiries/:id - Update inquiry lifecycle status -> Status: 200, NewStatus: CLOSED
 [PASS] [EP-33] DELETE /inquiries/:id - Remove inquiry record -> DeleteStatus: 200, VerifyStatus: 404
-[PASS] [EP-34] POST /appointments - Schedule viewing appointment with agent -> Status: 201, ApptId: 7
+[PASS] [EP-34] POST /appointments - Schedule viewing appointment with agent -> Status: 201, ApptId: 8
 [PASS] [EP-35] GET /appointments - List appointments for authenticated user -> Status: 200, Count: 4
 [PASS] [EP-36] GET /appointments/:id - Retrieve specific appointment details -> Status: 200, Notes: Client request for private viewing with family.
 [PASS] [EP-37] PATCH /appointments/:id - Update appointment status and agent remarks -> Status: 200, Status: CONFIRMED
 [PASS] [EP-38] DELETE /appointments/:id - Cancel and remove appointment schedule -> DeleteStatus: 200, VerifyStatus: 404
-[PASS] [EP-39] POST /transactions - Execute atomic property transaction & transition status to SOLD -> TxStatus: 201, TxId: 1, PropStatus: SOLD
-[PASS] [EP-40] GET /transactions - List financial settlements with role permissions -> Status: 200, Count: 1
+[PASS] [EP-39] POST /transactions - Execute atomic property transaction & transition status to SOLD -> TxStatus: 201, TxId: 2, PropStatus: SOLD
+[PASS] [EP-40] GET /transactions - List financial settlements with role permissions -> Status: 200, Count: 2
 [PASS] [EP-41] GET /transactions/:id - Retrieve audited transaction details -> Status: 200, Amount: 31000000
 [PASS] [SEC-01] Security: HTTP 401 Unauthorized for unauthenticated access -> Status: 401
 [PASS] [SEC-02] Security: HTTP 403 Forbidden when client accesses admin resource -> Status: 403
 [PASS] [SEC-03] Security: HTTP 400 Bad Request on invalid DTO validation schema -> Status: 400
 [PASS] [SEC-04] Security: HTTP 404 Not Found for nonexistent property identifier -> Status: 404
-[PASS] [SEC-05] Integrity: Prevent duplicate transaction on already-sold property (HTTP 409 Conflict) -> Status: 409, Error: "Property is not available. Property 19 already has status Sold."
+[PASS] [SEC-05] Integrity: Prevent duplicate transaction on already-sold property (HTTP 409 Conflict) -> Status: 409, Error: "Property is not available. Property 21 already has status Sold."

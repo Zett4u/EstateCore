@@ -23,8 +23,16 @@ import { TokenBlacklistService } from './token-blacklist.service';
         const envExp = config.get<string>('JWT_EXPIRATION');
         const tokenExpiration = (!envExp || envExp === '86400s') ? '3600s' : envExp;
 
+        const jwtSecret = config.get<string>('JWT_SECRET');
+        if (!jwtSecret || jwtSecret.trim() === '') {
+          throw new Error(
+            'FATAL SECURITY CONFIGURATION ERROR: JWT_SECRET environment variable is missing or empty. ' +
+            'The application refuses to start with an insecure or undefined signing key.',
+          );
+        }
+
         return {
-          secret: config.get<string>('JWT_SECRET') || 'estatecore_super_secret_jwt_key_2026_academic_defense_key',
+          secret: jwtSecret,
           signOptions: {
             expiresIn: tokenExpiration,
           },

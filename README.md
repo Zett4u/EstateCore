@@ -7,9 +7,9 @@
 [![Container](https://img.shields.io/badge/Docker-Compose-2496ED.svg)]()
 [![Auth](https://img.shields.io/badge/Authentication-JWT_Passport-yellow.svg)]()
 [![Frontend](https://img.shields.io/badge/React-18_Vite_Tailwind-61DAFB.svg)]()
-[![REST API](https://img.shields.io/badge/REST_Endpoints-39_Mapped-informational.svg)]()
+[![REST API](https://img.shields.io/badge/REST_Endpoints-39_Unique_Routes-informational.svg)]()
 [![Final Project Tests](https://img.shields.io/badge/API_Verification-46%2F46_Passed-success.svg)]()
-[![Playwright Tests](https://img.shields.io/badge/Playwright_E2E-21%2F21_Passed-success.svg)]()
+[![Playwright Tests](https://img.shields.io/badge/Playwright_E2E-27_Steps_Passing-success.svg)]()
 
 ---
 
@@ -45,7 +45,7 @@ The platform provides an enterprise architectural solution to streamline real es
 | **Frontend Framework** | React 18, Vite, TypeScript | Single Page Application with optimized Vite bundling and fast HMR |
 | **Styling & Design** | Tailwind CSS & Lucide Icons | Responsive styling, mobile navigation drawer, and warm architectural palette |
 | **Network Proxy** | Vite Reverse Proxy | Automatic `/api` forwarding to backend for seamless cross-device mobile access |
-| **Automated Testing** | Comprehensive Test Suites | 46/46 Final Project API checks, 18/18 Stabilization checks, 34/34 Academic checks, and 21/21 E2E browser tests passing with 100% success rate |
+| **Automated Testing** | Comprehensive Test Suites | 46 total assertions across 39 unique REST endpoints (41 test requests + 5 security checks), 18/18 Stabilization checks, 34/34 Academic checks, and 27 E2E browser test steps passing with 100% success rate |
 
 ---
 
@@ -240,12 +240,16 @@ The database comes pre-seeded with verified test accounts across all three syste
 EstateCore includes comprehensive automated test suites ensuring zero regression, strong RBAC compliance, concurrency locking, and reliable full-stack behavior.
 
 ### 1. Final Project Comprehensive API Suite (46 Tests)
-Validates all 39 mapped REST endpoints, dual-prefix routing (`/api/v1` and `/api`), role permissions, DTO validation schemas, and negative error conditions against the isolated sandbox database (`estatecore_test_restore` on port 3307).
+Validates all 39 unique REST endpoints across 7 controllers, dual-prefix routing (`/api/v1` and `/api`), role permissions, DTO validation schemas, and negative error conditions against the isolated sandbox database (`estatecore_test_restore` on port 3307).
 ```bash
 node scripts/test_final_project_36_endpoints.js
 ```
-- **Result:** `46 / 46 passed (100.0%)` with zero errors.
-- **Evidence:** `documentation/evidence/final-project/07_api_testing/final_36_endpoints_results.json`
+- **Test Metrics Breakdown:**
+  - **39 Unique Controller Routes:** Full inventory of distinct production HTTP route handlers.
+  - **41 Endpoint Invocations:** Targeted HTTP requests exercising CRUD operations and role views.
+  - **5 Security Assertions:** Explicit checks for 401 unauthenticated, 403 forbidden role, 400 validation rejection, 404 not found, and 409 sold property conflict.
+  - **46 Total Checks:** `46 / 46 passed (100.0%)` with zero errors.
+- **Sanitized Evidence:** `documentation/evidence/final-project/07_api_testing/final_36_endpoints_results.json` and `final_36_endpoints_summary.txt` (contains zero exposed tokens or credentials).
 
 ### 2. Concurrency & Security Stabilization Suite (18 Tests)
 Validates pessimistic write locking (`pessimistic_write`) under simultaneous race conditions, atomic status transitions to `SOLD`, 1-hour JWT expiration, 5-attempt brute force rate-limiting lockout (`429 Too Many Requests`), and photo upload path traversal defenses.
@@ -261,12 +265,12 @@ node scripts/test_phase5_academic_endpoints.js
 ```
 - **Result:** `34 / 34 passed (100.0%)` with zero errors.
 
-### 4. Playwright End-to-End Browser Suite (21 Tests)
-Covers all browser flows, form interactions, mobile drawer responsiveness, negative authorization redirects, and appointment cancellations.
+### 4. Playwright End-to-End Browser Suite (27 Steps / 5 Macro Acceptance Stages)
+Covers browser flows, form interactions, mobile drawer responsiveness, negative authorization redirects, and appointment cancellations.
 ```bash
 node test_playwright.js
 ```
-- **Result:** `21 / 21 tests passed` with `0 console errors`.
+- **Result:** `27 / 27 test steps passed` (covering all 5 core acceptance workflow stages) with `0 console errors`.
 - **Evidence:** Visual screenshots captured in [documentation/evidence/playwright/](documentation/evidence/playwright/).
 
 ---
@@ -312,8 +316,8 @@ All academic submission requirements for **ITEC 116** are packaged under `docume
 1. **SQL Database Dump:** [EstateCore_Final_Project.sql](documentation/deliverables/EstateCore_Final_Project.sql) (18.1 KB, 7 relational tables + sample seed data).
 2. **Postman API Collection:** [EstateCore_Final_Project.postman_collection.json](documentation/deliverables/EstateCore_Final_Project.postman_collection.json) (40.3 KB, 46 requests across 8 folders).
 3. **Postman Environment Template:** [EstateCore_Postman_Environment.template.json](documentation/deliverables/EstateCore_Postman_Environment.template.json) (1.0 KB, pre-configured variables).
-4. **Technical Documentation PDF:** [EstateCore_Final_Project_Documentation.pdf](documentation/deliverables/EstateCore_Final_Project_Documentation.pdf) (641.9 KB, 28-page compiled technical report).
-5. **Presentation Deck:** [EstateCore_Final_Project_Presentation.pptx](documentation/deliverables/EstateCore_Final_Project_Presentation.pptx) (187.4 KB, 15 professional slides with speaker notes).
+4. **Technical Documentation PDF:** [EstateCore_Final_Project_Documentation.pdf](documentation/deliverables/EstateCore_Final_Project_Documentation.pdf) (641.9 KB, 17-page compiled technical report).
+5. **Presentation Deck:** [EstateCore_Final_Project_Presentation.pptx](documentation/deliverables/EstateCore_Final_Project_Presentation.pptx) (187.4 KB, 9 professional defense slides).
 6. **Demonstration Script:** [EstateCore_5_to_10_Minute_Demo_Script.md](documentation/deliverables/EstateCore_5_to_10_Minute_Demo_Script.md) (7.6 KB, timed 8-minute narration script).
 7. **Defense Q&A Preparation:** [EstateCore_Defense_Questions_and_Answers.md](documentation/deliverables/EstateCore_Defense_Questions_and_Answers.md) (5.8 KB, 10 panel questions with technical answers).
 

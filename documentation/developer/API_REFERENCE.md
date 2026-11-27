@@ -219,7 +219,7 @@
 
 ### 5.1 Submit Inquiry
 - **Method:** `POST` | **Route:** `/api/v1/inquiries` | **Auth:** `CLIENT` | **Success:** `201 Created`
-- **Body:** `{ "propertyId": 1, "message": "Interested in viewing this Sunday", "offerPrice": 27500000 }`
+- **Body:** `{ "propertyId": 1, "message": "Interested in viewing this Sunday", "offerAmount": 27500000 }`
 - **Test ID:** `EP-29`
 
 ### 5.2 List Inquiries
@@ -276,9 +276,9 @@
     "propertyId": 1,
     "buyerId": 4,
     "transactionType": "SALE",
-    "finalPrice": 27500000,
-    "paymentMethod": "BANK_FINANCING",
-    "remarks": "Notarized Deed of Absolute Sale signed"
+    "amount": 27500000,
+    "paymentMethod": "BANK_TRANSFER",
+    "notes": "Notarized Deed of Absolute Sale signed"
   }
   ```
 - **Database Effect:** Acquires `pessimistic_write` lock; writes transaction row; atomically flips `properties.status` to `SOLD`.

@@ -44,12 +44,11 @@ erDiagram
 
     agents {
         int id PK "Auto Increment (Agent ID)"
-        int userId FK "Unique 1:1 -> users.id"
+        int userId FK "Unique 1:1 -> users.id [RESTRICT]"
         string agencyName "Brokerage name"
         string licenseNumber "PRC / DTI license"
-        text bio "Professional bio"
-        string specializations "Property specialties"
-        boolean isVerified "Agent verification flag"
+        enum verificationStatus "PENDING_VERIFICATION | VERIFIED | REJECTED"
+        string specialization "Brokerage specialty"
         datetime createdAt "Timestamp"
         datetime updatedAt "Timestamp"
     }
@@ -68,57 +67,62 @@ erDiagram
         int bathrooms "Bathrooms count"
         decimal floorArea "Floor area in sqm"
         decimal lotArea "Lot area in sqm"
-        int agentId FK "Assigned broker -> agents.id"
-        int ownerId FK "Property owner -> users.id"
+        int agentId FK "Assigned broker -> agents.id [SET NULL]"
+        int ownerId FK "Property owner -> users.id [SET NULL]"
         datetime createdAt "Timestamp"
         datetime updatedAt "Timestamp"
     }
 
     property_photos {
         int id PK "Auto Increment"
-        int propertyId FK "Parent property -> properties.id"
-        string photoUrl "Relative or absolute URL"
+        int propertyId FK "Parent property -> properties.id [CASCADE]"
+        string filePath "Relative storage path (/uploads/properties/...)"
         boolean isPrimary "Featured thumbnail flag"
+        string caption "Image caption"
         datetime createdAt "Timestamp"
     }
 
     inquiries {
         int id PK "Auto Increment"
-        int propertyId FK "Target property -> properties.id"
-        int clientId FK "Inquiring client -> users.id"
-        int assignedAgentId FK "Assigned agent user -> users.id"
-        text message "Inquiry message"
-        decimal offerPrice "Formal purchase/rent offer (12,2)"
-        enum status "PENDING | CONTACTED | QUALIFIED | CLOSED | CANCELLED"
+        int propertyId FK "Target property -> properties.id [RESTRICT]"
+        int clientId FK "Inquiring client -> users.id [RESTRICT]"
+        int assignedAgentId FK "Assigned agent user -> users.id [SET NULL]"
+        enum inquiryType "GENERAL | VIEWING | FINANCING | OFFER"
+        string subject "Inquiry subject line"
+        text message "Inquiry message body"
+        decimal offerAmount "Formal purchase/rent offer (12,2)"
+        string contactNumber "Client contact phone"
+        enum status "PENDING | CONTACTED | QUALIFIED | CLOSED"
         datetime createdAt "Timestamp"
         datetime updatedAt "Timestamp"
     }
 
     appointments {
         int id PK "Auto Increment"
-        int propertyId FK "Target property -> properties.id"
-        int clientId FK "Tour client -> users.id"
-        int agentId FK "Tour advisor user -> users.id"
-        datetime appointmentDate "Scheduled date/time"
-        enum status "PENDING | CONFIRMED | CANCELLED | COMPLETED"
-        text notes "Client instructions"
-        text agentRemarks "Advisor tour feedback"
+        int propertyId FK "Target property -> properties.id [CASCADE]"
+        int clientId FK "Tour client -> users.id [CASCADE]"
+        int agentId FK "Tour advisor user -> users.id [CASCADE]"
+        date appointmentDate "Scheduled calendar date (YYYY-MM-DD)"
+        string appointmentTime "Scheduled time slot (HH:MM)"
+        enum status "PENDING | CONFIRMED | COMPLETED | CANCELLED"
+        text notes "Client instructions / tour notes"
         datetime createdAt "Timestamp"
         datetime updatedAt "Timestamp"
     }
 
     property_transactions {
         int id PK "Auto Increment"
-        int propertyId FK "Sold property -> properties.id"
-        int buyerId FK "Purchaser -> users.id"
-        int agentId FK "Broker -> agents.id"
+        int propertyId FK "Settled property -> properties.id [RESTRICT]"
+        int buyerId FK "Purchaser -> users.id [RESTRICT]"
+        int agentId FK "Broker -> agents.id [RESTRICT]"
+        decimal amount "Agreed transaction settlement amount (12,2)"
         enum transactionType "SALE | RENT"
-        datetime transactionDate "Date of settlement"
-        decimal finalPrice "Agreed purchase price (12,2)"
-        enum paymentMethod "CASH | BANK_FINANCING | IN_HOUSE"
+        enum paymentMethod "CASH | BANK_TRANSFER | CHECK | FINANCING"
         enum status "PENDING | COMPLETED | CANCELLED"
-        text remarks "Notarization / legal notes"
+        date transactionDate "Date of transaction settlement"
+        text notes "Notarization / settlement notes"
         datetime createdAt "Timestamp"
+        datetime updatedAt "Timestamp"
     }
 ```
 
@@ -156,21 +160,23 @@ A frequent source of defects in legacy real estate platforms is confusing user a
 
 ---
 
-## 3. Foreign Key Constraints & Referential Deletion Actions
+## 3. Foreign Key Constraints & Referential Deletion Actions (All 13 Foreign Keys)
 
-| Table | Constraint Name | Column | References | On Delete Action | Business Reason |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `agents` | `FK_agents_userId` | `userId` | `users(id)` | `CASCADE` | Deleting a user account removes their agent profile. |
-| `properties` | `FK_properties_agentId` | `agentId` | `agents(id)` | `SET NULL` | Removing an agent unassigns the listing rather than deleting the property. |
-| `properties` | `FK_properties_ownerId` | `ownerId` | `users(id)` | `SET NULL` | Deleting a user account unassigns legal ownership rather than deleting the listing. |
-| `property_photos` | `FK_property_photos_propertyId` | `propertyId` | `properties(id)` | `CASCADE` | Deleting a property automatically deletes all attached photographic media. |
-| `inquiries` | `FK_inquiries_propertyId` | `propertyId` | `properties(id)` | **`RESTRICT`** | **Inquiry Protection:** Prevents deleting a property if prospective buyers have submitted active inquiries. |
-| `inquiries` | `FK_inquiries_clientId` | `clientId` | `users(id)` | **`RESTRICT`** | Protects prospect communication audit history from account deletion. |
-| `inquiries` | `FK_inquiries_assignedAgentId` | `assignedAgentId` | `users(id)` | `SET NULL` | If an assigned advisor is deactivated, the inquiry remains open for reassignment. |
-| `appointments` | `FK_appointments_propertyId` | `propertyId` | `properties(id)` | `CASCADE` | Deleting an unlisted property cancels pending viewing tour appointments. |
-| `property_transactions` | `FK_transactions_propertyId` | `propertyId` | `properties(id)` | **`RESTRICT`** | **Financial Integrity:** Deleting a property that has an existing sales transaction is strictly blocked by the database engine. |
-| `property_transactions` | `FK_transactions_buyerId` | `buyerId` | `users(id)` | `RESTRICT` | Purchaser audit records cannot be deleted. |
-| `property_transactions` | `FK_transactions_agentId` | `agentId` | `agents(id)` | `RESTRICT` | Settled broker commission records cannot be deleted. |
+| # | Table | Constraint Name | Column | References | On Delete Action | Business Reason |
+| :- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | `agents` | `FK_agents_userId` | `userId` | `users(id)` | **`RESTRICT`** | **Strict Identity Protection:** An agent profile cannot be deleted or orphaned while active foreign key dependencies exist. |
+| 2 | `properties` | `FK_properties_agentId` | `agentId` | `agents(id)` | `SET NULL` | Removing an agent unassigns the listing rather than deleting the property. |
+| 3 | `properties` | `FK_properties_ownerId` | `ownerId` | `users(id)` | `SET NULL` | Deleting a user account unassigns legal ownership rather than deleting the listing. |
+| 4 | `property_photos` | `FK_property_photos_propertyId` | `propertyId` | `properties(id)` | `CASCADE` | Deleting a property automatically cascades and cleans up all attached media metadata. |
+| 5 | `inquiries` | `FK_inquiries_propertyId` | `propertyId` | `properties(id)` | **`RESTRICT`** | **Inquiry Protection:** Prevents deleting a property if prospective buyers have submitted active inquiries. |
+| 6 | `inquiries` | `FK_inquiries_clientId` | `clientId` | `users(id)` | **`RESTRICT`** | Protects prospect communication audit history from client account deletion. |
+| 7 | `inquiries` | `FK_inquiries_assignedAgentId` | `assignedAgentId` | `users(id)` | `SET NULL` | If an assigned advisor account is deactivated, the inquiry remains open for reassignment. |
+| 8 | `appointments` | `FK_appointments_propertyId` | `propertyId` | `properties(id)` | `CASCADE` | Deleting an unlisted property cancels scheduled viewing tour appointments. |
+| 9 | `appointments` | `FK_appointments_clientId` | `clientId` | `users(id)` | `CASCADE` | Removing a client cancels their pending viewing appointments. |
+| 10 | `appointments` | `FK_appointments_agentId` | `agentId` | `users(id)` | `CASCADE` | Removing an advisor cancels tour appointments scheduled under their calendar. |
+| 11 | `property_transactions` | `FK_transactions_propertyId` | `propertyId` | `properties(id)` | **`RESTRICT`** | **Financial Integrity:** Deleting a property that has an existing sales transaction is strictly blocked by the database engine. |
+| 12 | `property_transactions` | `FK_transactions_buyerId` | `buyerId` | `users(id)` | **`RESTRICT`** | Purchaser audit records cannot be deleted. |
+| 13 | `property_transactions` | `FK_transactions_agentId` | `agentId` | `agents(id)` | **`RESTRICT`** | Settled broker commission records cannot be deleted. |
 
 ---
 
@@ -179,4 +185,4 @@ A frequent source of defects in legacy real estate platforms is confusing user a
 EstateCore satisfies 3NF normalization rules across all tables:
 1. **First Normal Form (1NF):** All tables have a primary key, each column stores atomic values (no repeating groups or arrays stored as unindexed blobs), and each row is unique.
 2. **Second Normal Form (2NF):** Every table is in 1NF, and all non-key attributes are fully functionally dependent on the primary key (no partial key dependencies).
-3. **Third Normal Form (3NF):** Every table is in 2NF, and no transitive dependencies exist (non-prime attributes depend only on the primary key). For instance, agent brokerage attributes (`agencyName`, `licenseNumber`, `bio`) are segregated into the `agents` table rather than denormalized across `users` or `properties`.
+3. **Third Normal Form (3NF):** Every table is in 2NF, and no transitive dependencies exist (non-prime attributes depend only on the primary key). For instance, agent brokerage attributes (`agencyName`, `licenseNumber`, `specialization`) are segregated into the `agents` table rather than denormalized across `users` or `properties`.

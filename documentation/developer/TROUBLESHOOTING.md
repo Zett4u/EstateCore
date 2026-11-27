@@ -58,7 +58,7 @@
 ### Issue 4: Received `429 Too Many Requests` Lockout
 - **Symptom:** `429 Too Many Requests: Too many failed login attempts. Please try again later.`
 - **Cause:** Lab 06 (p. 21) brute-force rate limiting triggered after 5 consecutive incorrect passwords.
-- **Solution:** Wait 15 minutes for the sliding window to reset, or restart the backend process to clear the in-memory rate-limiter cache.
+- **Solution:** Wait 10 minutes for the lockout window to expire, or restart the backend process to clear the in-memory rate-limiter cache.
 
 ---
 
