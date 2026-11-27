@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { UsersService } from '../../users/users.service';
@@ -16,13 +17,21 @@ export interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
+    private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     private readonly tokenBlacklistService: TokenBlacklistService,
   ) {
+    const jwtSecret = configService.get<string>('JWT_SECRET') || process.env.JWT_SECRET;
+    if (!jwtSecret || jwtSecret.trim() === '') {
+      throw new Error(
+        'FATAL SECURITY CONFIGURATION ERROR: JWT_SECRET environment variable is missing or empty. ' +
+        'Passport JWT strategy refuses to initialize without a valid signing key.',
+      );
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'estatecore_super_secret_jwt_key_2026_academic_defense_key',
+      secretOrKey: jwtSecret,
       passReqToCallback: true,
     });
   }

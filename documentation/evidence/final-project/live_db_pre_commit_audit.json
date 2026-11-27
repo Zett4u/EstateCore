@@ -1,0 +1,92 @@
+{
+  "timestamp": "2026-11-26T04:46:50.624Z",
+  "backup": {
+    "path": "database/exports/phase2_verified_backup.sql",
+    "sizeBytes": 15366,
+    "sha256": "32ce36ec92d4d330bb07b542411b62923dc7671b1908daae577090b0ece12d36"
+  },
+  "liveServer": {
+    "currentDb": "estatecore_db",
+    "mysqlVersion": "8.4.11",
+    "hostname": "d893f70afd2c",
+    "port": 3306,
+    "charset": "utf8mb4",
+    "collation": "utf8mb4_0900_ai_ci"
+  },
+  "liveDatabase": {
+    "name": "estatecore_db",
+    "tableCount": 5,
+    "tables": [
+      "appointments",
+      "inquiries",
+      "migrations",
+      "properties",
+      "users"
+    ],
+    "rowCounts": {
+      "appointments": 4,
+      "inquiries": 7,
+      "migrations": 1,
+      "properties": 8,
+      "users": 11
+    },
+    "migrationCount": 1,
+    "migrations": [
+      {
+        "id": 1,
+        "timestamp": 1700000000000,
+        "name": "InitialMigration1700000000000"
+      }
+    ],
+    "isolationCheck": {
+      "liveHasPhase2Tables": false,
+      "liveHasPhase2UserCols": false,
+      "liveHasPhase2PropCols": false,
+      "is100PercentUntouched": true
+    },
+    "recordFingerprints": {
+      "users": {
+        "count": 11,
+        "sha256": "e4ca86ced18091b96108e22d8f0e904284e2cc6bd271bd418ef06761d24a77ce"
+      },
+      "properties": {
+        "count": 8,
+        "sha256": "fed1a97402a8416af45352388a725ab0ab02ad3de8f4ae2f746e760658d501bc"
+      },
+      "inquiries": {
+        "count": 7,
+        "sha256": "b3f2b329cdd5b830a29868b60471d642bfc58851b86b208bb7f53b9b2ee3ca2f"
+      }
+    },
+    "columns": {
+      "users": [
+        "id",
+        "fullName",
+        "email",
+        "password",
+        "role",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": [
+        "id",
+        "title",
+        "description",
+        "propertyType",
+        "listingType",
+        "price",
+        "location",
+        "address",
+        "bedrooms",
+        "bathrooms",
+        "floorArea",
+        "lotArea",
+        "status",
+        "agentId",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  }
+}

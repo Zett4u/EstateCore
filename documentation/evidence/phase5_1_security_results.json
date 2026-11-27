@@ -1,8 +1,8 @@
 {
   "summary": {
     "total": 60,
-    "passed": 60,
-    "failed": 0
+    "passed": 47,
+    "failed": 13
   },
   "testCases": [
     {
@@ -257,64 +257,64 @@
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Juan Creates Listing as Property Owner (ownerId=4)",
       "expectedStatus": 201,
-      "actualStatus": 201,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Juan Updates Owned Property Listing",
       "expectedStatus": 200,
-      "actualStatus": 200,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Elena Forbidden from Updating Juan Owned Property",
       "expectedStatus": 403,
-      "actualStatus": 403,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Elena Forbidden from Deleting Juan Owned Property",
       "expectedStatus": 403,
-      "actualStatus": 403,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Elena Forbidden from Uploading Photo to Juan Owned Property",
       "expectedStatus": 403,
-      "actualStatus": 403,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Juan Uploads Photo to Owned Property",
       "expectedStatus": 201,
-      "actualStatus": 201,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Juan Forbidden from Altering Listing Owner",
       "expectedStatus": 403,
-      "actualStatus": 403,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Juan Forbidden from Assigning Agent via PATCH",
       "expectedStatus": 403,
-      "actualStatus": 403,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
@@ -393,8 +393,8 @@
       "category": "CLIENT_OWNERSHIP",
       "testName": "Client Juan Deletes Owned Property Listing",
       "expectedStatus": 200,
-      "actualStatus": 200,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
@@ -457,32 +457,32 @@
       "category": "ADMIN_AUTHORITY",
       "testName": "Admin Creates Property with Agent 2 and Owner 4",
       "expectedStatus": 201,
-      "actualStatus": 201,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "ADMIN_AUTHORITY",
       "testName": "Admin Reassigns Property Agent to Maria (1)",
       "expectedStatus": 200,
-      "actualStatus": 200,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "ADMIN_AUTHORITY",
       "testName": "Admin Reassigns Property Owner to Elena (5)",
       "expectedStatus": 200,
-      "actualStatus": 200,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     },
     {
       "category": "ADMIN_AUTHORITY",
       "testName": "Admin Deletes Test Property Listing",
       "expectedStatus": 200,
-      "actualStatus": 200,
-      "passed": true,
+      "actualStatus": 400,
+      "passed": false,
       "detail": ""
     }
   ],

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-26T02:21:16.134Z",
+  "timestamp": "2026-11-26T03:49:40.013Z",
   "totalTests": 18,
   "passedTests": 18,
   "failedTests": 0,
@@ -46,7 +46,7 @@
       "testId": "SETUP-PROP",
       "name": "Agent Maria creates listing for concurrency testing",
       "passed": true,
-      "details": "id=42"
+      "details": "id=55"
     },
     {
       "testId": "TX-CONCURRENCY-RACE",
